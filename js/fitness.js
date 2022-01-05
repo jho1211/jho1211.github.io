@@ -68,5 +68,5 @@ function createInputElement(ph){
 async function loadPreset(){
 	var preset = document.getElementById("presetSelect");
 	var presetSelected = preset.value;
-	await fetch
+	console.log(presetsData);
 }
