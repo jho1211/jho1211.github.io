@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link href="css/bootstrap-override.css" rel="stylesheet">
+
+    <title>Jeff's World</title>
+  </head>
+  <body class="bg-dark" onload="loadPresets()">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 my-2">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="index.html"><img src="img/logo.png" alt="" width="64" height="64" class="d-inline-block align-top"></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav mx-auto">
+            <li class="nav-item mx-2">
+              <a class="nav-link fs-2" aria-current="page" href="index.html">Home</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link active fs-2" href="fitness.html">Fitness</a>
+            </li>
+            <li class="nav-item mx-2">
+              <a class="nav-link fs-2" href="study.html">Study</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <hr class="text-light"/>
+    <div class="container-fluid">
+      <div class="row justify-content-md-center">
+        <div class="col col-md-auto">
+          <div class="container-fluid">
+            <h1 class="text-light display-1">Fitness Tracker</h1>
+            <p class="text-light fs-3">
+              Keep track of your fitness progress so that you can document your transformation
+            </p>
+            <p class="text-success fs-3">
+              Instructions:
+            </p>
+            <ul class="list-unstyled text-light">
+              <li>1. Select a preset or create your own</li>
+              <li>2. Input the requested values</li>
+              <li>3. Submit</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+    <hr class="mb-3"/>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-4">
+          <label for="select-date" class="form-label text-light"><strong>Date of Activity</strong></label>
+          <input type="date" class="form-control" aria-label="Date of Activity">
+        </div>
+        <div class="col-8">
+          <label for="select-preset" class="form-label text-light"><strong>Select a preset (optional)</strong></label>
+          <select class="form-select" aria-label="Select your preset" onchange="loadPreset()" id="presetSelect">
+            <option selected>------------</option>
+            <option value="1">Push Day</option>
+            <option value="2">Pull Day</option>
+            <option value="3">Leg Day</option>
+            <option value="4">Run Cardio</option>
+          </select>
+        </div>
+      </div>
+
+      <hr class="mb-3"/>
+      <table class="table bg-dark text-light" id="fitnessTable">
+        <thead>
+          <tr>
+            <th scope="col">Type</th>
+            <th scope="col">Activity</th>
+            <th scope="col">Weight (lbs)</th>
+            <th scope="col">Sets</th>
+            <th scope="col">Reps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <select class="form-select" aria-label="Select your activity type">
+                <option selected>Select an activity type</option>
+                <option value="wl">Weightlifting</option>
+                <option value="run">Running</option>
+                <option value="other">Other</option>
+              </select>
+            </td>
+            <td><input type="text" class="form-control" placeholder="Activity" aria-label="Name of Activity" aria-describedby="inputActivity"></td>
+            <td><input type="text" class="form-control" placeholder="0" aria-label="Weight" aria-describedby="inputWeight"></td>
+            <td><input type="text" class="form-control" placeholder="0" aria-label="Number of sets" aria-describedby="inputSets"></td>
+            <td><input type="text" class="form-control" placeholder="0" aria-label="Number of reps" aria-describedby="inputReps"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="row justify-content-md-center">
+        <div class="col col-md-auto">
+          <button class="btn mb-3" type="button" id="add-row" onclick="addNewRow()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="green" class="bi bi-plus-circle" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="row mb-3">
+        <div class="col-4">
+          <div class="d-grid gap-2">
+            <button type="primary" class="btn btn-success btn-lg">Save as New Preset</button>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="d-grid gap-2">
+            <button type="primary" class="btn btn-danger btn-lg">Delete Preset</button>
+          </div>
+        </div>
+        <div class="col-4">
+          <div class="d-grid gap-2">
+            <button type="primary" class="btn btn-primary btn-lg">Submit</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="js/fitness.js"></script>
+  </body>
+</html>
