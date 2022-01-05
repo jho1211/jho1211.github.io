@@ -77,9 +77,11 @@ function createInputElement(value){
 	return newInputField
 }
 
-async function loadPreset(){
+function loadPreset(){
 	var preset = document.getElementById("presetSelect");
 	var presetSelected = preset.value;
 	console.log("You have selected the preset: " + presetSelected);
-	addNewRow(presetsData[presetSelected]);
+	for (const psetRow in presetsData[presetSelected]){
+		addNewRow(psetRow);
+	}
 }
