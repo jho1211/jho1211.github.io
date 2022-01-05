@@ -66,7 +66,7 @@
         <div class="col-8">
           <label for="select-preset" class="form-label text-light"><strong>Select a preset (optional)</strong></label>
           <select class="form-select" aria-label="Select your preset" onchange="loadPreset()" id="presetSelect">
-            <option selected>------------</option>
+            <option selected>Create New Preset</option>
           </select>
         </div>
       </div>
@@ -83,10 +83,11 @@
           </tr>
         </thead>
         <tbody>
+          <!--
           <tr>
             <td>
-              <select class="form-select" aria-label="Select your activity type">
-                <option selected>Select an activity type</option>
+              <select class="form-select" aria-label="Select your activity type" onchange="showSelectValue()">
+                <option value="none">Select an activity type</option>
                 <option value="wl">Weightlifting</option>
                 <option value="run">Running</option>
                 <option value="other">Other</option>
@@ -97,14 +98,23 @@
             <td><input type="text" class="form-control" placeholder="0" aria-label="Number of sets" aria-describedby="inputSets"></td>
             <td><input type="text" class="form-control" placeholder="0" aria-label="Number of reps" aria-describedby="inputReps"></td>
           </tr>
+          !-->
         </tbody>
       </table>
       <div class="row justify-content-md-center">
         <div class="col col-md-auto">
-          <button class="btn mb-3" type="button" id="add-row" onclick="addNewRow()">
+          <button class="btn mb-3" type="button" id="add-row" onclick="addNewRow(['Select an activity type', 'Activity', '0', '0', '0'])">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="green" class="bi bi-plus-circle" viewBox="0 0 16 16">
               <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
               <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+            </svg>
+          </button>
+        </div>
+        <div class="col col-md-auto">
+          <button class="btn mb-3" type="button" id="add-row" onclick="deleteLastRow()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="red" class="bi bi-dash-circle" viewBox="0 0 16 16">
+              <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+              <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
             </svg>
           </button>
         </div>
@@ -112,12 +122,12 @@
       <div class="row mb-3">
         <div class="col-4">
           <div class="d-grid gap-2">
-            <button type="primary" class="btn btn-success btn-lg">Save as New Preset</button>
+            <button type="primary" class="btn btn-success btn-lg" onclick="savePreset()" id="savePresetBtn">Save as New Preset</button>
           </div>
         </div>
         <div class="col-4">
           <div class="d-grid gap-2">
-            <button type="primary" class="btn btn-danger btn-lg">Delete Preset</button>
+            <button type="primary" class="btn btn-danger btn-lg" onclick="deletePreset()">Delete Preset</button>
           </div>
         </div>
         <div class="col-4">

@@ -12,16 +12,33 @@ Fitness Tracker Functions
 - Statistics
 	- Total days gone to the gym in current year
 */
-var presetsData = {}
+var presetsData = {"Push Day": [["Weightlifting", "Bench Press", "100", "4", "12"], ["Weightlifting", "Bench Press", "100", "4", "12"]], 
+"Pull Day": [["Weightlifting", "Bench Press", "100", "4", "12"], ["Weightlifting", "Bench Press", "100", "4", "12"]]}
 
 async function loadPresetsList(){
-	let file = await fetch("data/presets.json");
-	presetsData = await file.json();
+	if (typeof(Storage) !== "undefined") {
+	  console.log("Browser supports local storage");
+	} else {
+	  alert("Your browser doesn't support local storage. Presets can't be saved. Please consider upgrading your browser or using a different one.");
+	}
+
+	var presets = localStorage.getItem("presets");
+
+	// Fetch the presets from localStorage and convert it to JSON if not null
+	if (presets !== null){
+		presetsData = JSON.parse(localStorage.getItem("presets"));
+	}
+	else{
+		presetsData = {}
+	}
+
 	var presetSelect = document.getElementById("presetSelect");
+	clearCurrentPresets();
 	
 	for (const pset in presetsData){
 		var newOption = document.createElement("option");
 		newOption.text = pset;
+		newOption.value = pset
 		presetSelect.add(newOption);
 	}
 }
@@ -36,7 +53,7 @@ function addNewRow(row_data){
 		var cell = new_row.insertCell(i);
 
 		if (i == 0){
-			var newInputField = createSelectElement(options, "Select your activity type");
+			var newInputField = createSelectElement(options, "Select an activity type", row_data[i]);
 			cell.appendChild(newInputField);
 		}
 		else if (i == 1) {
@@ -50,15 +67,16 @@ function addNewRow(row_data){
 	}
 }
 
-function createSelectElement(options, alabel){
+function createSelectElement(options, alabel, def){
 	var newSelectField = document.createElement("SELECT");
 	newSelectField.setAttribute("class", "form-select");
 	newSelectField.setAttribute("aria-label", alabel);
-			for (var i = 0; i < options.length; i++){
-				var newOption = document.createElement("option");
-				newOption.text = options[i];
-				newSelectField.add(newOption);
-			}
+	for (var i = 0; i < options.length; i++){
+		var newOption = document.createElement("option");
+		newOption.text = options[i];
+		newSelectField.add(newOption);
+	}
+	newSelectField.value = def;
 	return newSelectField
 }
 
@@ -67,7 +85,7 @@ function createInputElement(value){
 	newInputField.setAttribute("type", "text");
 	newInputField.setAttribute("class", "form-control");
 
-	if (value != "0"){
+	if (value != "0" && value != "Activtiy"){
 		newInputField.setAttribute("value", value);
 	}
 	else{
@@ -77,11 +95,122 @@ function createInputElement(value){
 	return newInputField
 }
 
+function clearCurrentRows(){
+	var table = document.getElementById("fitnessTable");
+	var rows = table.rows
+	var numRows = table.rows.length // ignore the first row which is thead
+
+	for (var i = 0; i < numRows - 1; i++){
+		table.deleteRow(-1);
+	}
+	return;
+}
+
 function loadPreset(){
 	var preset = document.getElementById("presetSelect");
 	var presetSelected = preset.value;
-	console.log("You have selected the preset: " + presetSelected);
-	for (const psetRow in presetsData[presetSelected]){
-		addNewRow(psetRow);
+	var saveBtn = document.getElementById("savePresetBtn");
+
+	if (presetSelected in presetsData == false){
+		saveBtn.innerHTML = "Save as New Preset";
+		return;
+	}
+
+	var presetRows = presetsData[presetSelected];
+
+	// Clear the current rows when preset is selected
+	clearCurrentRows();
+	for (var i = 0; i < presetRows.length; i++){
+		// Add the rows from the preset
+		addNewRow(presetRows[i]);
+	}
+
+	saveBtn.innerHTML = "Overwrite Preset";
+}
+
+function savePreset(){
+	var table = document.getElementById("fitnessTable");
+	var rows = table.rows;
+	var newArr = [];
+
+	// Start index at 1 to ignore the thead row
+	for (var i = 1; i < rows.length; i++){
+		var rowArr = []
+		cells = rows[i].cells;
+
+		for (var j = 0; j < cells.length; j++){
+			rowArr.push(cells[j].childNodes[0].value);
+		}
+
+		newArr.push(rowArr);
+	}
+
+	var preset = document.getElementById("presetSelect");
+	var presetSelected = preset.value;
+	if (presetSelected in presetsData){
+		presetsData[presetSelected] = newArr
+		localStorage.setItem('presets', JSON.stringify(presetsData))
+		return;
+	}
+	else {
+		var newPsetName = prompt("What would you like to name the new preset?");
+		if (newPsetName !== null && !(newPsetName in presetsData)){
+			presetsData[newPsetName] = newArr;
+			localStorage.setItem('presets', JSON.stringify(presetsData))
+			loadPresetsList();
+
+			// Set the preset select value to the new preset
+			var preset = document.getElementById("presetSelect");
+			var newNumOptions = preset.options.length;
+			preset.value = preset.options[newNumOptions - 1].value;
+			return;
+		}
+		else if (newPsetName in presetsData){
+			alert("The chosen preset name already exists, please choose another one.");
+		}
+		else{
+			return;
+		}
+	}
+}
+
+function deletePreset(){
+	var preset = document.getElementById("presetSelect");
+	var presetSelected = preset.value;
+
+	if (presetSelected in presetsData){
+		delete presetsData[presetSelected]
+		localStorage.setItem('presets', JSON.stringify(presetsData))
+		loadPresetsList();
+		preset.value = preset.options[0].value;
+		return;
+	}
+	else{
+		alert("This is not a valid preset to delete.")
+		return;
+	}
+}
+
+function clearCurrentPresets(){
+	var presetSelect = document.getElementById("presetSelect");
+	var curNumOptions = presetSelect.options.length;
+
+	for (var i = 0; i < curNumOptions - 1; i++){
+		presetSelect.remove(presetSelect.options.length - 1);
+	}
+}
+
+function deleteLastRow(){
+	var table = document.getElementById("fitnessTable");
+	var rows = table.rows
+	var numRows = table.rows.length
+
+	if (numRows == 1){
+		console.log("There are no more rows to delete.")
+		return;
+	}
+	else {
+		table.deleteRow(-1);
+		return;
 	}
 }
