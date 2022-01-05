@@ -18,8 +18,8 @@ var presetsData = {}
 
 async function loadPresets(){
 	let file = await fetch("data/presets.json");
-	let data = await file.json();
-	console.log(data);
+	presetsData = await file.json();
+	console.log(presetsData);
 }
 
 function addNewRow(){
