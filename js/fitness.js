@@ -12,43 +12,48 @@ Fitness Tracker Functions
 - Statistics
 	- Total days gone to the gym in current year
 */
-
-const options = ["Select an activity type", "Weightlifting", "Running", "Other"]
 var presetsData = {}
 
-async function loadPresets(){
+async function loadPresetsList(){
 	let file = await fetch("data/presets.json");
 	presetsData = await file.json();
-	console.log(presetsData);
-}
-
-function addNewRow(){
-	var table = document.getElementById("fitnessTable");
-	var new_row = table.insertRow(-1);
-	const numRows = 5
-
-	for (var i=0; i < numRows; i++){
-		var cell = new_row.insertCell(i);
-		if (i==0){
-			var newInputField = createSelectElement();
-			cell.appendChild(newInputField);
-		}
-		else if (i == 1) {
-			var newInputField = createInputElement("Activity");
-			cell.appendChild(newInputField);
-		}
-		else{
-			var newInputField = createInputElement("0");
-			cell.appendChild(newInputField);
-		}
-		// <input type="text" class="form-control" placeholder="0" aria-label="Number of reps" aria-describedby="inputReps">
+	var presetSelect = document.getElementById("presetSelect");
+	
+	for (const pset in presetsData){
+		var newOption = document.createElement("option");
+		newOption.text = pset;
+		presetSelect.add(newOption);
 	}
 }
 
-function createSelectElement(){
+function addNewRow(row_data){
+	var table = document.getElementById("fitnessTable");
+	var new_row = table.insertRow(-1);
+	const options = ["Select an activity type", "Weightlifting", "Running", "Other"]
+	const numRows = 5
+
+	for (var i = 0; i < numRows; i++){
+		var cell = new_row.insertCell(i);
+
+		if (i == 0){
+			var newInputField = createSelectElement(options, "Select your activity type");
+			cell.appendChild(newInputField);
+		}
+		else if (i == 1) {
+			var newInputField = createInputElement(row_data[i]);
+			cell.appendChild(newInputField);
+		}
+		else{
+			var newInputField = createInputElement(row_data[i]);
+			cell.appendChild(newInputField);
+		}
+	}
+}
+
+function createSelectElement(options, alabel){
 	var newSelectField = document.createElement("SELECT");
 	newSelectField.setAttribute("class", "form-select");
-	newSelectField.setAttribute("aria-label", "Select your activity");
+	newSelectField.setAttribute("aria-label", alabel);
 			for (var i = 0; i < options.length; i++){
 				var newOption = document.createElement("option");
 				newOption.text = options[i];
@@ -57,11 +62,18 @@ function createSelectElement(){
 	return newSelectField
 }
 
-function createInputElement(ph){
+function createInputElement(value){
 	var newInputField = document.createElement("INPUT");
 	newInputField.setAttribute("type", "text");
 	newInputField.setAttribute("class", "form-control");
-	newInputField.setAttribute("placeholder", ph);
+
+	if (value != "0"){
+		newInputField.setAttribute("value", value);
+	}
+	else{
+		newInputField.setAttribute("placeholder", value);
+	}
+
 	return newInputField
 }
 
