@@ -1,10 +1,3 @@
-/*
-To-Do List:
-Show a fill around the calendar cell for the current day
-
-*/
-
-
 const monthValues = {0: "January", 1: "February", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "August", 8: "September", 9: "October", 10: "November", 11: "December"};
 const monthCode = {"January": 0, "February": 3, "March": 3, "April": 6, "May": 1, "June": 4, "July": 6, "August": 2, "September": 5, "October": 0, "November": 3, "December": 5};
 const centuryCode = 6
@@ -52,6 +45,10 @@ function generateCalendarRows(month, year){
 
 			if (curNum > 0 && curNum < numDays + 1){
 				cell.innerHTML = curNum;
+				// if curNum exists in the fitnessData[year][month], then create a modal toggle button, modal goes outside of calendar
+				if (curNum in fitnessData[year][month]){
+					createModal(year, month, curNum, cell);
+				}
 
 				if (curNum == curDay && actualMonth == month){
 					cell.style.backgroundColor = "#C4A000";
@@ -129,4 +126,58 @@ function calendarNextMonth(){
 
 	generateCalendarRows(curMonth, curYear);
 	return;
+}
+
+function createModal(year, month, day, cell){
+	var modalID = `modal-${day}`
+	var title = `${monthValues[month]} ${day} - ${fitnessData[year][month][day]["title"]}`
+
+	/*
+	["Weightlifting", "Bench Press", "100", "4", "12"]
+	*/
+	var activities = fitnessData[year][month][day]["data"];
+	var modalBodyUL = document.createElement("UL");
+	modalBodyUL.className = "list-group list-group-flush"
+
+	for (var i = 0; i < activities.length; i++){
+		let act = activities[i];
+		var newLI = document.createElement("LI");
+		newLI.innerHTML = `${act[3]}x${act[4]} ${act[1]} (${act[2]} lbs)`
+		newLI.className = "list-group-item"
+		modalBodyUL.appendChild(newLI);
+	}
+
+	// Creating the modal element for each day with an activity
+	var fadeDiv = document.createElement("div");
+	fadeDiv.innerHTML = `<div class="modal fade" id="${modalID}" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="${modalID}">${title}</h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <div class="modal-body">
+	        ${modalBodyUL.outerHTML}
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-warning">Edit</button>
+	        <button type="button" class="btn btn-danger">Delete Activity</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>`
+	var modalDiv = document.getElementById("modalDiv");
+	modalDiv.appendChild(fadeDiv);
+
+	// Creating the modal toggle button for each day with an activity
+	var newDiv = document.createElement("div");
+	newDiv.innerHTML = `<button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#${modalID}">
+  	${fitnessData[year][month][day]["title"]}
+	</button>`
+
+	cell.appendChild(newDiv);
+	/*
+	
+	*/
+	
 }

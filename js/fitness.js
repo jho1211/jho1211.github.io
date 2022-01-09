@@ -87,7 +87,7 @@ function createInputElement(value){
 	newInputField.setAttribute("type", "text");
 	newInputField.setAttribute("class", "form-control");
 
-	if (value != "0" && value != "Activtiy"){
+	if (value !== "0" && value !== "Activity"){
 		newInputField.setAttribute("value", value);
 	}
 	else{
@@ -226,6 +226,13 @@ function submitForm(){
 		let year = parseInt(splitDate[0])
 		let month = parseInt(splitDate[1]) - 1
 		let day = parseInt(splitDate[2])
+		let activityName = document.getElementById("presetSelect").value;
+
+		if (activityName == "Create New Preset"){
+			activityName = "Activity"
+		}
+
+		var title = `${activityName}`
 
 		var table = document.getElementById("fitnessTable");
 		var rows = table.rows;
@@ -248,9 +255,9 @@ function submitForm(){
 		if (day in fitnessData[year][month]){
 			var overwrite = confirm("You have already submitted an activity for this date. Do you want to overwrite the current activity?")
 			if (overwrite){
-				fitnessData[year][month][day] = newArr;
-
+				fitnessData[year][month][day] = {"data": newArr, "title": title};
 				localStorage.setItem("fitnessData", JSON.stringify(fitnessData));
+				loadCalendar();
 				alert("The fitness activity was successfully saved!")
 				return;
 			}
@@ -259,8 +266,9 @@ function submitForm(){
 			}
 		}
 		else{
-			fitnessData[year][month][day] = newArr;
+			fitnessData[year][month][day] = {"data": newArr, "title": title};
 			localStorage.setItem("fitnessData", JSON.stringify(fitnessData));
+			loadCalendar();
 			alert("The fitness activity was successfully saved!")
 			return;
 		}
