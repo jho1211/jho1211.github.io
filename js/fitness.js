@@ -71,6 +71,7 @@ function addNewRow(row_data){
 
 function createSelectElement(options, alabel, def){
 	var newSelectField = document.createElement("SELECT");
+	newSelectField.required = true;
 	newSelectField.setAttribute("class", "form-select");
 	newSelectField.setAttribute("aria-label", alabel);
 	for (var i = 0; i < options.length; i++){
@@ -86,6 +87,7 @@ function createInputElement(value){
 	var newInputField = document.createElement("INPUT");
 	newInputField.setAttribute("type", "text");
 	newInputField.setAttribute("class", "form-control");
+	newInputField.required = true;
 
 	if (value !== "0" && value !== "Activity"){
 		newInputField.setAttribute("value", value);

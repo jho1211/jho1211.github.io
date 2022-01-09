@@ -46,13 +46,17 @@ function generateCalendarRows(month, year){
 			if (curNum > 0 && curNum < numDays + 1){
 				cell.innerHTML = curNum;
 				// if curNum exists in the fitnessData[year][month], then create a modal toggle button, modal goes outside of calendar
-				if (curNum in fitnessData[year][month]){
-					createModal(year, month, curNum, cell);
+				if (!(year in fitnessData)){
 				}
+				else{
+					if (curNum in fitnessData[year][month]){
+					createModal(year, month, curNum, cell);
+					}
 
-				if (curNum == curDay && actualMonth == month){
-					cell.style.backgroundColor = "#C4A000";
-					cell.style.opacity = 1;
+					if (curNum == curDay && actualMonth == month){
+						cell.style.backgroundColor = "#C4A000";
+						cell.style.opacity = 1;
+					}
 				}
 			}
 			
@@ -132,9 +136,6 @@ function createModal(year, month, day, cell){
 	var modalID = `modal-${day}`
 	var title = `${monthValues[month]} ${day} - ${fitnessData[year][month][day]["title"]}`
 
-	/*
-	["Weightlifting", "Bench Press", "100", "4", "12"]
-	*/
 	var activities = fitnessData[year][month][day]["data"];
 	var modalBodyUL = document.createElement("UL");
 	modalBodyUL.className = "list-group list-group-flush"
