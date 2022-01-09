@@ -313,3 +313,21 @@ function loadFitnessData(){
 	  return;
 	}
 }
+
+function deleteActivity(year, month, day){
+	if (day in fitnessData[year][month]){
+		confirmation = confirm("Are you sure you want to remove the activity?")
+		if (confirmation){
+			delete fitnessData[year][month][day]
+			localStorage.setItem("fitnessData", JSON.stringify(fitnessData));
+			loadCalendar();
+			return;
+		}
+		else{
+			return;
+		}
+	}
+	else{
+		alert("ERROR: The activity was not found in the database.");
+	}
+}

@@ -7,18 +7,18 @@ var curYear = 0;
 var curMonth = 0;
 var curDay = 0;
 
+var actualYear = 0;
 var actualMonth = 0;
+var actualDay = 0;
 
 function loadCalendar(){
 	const d = new Date();
-	curYear = d.getFullYear();
+	actualYear, curYear = d.getFullYear();
 	actualMonth, curMonth = d.getMonth();
-	curDay = d.getDate();
+	actualDay, curDay = d.getDate();
 
 	var calMonthLabel = document.getElementById("calendarMonthLabel");
 	calMonthLabel.innerHTML = monthValues[curMonth] + " " + curYear.toString();
-
-	clearCurrentRows("calendar");
 	generateCalendarRows(curMonth, curYear);
 }
 
@@ -30,6 +30,9 @@ function generateCalendarRows(month, year){
 	const startDay = calculateMonthStartDay(month, year);
 	var curNum = -startDay + 1;
 	var numDays = daysPerMonth[month]
+
+	clearCurrentRows("calendar");
+	clearModals("modalDiv");
 
 	// If February, check if leap year. If leap year, add 1 to number of days in month
 	if (month == 1){
@@ -99,7 +102,6 @@ function leapYearCode(year){
 }
 
 function calendarPrevMonth(){
-	clearCurrentRows("calendar");
 	if (curMonth == 0){
 		curMonth = 11;
 		curYear -= 1;
@@ -116,7 +118,6 @@ function calendarPrevMonth(){
 }
 
 function calendarNextMonth(){
-	clearCurrentRows("calendar");
 	if (curMonth == 11){
 		curMonth = 0;
 		curYear += 1;
@@ -161,8 +162,8 @@ function createModal(year, month, day, cell){
 	        ${modalBodyUL.outerHTML}
 	      </div>
 	      <div class="modal-footer">
-	        <button type="button" class="btn btn-warning">Edit</button>
-	        <button type="button" class="btn btn-danger">Delete Activity</button>
+	        <button type="button" class="btn btn-warning disabled">Edit</button>
+	        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="deleteActivity(${year}, ${month}, ${day})">Delete Activity</button>
 	      </div>
 	    </div>
 	  </div>
@@ -176,9 +177,10 @@ function createModal(year, month, day, cell){
   	${fitnessData[year][month][day]["title"]}
 	</button>`
 
-	cell.appendChild(newDiv);
-	/*
-	
-	*/
-	
+	cell.appendChild(newDiv);	
+}
+
+function clearModals(id){
+	var modalDiv = document.getElementById(id);
+	modalDiv.innerHTML = ""
 }
