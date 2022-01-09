@@ -14,12 +14,14 @@ Fitness Tracker Functions
 */
 var presetsData = {"Push Day": [["Weightlifting", "Bench Press", "100", "4", "12"], ["Weightlifting", "Bench Press", "100", "4", "12"]], 
 "Pull Day": [["Weightlifting", "Bench Press", "100", "4", "12"], ["Weightlifting", "Bench Press", "100", "4", "12"]]}
+var fitnessData = {}
 
 async function loadPresetsList(){
 	if (typeof(Storage) !== "undefined") {
 	  console.log("Browser supports local storage");
 	} else {
 	  alert("Your browser doesn't support local storage. Presets can't be saved. Please consider upgrading your browser or using a different one.");
+	  return;
 	}
 
 	var presets = localStorage.getItem("presets");
@@ -95,8 +97,8 @@ function createInputElement(value){
 	return newInputField
 }
 
-function clearCurrentRows(){
-	var table = document.getElementById("fitnessTable");
+function clearCurrentRows(id){
+	var table = document.getElementById(id);
 	var rows = table.rows
 	var numRows = table.rows.length // ignore the first row which is thead
 
@@ -119,7 +121,7 @@ function loadPreset(){
 	var presetRows = presetsData[presetSelected];
 
 	// Clear the current rows when preset is selected
-	clearCurrentRows();
+	clearCurrentRows("fitnessTable");
 	for (var i = 0; i < presetRows.length; i++){
 		// Add the rows from the preset
 		addNewRow(presetRows[i]);
@@ -212,5 +214,92 @@ function deleteLastRow(){
 	else {
 		table.deleteRow(-1);
 		return;
+	}
+}
+
+function submitForm(){
+	var actDate = document.getElementById("activityDate").value;
+
+	if (actDate !== ""){
+		var splitDate = actDate.split("-") // yyyy-mm-dd
+
+		let year = parseInt(splitDate[0])
+		let month = parseInt(splitDate[1]) - 1
+		let day = parseInt(splitDate[2])
+
+		var table = document.getElementById("fitnessTable");
+		var rows = table.rows;
+		var newArr = [];
+
+		// Start index at 1 to ignore the thead row
+		for (var i = 1; i < rows.length; i++){
+			var rowArr = []
+			cells = rows[i].cells;
+
+			for (var j = 0; j < cells.length; j++){
+				rowArr.push(cells[j].childNodes[0].value);
+			}
+
+			newArr.push(rowArr);
+		}
+
+		generateFitnessJSON(year, month, day);
+
+		if (day in fitnessData[year][month]){
+			var overwrite = confirm("You have already submitted an activity for this date. Do you want to overwrite the current activity?")
+			if (overwrite){
+				fitnessData[year][month][day] = newArr;
+
+				localStorage.setItem("fitnessData", JSON.stringify(fitnessData));
+				alert("The fitness activity was successfully saved!")
+				return;
+			}
+			else{
+				return;
+			}
+		}
+		else{
+			fitnessData[year][month][day] = newArr;
+			localStorage.setItem("fitnessData", JSON.stringify(fitnessData));
+			alert("The fitness activity was successfully saved!")
+			return;
+		}
+	}
+	else{
+		alert("Invalid date submitted, please choose a valid date.");
+		return;
+	}
+
+	
+}
+
+function generateFitnessJSON(year, month, day){
+	if (!(year in fitnessData)){
+		fitnessData[year] = {}
+		const totalMonths = 12
+		for (var i = 0; i < totalMonths; i++){
+			fitnessData[year][i] = {}
+		}
+	}
+
+	return;
+}
+
+function loadFitnessData(){
+	if (typeof(Storage) !== "undefined") {
+		fitnessData = localStorage.getItem("fitnessData")
+
+		if (fitnessData !== null){
+			fitnessData = JSON.parse(fitnessData)
+		}
+		else{
+			fitnessData = {}
+		}
+
+		console.log(fitnessData);
+	} 
+	else {
+	  alert("Your browser doesn't support local storage. Presets can't be saved. Please consider upgrading your browser or using a different one.");
+	  return;
 	}
 }

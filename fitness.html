@@ -11,7 +11,7 @@
 
     <title>Jeff's World</title>
   </head>
-  <body class="bg-dark" onload="loadPresetsList()">
+  <body class="bg-dark" onload="loadPresetsList();loadCalendar();loadFitnessData();">
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark py-3 my-2">
       <div class="container-fluid">
         <a class="navbar-brand" href="index.html"><img src="img/logo.png" alt="" width="64" height="64" class="d-inline-block align-top"></a>
@@ -61,7 +61,7 @@
       <div class="row">
         <div class="col-4">
           <label for="select-date" class="form-label text-light"><strong>Date of Activity</strong></label>
-          <input type="date" class="form-control" aria-label="Date of Activity">
+          <input type="date" class="form-control" aria-label="Date of Activity" id="activityDate">
         </div>
         <div class="col-8">
           <label for="select-preset" class="form-label text-light"><strong>Select a preset (optional)</strong></label>
@@ -83,22 +83,6 @@
           </tr>
         </thead>
         <tbody>
-          <!--
-          <tr>
-            <td>
-              <select class="form-select" aria-label="Select your activity type" onchange="showSelectValue()">
-                <option value="none">Select an activity type</option>
-                <option value="wl">Weightlifting</option>
-                <option value="run">Running</option>
-                <option value="other">Other</option>
-              </select>
-            </td>
-            <td><input type="text" class="form-control" placeholder="Activity" aria-label="Name of Activity" aria-describedby="inputActivity"></td>
-            <td><input type="text" class="form-control" placeholder="0" aria-label="Weight" aria-describedby="inputWeight"></td>
-            <td><input type="text" class="form-control" placeholder="0" aria-label="Number of sets" aria-describedby="inputSets"></td>
-            <td><input type="text" class="form-control" placeholder="0" aria-label="Number of reps" aria-describedby="inputReps"></td>
-          </tr>
-          !-->
         </tbody>
       </table>
       <div class="row justify-content-md-center">
@@ -132,14 +116,50 @@
         </div>
         <div class="col-4">
           <div class="d-grid gap-2">
-            <button type="primary" class="btn btn-primary btn-lg">Submit</button>
+            <button type="primary" class="btn btn-primary btn-lg" onclick="submitForm()">Submit</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <hr class="mb-3"/>
+    <div class="container">
+      <div class="row">
+          <div class="col-9"><label for="calendar" class="text-light fs-2" id="calendarMonthLabel">January 2022</label></div>
+          <div class="col-3 text-end">
+            <button class="btn text-light btn-primary" onclick="loadCalendar()">TODAY</button>
+            <button class="btn" onclick="calendarPrevMonth()">
+              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-arrow-left-circle" viewBox="0 0 16 16">
+                <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+              </svg>
+            </button>
+            <button class="btn" onclick="calendarNextMonth()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="white" class="bi bi-arrow-right-circle" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM4.5 7.5a.5.5 0 0 0 0 1h5.793l-2.147 2.146a.5.5 0 0 0 .708.708l3-3a.5.5 0 0 0 0-.708l-3-3a.5.5 0 1 0-.708.708L10.293 7.5H4.5z"/>
+            </svg>
+          </button>
+          </div>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-bordered bg-dark text-light" id="calendar">
+          <thead>
+            <tr class="text-info">
+              <th class="text-center">SUN</th>
+              <th class="text-center">MON</th>
+              <th class="text-center">TUE</th>
+              <th class="text-center">WED</th>
+              <th class="text-center">THU</th>
+              <th class="text-center">FRI</th>
+              <th class="text-center">SAT</th>
+            </tr>
+          </thead>
+        </table>
       </div>
     </div>
 
     <!-- Option 1: Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
     <script src="js/fitness.js"></script>
+    <script src="js/calendar.js"></script>
   </body>
 </html>
