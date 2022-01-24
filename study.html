@@ -63,11 +63,11 @@
     <hr class="mb-3"/>
 
     <div class="container">
-      <form onsubmit="submitGrades">
+      <form onsubmit="submitGrades(); return false;">
         <div class="row">
           <div class="col-4 text-light mb-3">
             <label for="courseName" class="form-label">Course Name</label>
-            <input type="text" class="form-control" id="courseName" placeholder="CPSC 103" id="cName" required>
+            <input type="text" class="form-control" id="courseName" placeholder="CPSC 103" required>
           </div>
         </div>
 
