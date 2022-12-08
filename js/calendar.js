@@ -4,6 +4,8 @@ var start_time = 8 // start time in hours (e.g. 8 = 8:00 AM)
 var end_time = 20  // end time in hours   (e.g. 20 = 8:00 PM)
 var timeLength = 0.5; // 0.5 hour time gap
 
+var newCalendar;
+
 var mode = "view";
 var hoverEffect = false;
 var startEvent;
@@ -67,6 +69,10 @@ class Calendar {
             }
         }
     }
+
+    showAvailability(times){
+        // times -> {"DDD": [], "DDD": []}
+    }
 }
 
 class Event {
@@ -80,7 +86,7 @@ class Event {
 
 function initialize(){
     console.log("hello world");
-    var newCalendar = new Calendar(days, start_time, end_time);
+    newCalendar = new Calendar(days, start_time, end_time);
     newCalendar.generateRows();
 
     if (typeof(Storage) == "undefined") {
@@ -260,24 +266,56 @@ function toggleTAForm(){
 }
 
 function createNewTA(){
-    console.log("New TA created!")
-    var name = document.getElementById("inputName").value;
-    var avail = document.getElementById("inputAvailability").value;
+    var nameEle = document.getElementById("inputName");
+    var nameFeedback = document.getElementById("taNameFeedback")
+    var availInputElement = document.getElementById("inputAvailability");
+    var availFeedback = document.getElementById("availFeedback")
+    var name = nameEle.value;
+    var avail = parseAvailability(availInputElement.value);
     var newTA = {"name": name, "avail": avail};
 
-    if (isExistingTA(name)){
-        alert("The specified TA already exists, please select a different name.");
+    console.log(avail);
+
+    if (name == ""){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "The specified name is invalid."
         return false;
     }
-    else{
-        cur_tas.push(newTA);
-        saveTAs();
-        return true;
+
+    if (isExistingTA(name)){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "A TA with that name already exists."
+        return false;
     }
+
+    // TODO: Create a warning popup to let the user know that there was an error parsing one or more of the times
+    // Use the is-invalid and availFeedback to let the user know
+    if (Object.keys(avail.good).length == 0){
+        availInputElement.classList.add("is-invalid");
+        availFeedback.innerHTML = "The availability is missing or is not formatted properly."
+        return false;
+    }
+    else if (avail.bad.length > 0){
+        availInputElement.classList.add("is-invalid");
+        availFeedback.innerHTML = "The following times failed to parse: " + avail.bad.join(", ");
+        return false;
+    }
+
+    nameEle.classList.remove("is-invalid");
+    nameEle.classList.add("is-valid");
+    availInputElement.classList.remove("is-invalid");
+    availInputElement.classList.add("is-valid");
+
+    cur_tas.push(newTA);
+    saveTAs();
+
+    return true;
 }
 
 function editTA(){
-    // Need to create a new edit button when an existing TA is selected from select menu
+    // TODO: Need to create a new edit button when an existing TA is selected from select menu
 }
 
 function addTASelect(name){
@@ -286,7 +324,6 @@ function addTASelect(name){
     option.text = name;
 
     select.add(option);
-    console.log(select);
 }
 
 function isExistingTA(name){
@@ -301,4 +338,85 @@ function isExistingTA(name){
 
 function saveTAs(){
     localStorage.setItem("ubc_cs_tas", JSON.stringify(cur_tas));
+}
+
+function findTA(name){
+    // Returns the TA info for the given name
+    for (i in cur_tas){
+        if (name == cur_tas[i].name){
+            return cur_tas[i]
+        }
+    
+    return null
+    }
+}
+
+function loadTAAvailability(){
+    // Upon select value changing, update the calendar with the TA's availability
+    var select = document.getElementById("selectTAInput");
+
+    if (select.selectedIndex > 1){
+        ta = findTA(select.value);
+        newCalendar.showAvailability(ta.avail);
+    }
+    else{
+        return;
+    }
+}
+
+/* Utility Functions */
+function parseAvailability(s){
+    // convert time which is in a large string of DDD HH:MM, DDD HH:MM to a JSON with form {"DDD": [], "DDD", []}
+    const re = /[A-Z]\w\w\s\d?\d\:\d\d\-\d?\d\:\d\d/;
+    var possibleDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    var words = s.split(", ");
+    var good = [];
+    var bad = [];
+    var obj = {};
+    
+    // Make sure each time matches the pattern we want
+    // If it doesn't, then we will store these and let the user know
+    // Need to check if times are in ascending order (e.g. 2:00-4:00 rather than 4:00-2:00)
+    // TODO: Need to check if times are overlapping
+    for (i in words){
+        if (re.test(words[i]) && isAscendingTime(words[i])){
+            good.push(words[i]);
+        }
+        else{
+            bad.push(words[i]);
+        }
+    }
+
+    // Take the good strings and convert them to JSON object
+    for (i in good){
+        // DDD HH:MM
+        let day = good[i].slice(0, 3);
+        let time = good[i].slice(4)
+
+        // If the day already exists, then we can add it to the array, otherwise
+        // we need to initialize an array for the specified day
+        if (day in obj && possibleDays.includes(day)){
+            if (!obj[day].includes(time)){
+                continue;
+            }
+            obj[day].push(time);
+        }
+        else{
+            obj[day] = [time];
+        }
+    }
+
+    return {"good": obj, "bad": bad};
+}
+
+function isAscendingTime(t){
+    // 
+    const timeSplit = t.slice(4).split("-");
+    const time1 = timeSplit[0].split(":");
+    const time1_hr = parseInt(time1);
+
+    const time2 = timeSplit[1].split(":");
+    const time2_hr = parseInt(time2);
+
+    return time1_hr <= time2_hr;
 }
