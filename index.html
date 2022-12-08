@@ -23,11 +23,40 @@
     </div>
 
     <div class="container">
-        <label for="selectTAInput" class="form-label text-white">Select a TA to schedule:</label>
-        <select class="form-select" aria-label="Select a TA to schedule:">
-            <option selected>Create a new TA</option>
-            <option disabled>Placeholder TA 1</option>
-        </select>
+        <div class="row mb-3">
+            <div class="col-3">
+                <div class="form-floating mb-3">
+                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" onchange="toggleTAForm()">
+                        <option selected></option>
+                        <option>Create New TA</option>
+                        <option>Placeholder TA 1</option>
+                    </select>
+                    <label for="selectTAInput" class="form-label">Select a TA to schedule:</label>
+                </div>
+            </div>
+        </div>
+        <form hidden id="newTAForm" onsubmit="createNewTA()">
+            <div class="row">
+                <div class="col-3">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputName">
+                        <label for="inputName" class="form-label">TA Name:</label>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" placeholder="Mon 3:00-4:00, Mon 18:00-23:00" aria-label="TA Name" id="inputAvailability">
+                        <label for="inputAvailability" class="form-label">Availability:</label>
+                        <div id="availabilityHelp" class="form-text text-white">Enter as a comma separated list with DDD HH:MM formatting (e.g. Mon 3:00-4:00, Mon 18:00-23:00, Tue 8:00-18:00)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-1">
+                    <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
     </div>
     <div class="vr" style="height: 100px"></div>
     <div class="container">

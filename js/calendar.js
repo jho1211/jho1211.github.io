@@ -11,12 +11,15 @@ var startEventDay;
 
 var selectedTimes = [];
 
+// For populating the TA select menu
+var cur_tas = [];
+
 class Calendar {
     constructor(days, start, end){
         this.days = days;
         this.start = start;
         this.end = end;
-        this.sessions = [];
+        this.events = [];
         this.times = []
     }
 
@@ -79,6 +82,29 @@ function initialize(){
     console.log("hello world");
     var newCalendar = new Calendar(days, start_time, end_time);
     newCalendar.generateRows();
+
+    if (typeof(Storage) == "undefined") {
+        alert("Your web browser doesn't support web storage so data will not be saved.")
+        return;
+    }
+
+    console.log(localStorage);
+
+    // Read the tas data and populate the select menu
+    if (localStorage.getItem("ubc_cs_tas") === null){
+        localStorage.setItem("ubc_cs_tas", "[]")
+    }
+    else{
+        cur_tas = JSON.parse(localStorage.getItem("ubc_cs_tas"));
+        var select = document.getElementById("selectTAInput");
+
+        // Populate the select menu
+        for (i in cur_tas){
+            addTASelect(cur_tas[i].name);
+        }
+    }
+
+    // TODO: Read the data/events.json file and populate the schedule
 }
 
 function parseTime(x){
@@ -218,4 +244,61 @@ function getArrayIndex(ele, arr){
     }
 
     return -1
+}
+
+function toggleTAForm(){
+    var select = document.getElementById("selectTAInput");
+    var taForm = document.getElementById("newTAForm")
+    if (select.selectedIndex == 1){
+        taForm.hidden = false;
+    }
+    else{
+        if (!taForm.hidden){
+            taForm.hidden = true;
+        }
+    }
+}
+
+function createNewTA(){
+    console.log("New TA created!")
+    var name = document.getElementById("inputName").value;
+    var avail = document.getElementById("inputAvailability").value;
+    var newTA = {"name": name, "avail": avail};
+
+    if (isExistingTA(name)){
+        alert("The specified TA already exists, please select a different name.");
+        return false;
+    }
+    else{
+        cur_tas.push(newTA);
+        saveTAs();
+        return true;
+    }
+}
+
+function editTA(){
+    // Need to create a new edit button when an existing TA is selected from select menu
+}
+
+function addTASelect(name){
+    var select = document.getElementById("selectTAInput");
+    var option = document.createElement("option");
+    option.text = name;
+
+    select.add(option);
+    console.log(select);
+}
+
+function isExistingTA(name){
+    for (ta in cur_tas){
+        if (name == cur_tas[ta].name){
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+function saveTAs(){
+    localStorage.setItem("ubc_cs_tas", JSON.stringify(cur_tas));
 }
