@@ -86,13 +86,14 @@ class Calendar {
                 const newTime1 = roundTimeObj(time1); // float
                 const newTime2 = roundTimeObj(time2); // float
 
-                console.log(newTime1);
-                console.log(newTime2);
-
                 const times = (newTime2 - newTime1) / timeLength;
                 let curTime = newTime1;
 
                 for (var i = 0; i < times; i++){
+                    if (curTime <= start_time || curTime >= end_time){
+                        continue
+                    }
+                    
                     document.getElementById(d + floatToStrTime(curTime)).classList.add("table-success");
                     curTime += timeLength;
                 }
@@ -394,7 +395,6 @@ function loadTAAvailability(){
 
     if (select.selectedIndex > 1){
         ta = findTA(select.value);
-        console.log(select.value);
 
         // Update the calendar with highlighted sections for the TA's availability
         newCalendar.showAvailability(ta.avail);
