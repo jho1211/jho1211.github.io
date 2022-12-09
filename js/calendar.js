@@ -1,7 +1,7 @@
 // Define the days, start, and end time here
 var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 var start_time = 8 // start time in hours (e.g. 8 = 8:00 AM)
-var end_time = 20  // end time in hours   (e.g. 20 = 8:00 PM)
+var end_time = 18  // end time in hours   (e.g. 20 = 8:00 PM)
 var timeLength = 0.5; // 0.5 hour time gap
 
 var newCalendar;
@@ -59,28 +59,72 @@ class Calendar {
             
             var newRow = tableBody.insertRow();
             // Add the XX:XX cell
-            var strTime = parseTime(this.times[i])
+            var strTime = floatToStrTime(this.times[i])
             newRow.insertCell().innerHTML = strTime;
 
             // Add an empty cell for the rest of the cols for this ros
             for (let j = 0; j < this.days.length; j++){
                 var newCell = newRow.insertCell();
-                newCell.id = this.days[j] + strTime
+                newCell.id = this.days[j] + strTime;
+                newCell.classList.add("availCell");
             }
         }
     }
 
-    showAvailability(times){
+    showAvailability(avail){
         // times -> {"DDD": [], "DDD": []}
+        for (const d in avail){
+            const timesAvail = avail[d]
+
+            for (const t in timesAvail){
+                // Need to round the start range and end range to the nearest interval
+                // e.g. 2:59-11:23 => 3:00-11:00
+                const timeSplit = timesAvail[t].split("-")
+                const time1 = strTimetoNumbers(timeSplit[0])
+                const time2 = strTimetoNumbers(timeSplit[1])
+
+                const newTime1 = roundTimeObj(time1); // float
+                const newTime2 = roundTimeObj(time2); // float
+
+                console.log(newTime1);
+                console.log(newTime2);
+
+                const times = (newTime2 - newTime1) / timeLength;
+                let curTime = newTime1;
+
+                for (var i = 0; i < times; i++){
+                    document.getElementById(d + floatToStrTime(curTime)).classList.add("table-success");
+                    curTime += timeLength;
+                }
+
+                // Set the class of the cells from newTime1 to newTime2
+                //document.getElementById(avail[d] + newTime1).classList.add("table-success")
+            }
+        }
+    }
+
+    clear(){
+        const tds = document.getElementsByClassName("availCell");
+
+        for (var i = 0; i < tds.length; i++){
+            const td = tds[i];
+            if (td.classList.contains("table-success")){
+                td.classList.remove("table-success")
+            }
+        }
     }
 }
 
-class Event {
-    constructor(name, day, start, end){
-        this.name = name;
-        this.day = day;
-        this.start = start;
-        this.end = end;
+function roundTimeObj(t){
+    // Take time obj {"hrs": ..., "mins": ...} and round to nearest hour and XX min interval
+    if (t.mins < 15){
+        return t.hrs
+    }
+    else if (t.mins > 45){
+        return t.hrs + 1
+    }
+    else{
+        return t.hrs + 0.5
     }
 }
 
@@ -94,15 +138,12 @@ function initialize(){
         return;
     }
 
-    console.log(localStorage);
-
     // Read the tas data and populate the select menu
     if (localStorage.getItem("ubc_cs_tas") === null){
         localStorage.setItem("ubc_cs_tas", "[]")
     }
     else{
         cur_tas = JSON.parse(localStorage.getItem("ubc_cs_tas"));
-        var select = document.getElementById("selectTAInput");
 
         // Populate the select menu
         for (i in cur_tas){
@@ -110,29 +151,9 @@ function initialize(){
         }
     }
 
+    console.log(cur_tas);
+
     // TODO: Read the data/events.json file and populate the schedule
-}
-
-function parseTime(x){
-    // convert float to str time by flooring the number and then taking the decimal remainder and converting to minutes
-    var hr = Math.floor(x);
-    var mins = ((x - hr) * 60);
-
-    if (hr < 10){
-        hr = "0" + hr.toString();
-    }
-    else{
-        hr = hr.toString()
-    }
-
-    if (mins == 0){
-        mins = "00"
-    }
-    else{
-        mins = mins.toString();
-    }
-
-    return hr + ":" + mins;
 }
 
 function toggleEdit(obj){
@@ -221,8 +242,9 @@ function newEvent(e){
 }
 
 function stopHover(){
-    hoverEffect = false;
-    console.log(selectedTimes);
+    if (hoverEffect){
+        hoverEffect = false;
+    }
 }
 
 function hoverHighlight(e){
@@ -252,17 +274,32 @@ function getArrayIndex(ele, arr){
     return -1
 }
 
-function toggleTAForm(){
+function updateTAForm(){
     var select = document.getElementById("selectTAInput");
     var taForm = document.getElementById("newTAForm")
+    var submitBtn = document.getElementById("taFormSubmitBtn");
+
+    newCalendar.clear();
+
+    // If Add New TA option is selected
     if (select.selectedIndex == 1){
+        // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
+        taForm.reset();
+        taForm.addEventListener("submit", createNewTA);
+        submitBtn.innerHTML = "Submit";
+
+    }
+    else if (select.selectedIndex >= 1){
+        submitBtn.innerHTML = "Confirm Changes";
+        taForm.removeEventListener("submit", createNewTA);
+        taForm.addEventListener("submit", editTA);
+    }
+
+    if (taForm.hidden){
         taForm.hidden = false;
     }
-    else{
-        if (!taForm.hidden){
-            taForm.hidden = true;
-        }
-    }
+
+    return;
 }
 
 function createNewTA(){
@@ -272,7 +309,7 @@ function createNewTA(){
     var availFeedback = document.getElementById("availFeedback")
     var name = nameEle.value;
     var avail = parseAvailability(availInputElement.value);
-    var newTA = {"name": name, "avail": avail};
+    var newTA = {"name": name, "avail": avail.good, "availStr": availInputElement.value};
 
     console.log(avail);
 
@@ -346,9 +383,9 @@ function findTA(name){
         if (name == cur_tas[i].name){
             return cur_tas[i]
         }
-    
-    return null
     }
+
+    return null;
 }
 
 function loadTAAvailability(){
@@ -357,7 +394,19 @@ function loadTAAvailability(){
 
     if (select.selectedIndex > 1){
         ta = findTA(select.value);
+        console.log(select.value);
+
+        // Update the calendar with highlighted sections for the TA's availability
         newCalendar.showAvailability(ta.avail);
+
+        // Change the "modeDisplay" so it also mentions the TA we are viewing
+        document.getElementById("modeDisplay").innerHTML = "View Mode<br> Availability for " + ta.name;
+
+        // Update the form with the TA's info
+        var nameEle = document.getElementById("inputName");
+        var availInputElement = document.getElementById("inputAvailability");
+        nameEle.value = ta.name;
+        availInputElement.value = ta.availStr;
     }
     else{
         return;
@@ -419,4 +468,32 @@ function isAscendingTime(t){
     const time2_hr = parseInt(time2);
 
     return time1_hr <= time2_hr;
+}
+
+function strTimetoNumbers(s){
+    // HH:MM -> {"hrs": ..., "mins": ...}
+    const timeSplit = s.split(":")
+    return {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
+}
+
+function floatToStrTime(x){
+    // convert float to str time by flooring the number and then taking the decimal remainder and converting to minutes
+    var hr = Math.floor(x);
+    var mins = ((x - hr) * 60);
+
+    if (hr < 10){
+        hr = "0" + hr.toString();
+    }
+    else{
+        hr = hr.toString()
+    }
+
+    if (mins == 0){
+        mins = "00"
+    }
+    else{
+        mins = mins.toString();
+    }
+
+    return hr + ":" + mins;
 }

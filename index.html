@@ -25,7 +25,7 @@
         <div class="row mb-3">
             <div class="col-3">
                 <div class="form-floating mb-3">
-                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" onchange="toggleTAForm(); loadTAAvailability();">
+                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" onchange="updateTAForm(); loadTAAvailability();">
                         <option selected disabled></option>
                         <option>Add New TA</option>
                         <option disabled>----------</option>
@@ -34,7 +34,7 @@
                 </div>
             </div>
         </div>
-        <form class="needs-validation" hidden id="newTAForm" novalidate onsubmit="createNewTA(); return false;">
+        <form class="needs-validation" hidden id="newTAForm" onsubmit="return false;" novalidate>
             <div class="row">
                 <div class="col-3">
                     <div class="mb-3">
@@ -57,8 +57,8 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-1">
-                    <button type="submit" class="btn btn-lg btn-primary">Submit</button>
+                <div class="col-3">
+                    <button type="submit" id="taFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
                 </div>
             </div>
         </form>
