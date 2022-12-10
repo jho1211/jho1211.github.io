@@ -8,6 +8,17 @@
     user-select: none;
 }
 
-.availCell {
+table.availCell {
     
+}
+
+button.event{
+    border-color: black;
+    border-style: solid;
+    border-width: 5px;
+}
+
+button.availEvent {
+    background: lightgreen;
+    border-color: green;
 }

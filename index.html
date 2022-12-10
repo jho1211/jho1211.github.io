@@ -82,6 +82,81 @@
         <table class="table text-white table-bordered noselect" style="table-layout: fixed" id="schedule" onmousedown="recordStartSession(event)" onmouseup="stopHover()" oncontextmenu="return false;"></table>
     </div>
 
+    <!--
+        Testing out the modal system for the events
+    -->
+
+    <div class="container">
+        <table class="table text-white table-bordered" style="table-layout: fixed">
+            <thead class="table-primary">
+                <th></th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>8:00</th>
+                    <td><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <h6>Office Hours</h6>
+                        DLC Table 1 <br>
+                        Mon 8:00-8:30
+                    </button>
+                    <button type="button" class="event" id="modalBtnEventNameDDDHH:MM">
+                        <h5>L1A<img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
+                        ICCS X251 <br>
+                        Mon 8:00-8:30
+                    </button></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>8:30</th>
+                    <td><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <h6>Office Hours</h6>
+                        DLC Table 1 <br>
+                        Mon 8:00-8:30
+                    </button>
+                    <button type="button" class="event" id="modalBtnEventNameDDDHH:MM">
+                        <h5>L1A<img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
+                        ICCS X251 <br>
+                        Mon 8:00-8:30
+                    </button></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Office Hours</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p><b>Location: </b>ICCS X251 <br>
+                <b>Time: </b>Mon 8:00-8:30 <br>
+                <br>
+                Detailed description goes here.
+              </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning">Edit</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
 </body>
 
 <script src="js/calendar.js"></script>

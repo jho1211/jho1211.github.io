@@ -1,5 +1,5 @@
 // Define the days, start, and end time here
-var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+var days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 var start_time = 8 // start time in hours (e.g. 8 = 8:00 AM)
 var end_time = 18  // end time in hours   (e.g. 20 = 8:00 PM)
 var timeLength = 0.5; // 0.5 hour time gap
@@ -60,7 +60,7 @@ class Calendar {
             var newRow = tableBody.insertRow();
             // Add the XX:XX cell
             var strTime = floatToStrTime(this.times[i])
-            newRow.insertCell().innerHTML = strTime;
+            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
 
             // Add an empty cell for the rest of the cols for this ros
             for (let j = 0; j < this.days.length; j++){
@@ -90,10 +90,10 @@ class Calendar {
                 let curTime = newTime1;
 
                 for (var i = 0; i < times; i++){
-                    if (curTime <= start_time || curTime >= end_time){
+                    if (curTime <= start_time || curTime >= end_time || !days.includes(d)){
                         continue
                     }
-                    
+
                     document.getElementById(d + floatToStrTime(curTime)).classList.add("table-success");
                     curTime += timeLength;
                 }
