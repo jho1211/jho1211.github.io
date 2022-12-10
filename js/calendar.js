@@ -42,7 +42,7 @@ class Calendar {
         var table = document.getElementById("schedule")
         // Generate the table header with the days
         var header = table.createTHead();
-        header.className += "table-primary"
+        header.className += "table-primary border-dark"
         var headerRow = header.insertRow(0)
         headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
         
@@ -53,7 +53,7 @@ class Calendar {
         // Generate the table rows with each time
         var tableBody = table.createTBody();
         tableBody.addEventListener("mouseover", hoverHighlight);
-        tableBody.className += "table-secondary table-group-divider";
+        tableBody.className += "table-secondary border-dark";
 
         for (let i = 0; i < this.times.length; i++){
             
