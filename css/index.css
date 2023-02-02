@@ -18,3 +18,9 @@ button.availEvent {
     background: lightgreen;
     border-color: green;
 }
+
+.accordion {
+    --bs-accordion-bg: #495057;
+    --bs-accordion-btn-color: #0c63e4;
+    --bs-accordion-btn-bg: #e7f1ff;
+}

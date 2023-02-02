@@ -25,8 +25,15 @@ class Course{
     }
 
     initialize(){
-        newCalendar = new Calendar(this.days, this.start_t, this.end_t);
-        newCalendar.generateRows();
+        if (newCalendar !== null){
+            newCalendar = new Calendar(this.days, this.start_t, this.end_t);
+            newCalendar.generateRows();
+        }
+        else{
+            newCalendar.clear();
+            newCalendar = new Calendar(this.days, this.start_t, this.end_t);
+            newCalendar.generateRows();
+        }
 
         // Repopulate the TA select menu
         this.populateTASelect();
@@ -297,6 +304,7 @@ function loadCourseData(cname){
 function initializeCourse(){
     var courseSelect = document.getElementById("selectCourseInput");
     var courseForm = document.getElementById("courseForm")
+    var courseAccord = document.getElementById("courseAccordion")
     var submitBtn = document.getElementById("courseFormSubmitBtn");
 
     // If Add New TA option is selected
@@ -314,8 +322,8 @@ function initializeCourse(){
         courseForm.addEventListener("submit", editCourse);
     }
 
-    if (courseForm.hidden){
-        courseForm.hidden = false;
+    if (courseAccord.hidden){
+        courseAccord.hidden = false;
     }
 
     return;
