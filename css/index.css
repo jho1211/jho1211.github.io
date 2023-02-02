@@ -8,10 +8,12 @@
     user-select: none;
 }
 
-button.event{
-    border-color: black;
-    border-style: solid;
-    border-width: 5px;
+.availCell:hover{
+    background: lightgreen;
+}
+
+button.event:hover{
+    background: lightgreen;
 }
 
 button.availEvent {

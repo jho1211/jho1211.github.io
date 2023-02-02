@@ -25,16 +25,6 @@ class Course{
     }
 
     initialize(){
-        if (newCalendar !== null){
-            newCalendar = new Calendar(this.days, this.start_t, this.end_t);
-            newCalendar.generateRows();
-        }
-        else{
-            newCalendar.clear();
-            newCalendar = new Calendar(this.days, this.start_t, this.end_t);
-            newCalendar.generateRows();
-        }
-
         // Repopulate the TA select menu
         this.populateTASelect();
         this.fillCourseForm();
@@ -84,10 +74,7 @@ class Course{
         // Clear the select menu and then repopulate the select menu
         var select = document.getElementById("selectTAInput");
         clearSelect("selectTAInput");
-
-        if (select.hidden){
-            select.hidden = false;
-        }
+        showElement("selectTAInput");
         
         for (var i in this.tas){
             var option = document.createElement("option");
@@ -160,7 +147,7 @@ class TA {
 
     // Given the TA's availability as a List[Interval], 
     set_availability(availability){
-
+        return;
     }
 }
 
@@ -219,7 +206,8 @@ class Calendar {
     }
 
     clear(){
-        return;
+        var table = document.getElementById("schedule");
+        table.innerHTML = "";
     }
 
     // Given a TA, display their availability on the calendar (highlighted in green)
@@ -245,10 +233,7 @@ function populateCourseSelect(){
     // Clear the select menu and then repopulate the select menu
     var select = document.getElementById("selectCourseInput");
     clearSelect("selectCourseInput");
-
-    if (select.hidden){
-        select.hidden = false;
-    }
+    showElement("selectCourseInput");
     
     for (var i in courses){
         var option = document.createElement("option");
@@ -304,7 +289,6 @@ function loadCourseData(cname){
 function initializeCourse(){
     var courseSelect = document.getElementById("selectCourseInput");
     var courseForm = document.getElementById("courseForm")
-    var courseAccord = document.getElementById("courseAccordion")
     var submitBtn = document.getElementById("courseFormSubmitBtn");
 
     // If Add New TA option is selected
@@ -314,6 +298,10 @@ function initializeCourse(){
         courseForm.addEventListener("submit", createNewCourse);
         submitBtn.innerHTML = "Submit";
 
+        // Hide the TA select and TA form if it is not hidden already
+        hideElement("selectTAInput");
+        hideElement("taAccordion");
+
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
@@ -322,9 +310,7 @@ function initializeCourse(){
         courseForm.addEventListener("submit", editCourse);
     }
 
-    if (courseAccord.hidden){
-        courseAccord.hidden = false;
-    }
+    showElement("courseAccordion")
 
     return;
 }
@@ -429,10 +415,8 @@ function isExistingCourse(cname){
 
 function updateTAForm(){
     var select = document.getElementById("selectTAInput");
-    var taForm = document.getElementById("newTAForm")
+    var taForm = document.getElementById("newTAForm");
     var submitBtn = document.getElementById("taFormSubmitBtn");
-
-    newCalendar.clear();
 
     // If Add New TA option is selected
     if (select.selectedIndex == 1){
@@ -448,8 +432,17 @@ function updateTAForm(){
         taForm.addEventListener("submit", editTA);
     }
 
-    if (taForm.hidden){
-        taForm.hidden = false;
+    showElement("taAccordion");
+
+    // Show Calendar
+    if (newCalendar === undefined){
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar.generateRows();
+    }
+    else{
+        newCalendar.clear();
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar.generateRows();
     }
 
     return;
@@ -510,6 +503,24 @@ function loadTAAvailability(){
 }
 
 /* Utility Functions */
+function showElement(id){
+    var ele = document.getElementById(id);
+
+    if (ele.hidden){
+        ele.hidden = false;
+    }
+}
+
+function hideElement(id){
+    var ele = document.getElementById(id);
+
+    if (ele.hidden == false){
+        ele.hidden = true;
+    }
+
+    return;
+}
+
 function parseAvailability(s){
     // convert time which is in a large string of DDD HH:MM, DDD HH:MM to a JSON with form {"DDD": [], "DDD", []}
     const re = /[A-Z]\w\w\s\d?\d\:\d\d\-\d?\d\:\d\d/;

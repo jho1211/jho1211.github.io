@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="accordion accordion-flush" id="courseAccordion" hidden>
+        <div class="accordion accordion-flush mb-2" id="courseAccordion" hidden>
             <div class="accordion-item">
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#courseCollapse" aria-expanded="true" aria-controls="courseCollapse">
@@ -151,19 +151,19 @@
                 </div>
             </div>
 
-            <div class="accordion accordion-flush" id="courseAccordion" hidden>
+            <div class="accordion accordion-flush" id="taAccordion" hidden>
                 <div class="accordion-item">
                     <h2 class="accordion-header">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#taCollapse" aria-expanded="true" aria-controls="taCollapse">
-                            <strong>Edit Course</strong>
+                            <strong>Edit TA</strong>
                         </button>
                     </h2>
                     <div id="taCollapse" class="accordion-collapse collapse show" aria-labelledby="taCollapse">
                         <div class="accordion-body">
-                            <form class="needs-validation" hidden id="newTAForm" onsubmit="return false;" novalidate>
+                            <form class="needs-validation" id="newTAForm" onsubmit="return false;" novalidate>
                                 <div class="row">
                                     <div class="col-3">
-                                        <div class="mb-3">
+                                        <div>
                                             <label for="inputName" class="form-label text-white">TA Name:</label>
                                             <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputName" required>
                                             <div class="invalid-feedback" id="taNameFeedback">
@@ -172,16 +172,26 @@
                                         </div>
                                     </div>
                                     <div class="col">
-                                        <div class="mb-3">
+                                        <div>
                                             <label for="inputAvailability" class="form-label text-white">Availability:</label>
-                                            <input type="text" class="form-control" placeholder="Mon 3:00-4:00, Mon 18:00-23:00" aria-label="TA Name" id="inputAvailability" required>
-                                            <div id="availabilityHelp" class="form-text text-white">Enter as a comma separated list with DDD HH:MM formatting (e.g. Mon 3:00-4:00, Mon 18:00-23:00, Tue 8:00-18:00)</div>
-                                            <div class="invalid-feedback" id="availFeedback">
-                                                The availability is missing or is not formatted properly, please check again.
-                                            </div>
+                                            <div class="text-white" id="availList">Please select your availability using the calendar below.</div>
                                         </div>
                                     </div>
                                 </div>
+                                <div class="row mb-3">
+                                    <div class="col-3">
+                                        <label for="taMaxHoursInput" class="form-label text-white">Max Hours:</label>
+                                        <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
+                                    </div>
+                                    <div class="col-5">
+                                        <label for="taMaxHoursInput" class="form-label text-white">Are you okay with working up to 4 hours consecutively?</label>
+                                        <select class="form-select" id="consecSelect">
+                                            <option>Yes</option>
+                                            <option>No</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <hr class="text-white" />
                                 <div class="row">
                                     <div class="col-3">
                                         <button type="submit" id="taFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
@@ -193,19 +203,7 @@
                 </div>
             </div>
     </div>
-    <div class="vr" style="height: 100px"></div>
-    <div class="container">
-        <div class="row" hidden id="availSave">
-            <div class="col-3">
-                <button type="button" class="btn btn-primary fs-4" onclick="saveAvailability()">
-                        SAVE AVAILABILITY
-                </button>>
-            </div>
-            <div class="col-6 text-center text-white fs-4" id="modeDisplay">
-            </div>
-        </div>
-    </div>
-    <div class="vr"></div>
+    <div class="vr" style="height: 5px"></div>
     <div class="container">
         <table class="table text-white table-bordered noselect" style="table-layout: fixed" id="schedule" oncontextmenu="return false;"></table>
     </div>
