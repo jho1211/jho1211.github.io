@@ -5,6 +5,7 @@ var end_time = 19  // end time in hours   (e.g. 20 = 8:00 PM)
 var timeLength = 0.5; // 0.5 hour time gap
 
 var newCalendar;
+var courses = [];
 
 // For populating the TA select menu
 var curCourse;
@@ -21,13 +22,15 @@ class Course{
         this.tas = tas;
         this.events = events;
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
-
-        this.initialize();
     }
 
     initialize(){
         newCalendar = new Calendar(this.days, this.start_t, this.end_t);
         newCalendar.generateRows();
+
+        // Repopulate the TA select menu
+        this.populateTASelect();
+        this.fillCourseForm();
     
         // TODO: Read the data/events.json file and populate the schedule
     }
@@ -38,7 +41,7 @@ class Course{
             return;
         }
 
-        data = {}
+        var data = {}
         data["name"] = this.name;
         data["days"] = this.days;
         data["start_t"] = this.start_t;
@@ -47,15 +50,33 @@ class Course{
         data["tas"] = this.tas;
         data["events"] = this.events;
 
-        localStorage.setItem(this.name + "schedule", JSON.stringify(data));
+        localStorage.setItem(this.name, JSON.stringify(data));
 
         return;
+    }
+
+    fillCourseForm(){
+        // Change the course name input
+        document.getElementById("inputCourseName").value = this.name;
+
+        // Select the days for TAs
+        var day_options = document.querySelectorAll(".form-check-input");
+
+        for (var i in day_options){
+            if (this.days.includes(day_options[i].value)){
+                day_options[i].checked = true;
+            }
+        }
+
+        // Set the start and end hour
+        document.getElementById("startHour").value = floatToStrTime(this.start_t);
+        document.getElementById("endHour").value = floatToStrTime(this.end_t);
     }
 
     populateTASelect(){
         // Clear the select menu and then repopulate the select menu
         var select = document.getElementById("selectTAInput");
-        this.clearTAsSelect();
+        clearSelect("selectTAInput");
 
         if (select.hidden){
             select.hidden = false;
@@ -66,18 +87,6 @@ class Course{
             option.text = name;
             select.add(option);
         }
-    }
-
-    clearTAsSelect(){
-        var select = document.getElementById("selectTAInput");
-        var numOptions = select.options.length - 3;
-
-        for (var i = 0; i < numOptions; i++){
-            last = select.options.length - 1
-            select.options.remove(last);
-        }
-
-        return;
     }
 
     courseToJson(){
@@ -93,9 +102,9 @@ class Course{
         return data;
     }
 
-    saveCourse(){
+    saveCourses(){
         var data = this.courseToJson();
-        localStorage.setItem(this.name + "_scheduler", JSON.stringify(data));
+        localStorage.setItem(this.name, JSON.stringify(data));
     }
     
     findTA(name){
@@ -225,28 +234,64 @@ function roundTimeObj(t){
     }
 }
 
-// TODO: Change this to read/write to the Microsoft Azure NOSQL DB
-function loadCourseData(cname){
-    if (typeof(Storage) == "undefined") {
-        alert("Your web browser doesn't support web storage so data will not be saved.")
-        return;
+function populateCourseSelect(){
+    // Clear the select menu and then repopulate the select menu
+    var select = document.getElementById("selectCourseInput");
+    clearSelect("selectCourseInput");
+
+    if (select.hidden){
+        select.hidden = false;
     }
     
-    // Clear the TAs in the select menu
-    this.clearTAsSelect();
+    for (var i in courses){
+        var option = document.createElement("option");
+        option.text = courses[i].name;
+        option.value = courses[i].name;
+        select.add(option);
+    }
+}
 
-    data = localStorage.getItem(cname + "_schedule");
+function clearSelect(id){
+    var select = document.getElementById(id);
+    var numOptions = select.options.length - 3;
 
-    // Read the courses data and populate the courses menu
-    if (data === null){
-        alert("There was an error retrieving the data.")
+    for (var i = 0; i < numOptions; i++){
+        last = select.options.length - 1
+        select.options.remove(last);
+    }
+
+    return;
+}
+
+function loadCourses(){
+    if (typeof(Storage) == "undefined") {
+        alert("Your web browser doesn't support web storage so data could not be loaded.")
         return;
     }
-    else{
-        data = JSON.parse(data);
-        var course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, data.tas, data.events);
-        return;
+
+    for (var i = 0; i < localStorage.length; i++){
+        const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
+        course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, data.tas, data.events);
+        courses.push(course);
     }
+
+    populateCourseSelect();
+}
+
+// TODO: Change this to read/write to the Microsoft Azure NOSQL DB
+function loadCourseData(cname){
+    var course;
+
+    for (var i in courses){
+        if (courses[i].name == cname){
+            const course = courses[i]
+            course.initialize();
+            curCourse = course;
+            return;
+        }
+    }
+
+    console.log("The specified course could not be found.");
 }
 
 function initializeCourse(){
@@ -264,6 +309,7 @@ function initializeCourse(){
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
+        loadCourseData(courseSelect.value);
         courseForm.removeEventListener("submit", createNewCourse);
         courseForm.addEventListener("submit", editCourse);
     }
@@ -271,8 +317,6 @@ function initializeCourse(){
     if (courseForm.hidden){
         courseForm.hidden = false;
     }
-    
-    loadCourseData(courseSelect.value);
 
     return;
 }
@@ -299,26 +343,80 @@ function createNewCourse(){
         return false;
     }
 
-    /*
     if (isExistingCourse(name)){
         nameEle.classList.remove("is-valid");
         nameEle.classList.add("is-invalid");
-        nameFeedback.innerHTML = "A TA with that name already exists."
+        nameFeedback.innerHTML = "A course with that name already exists."
         return false;
     }
-    */
 
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
     var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, [], []);
+    courses.push(newCourse);
     newCourse.saveCourseData();
+    populateCourseSelect();
 
     return true;
 }
 
 function editCourse(){
-    return;
+    var nameEle = document.getElementById("inputCourseName");
+    var nameFeedback = document.getElementById("courseNameFeedback")
+    var name = nameEle.value;
+
+    var days = [];
+    document.querySelectorAll(".form-check-input").forEach((ele) => {
+        if (ele.checked){
+            days.push(ele.value);
+        }
+    })
+
+    var startHr = roundTimeObj(strTimetoNumbers(document.getElementById("startHour").value));
+    var endHr = roundTimeObj(strTimetoNumbers(document.getElementById("endHour").value));
+
+    if (name == ""){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "The specified name is invalid."
+        return false;
+    }
+
+    if (isExistingCourse(name) && curCourse.name !== name){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "A TA with that name already exists."
+        return false;
+    }
+
+    nameEle.classList.remove("is-invalid");
+    nameEle.classList.add("is-valid");
+
+    const conf = confirm("Would you like to overwrite the current course?")
+
+    if (conf){
+        courses.filter(c => c.name !== curCourse.name);
+
+        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events);
+
+        courses.push(newCourse);
+        newCourse.saveCourseData();
+        location.reload();
+    }
+    else{
+        console.log("Didn't overwrite current course");
+    }
+}
+
+function isExistingCourse(cname){
+    for (var i in courses){
+        if (courses[i].name == cname){
+            return true
+        }
+    }
+
+    return false;
 }
 
 function updateTAForm(){
@@ -487,3 +585,5 @@ function floatToStrTime(x){
 
     return hr + ":" + mins;
 }
+
+loadCourses();
