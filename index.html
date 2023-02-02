@@ -6,7 +6,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <link href="css/calendar.css" rel="stylesheet"></script>
 </head>
-<body class="bg-dark" onload="initialize()">
+<body class="bg-dark">
     <nav class="navbar bg-secondary">
         <div class="container-fluid text-primary">
           <a class="navbar-brand text-white fs-3" href="#">
@@ -25,7 +25,17 @@
         <div class="row mb-3">
             <div class="col-3">
                 <div class="form-floating mb-3">
-                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" onchange="updateTAForm(); loadTAAvailability();">
+                    <select class="form-select" aria-label="Select a Course:" id="selectCourseInput" onchange="initializeCourse();">
+                        <option selected disabled></option>
+                        <option>Add New Course</option>
+                        <option disabled>----------</option>
+                    </select>
+                    <label for="selectTAInput" class="form-label">Select a Course:</label>
+                </div>
+            </div>
+            <div class="col-3">
+                <div class="form-floating mb-3">
+                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" hidden onchange="updateTAForm(); loadTAAvailability();">
                         <option selected disabled></option>
                         <option>Add New TA</option>
                         <option disabled>----------</option>
@@ -34,6 +44,94 @@
                 </div>
             </div>
         </div>
+        <form class="needs-validation mb-3" id="courseForm" onsubmit="return false;" hidden novalidate>
+            <div class="row mb-3">
+                <div class="col-3">
+                    <label for="inputCourseName" class="form-label text-white">Course Name:</label>
+                    <input type="text" class="form-control" placeholder="CPSC XXX" aria-label="Course Name" id="inputCourseName" required>
+                    <div class="invalid-feedback" id="courseNameFeedback">
+                        A course with that name already exists
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label class="form-label text-white">Days for TAs:</label>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Mon">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Monday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Tue">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Tuesday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Wed">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Wednesday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Thu">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Thursday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Fri">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Friday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Sat">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Saturday
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="Sun">
+                        <label class="form-check-label text-light" for="flexCheckDefault">
+                            Sunday
+                        </label>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <label for="startHour" class="form-label text-light">Start Hour:</label>
+                    <input type="time" list="startHours" id="startHour" required>
+                    <datalist id="startHours">
+                        <option value="08:00"></option>
+                        <option value="08:30"></option>
+                        <option value="09:00"></option>
+                        <option value="09:30"></option>
+                        <option value="10:00"></option>
+                    </datalist>
+                    <label for="endHour" class="form-label text-light">End Hour:&nbsp;</label>
+                    <input type="time" list="endHours" id="endHour" required>
+                    <datalist id="endHours">
+                        <option value="17:00"></option>
+                        <option value="17:30"></option>
+                        <option value="18:00"></option>
+                        <option value="18:30"></option>
+                        <option value="19:00"></option>
+                        <option value="19:30"></option>
+                        <option value="20:00"></option>
+                        <option value="20:30"></option>
+                        <option value="21:00"></option>
+                        <option value="21:30"></option>
+                        <option value="22:00"></option>
+                    </datalist>
+                </div>
+                <!--Name of the course, days, start time, end time, interval length-->
+            </div>
+            <div class="row">
+                <div class="col-3">
+                    <button type="submit" id="courseFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
+                </div>
+            </div>
+        </form>
         <form class="needs-validation" hidden id="newTAForm" onsubmit="return false;" novalidate>
             <div class="row">
                 <div class="col-3">
@@ -65,21 +163,19 @@
     </div>
     <div class="vr" style="height: 100px"></div>
     <div class="container">
-        <div class="row">
+        <div class="row" hidden id="availSave">
             <div class="col-3">
-                <button type="button" class="btn btn-warning" onclick="toggleEdit(this)">
-                    <img src="img/pencil-square.svg">
-                        Edit Sessions
+                <button type="button" class="btn btn-primary fs-4" onclick="saveAvailability()">
+                        SAVE AVAILABILITY
                 </button>>
             </div>
             <div class="col-6 text-center text-white fs-4" id="modeDisplay">
-                View Mode
             </div>
         </div>
     </div>
     <div class="vr"></div>
     <div class="container">
-        <table class="table text-white table-bordered noselect" style="table-layout: fixed" id="schedule" onmousedown="recordStartSession(event)" onmouseup="stopHover()" oncontextmenu="return false;"></table>
+        <table class="table text-white table-bordered noselect" style="table-layout: fixed" id="schedule" oncontextmenu="return false;"></table>
     </div>
 
     <!--
@@ -160,5 +256,6 @@
 </body>
 
 <script src="js/calendar.js"></script>
+<script src="js/math-interval.js"></script>
 
 </html>
