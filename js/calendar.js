@@ -11,6 +11,39 @@ var courses = [];
 var curCourse;
 var curTASelected;
 
+// Data structure for an interval that is closed on both sides
+class Interval{
+    constructor(start, end){
+        this.start = start;
+        this.end = end;
+    }
+
+    // Join the two intervals together
+    union(i2){
+        return;
+    }
+
+    // Checks if i1 overlaps with i2
+    hasOverlap(i2){
+        return;
+    }
+
+    // check if i1 contains the entire i2 interval
+    contains(i2){
+        return;
+    }
+
+    // Check if the interval is empty
+    isEmpty(){
+        return this.start == null || this.end == null;
+    }
+
+    // Convert interval to JSON object (e.g. [[1,3], [2,4], [6,9]])
+    jsonify(){
+        return;
+    }
+}
+
 // Data structure for a course, which contains the TAs, events, course name, start/end time and days for scheduling
 class Course{
     constructor(name, days, start_t, end_t, interv, tas, events){
@@ -32,20 +65,25 @@ class Course{
         // TODO: Read the data/events.json file and populate the schedule
     }
     
+    overwriteCourseData(oldCourse){
+        const newData = this.courseToJson();
+
+        for (var i = 0; i < localStorage.length; i++){
+            const key = localStorage.key(i)
+            if (key == oldCourse.name){
+                localStorage.removeItem(key);
+                localStorage.setItem(this.name, JSON.stringify(newData));
+            }
+        }
+    }
+
     saveCourseData(){
         if (typeof(Storage) == "undefined") {
             alert("Your web browser doesn't support web storage so data will not be saved.")
             return;
         }
 
-        var data = {}
-        data["name"] = this.name;
-        data["days"] = this.days;
-        data["start_t"] = this.start_t;
-        data["end_t"] = this.end_t;
-        data["interv"] = this.interv;
-        data["tas"] = this.tas;
-        data["events"] = this.events;
+        const data = this.courseToJson();
 
         localStorage.setItem(this.name, JSON.stringify(data));
 
@@ -84,7 +122,7 @@ class Course{
     }
 
     courseToJson(){
-        data = {}
+        var data = {}
         data["name"] = this.name;
         data["days"] = this.days;
         data["start_t"] = this.start_t;
@@ -114,39 +152,24 @@ class Course{
 }
 
 class TA {
-    constructor(name, max_hrs, consec){
+    constructor(name, max_hrs, consec, avail){
         this.name = name;
         this.max_hrs = max_hrs;
         this.consec = consec;
-        this.avail = {}
-
-        for (var i = 0; i < days.length; i++){
-            this.avail[days[i]] = [];
-        }
+        this.avail = avail;
+        this.assigned = [];
+        this.assigned_avail = {};
     }
 
-    get_availability(){
-        for (var key in this.avail){
-            console.log(this.avail[key]);
-        }
+    checkAvailability(event){
         return;
     }
 
-    get_availability_str(){
-        // Use .join() to concatenate with <br>
-        for (var key in this.avail){
-            console.log(this.avail[key]);
-        }
+    assignEvent(event){
         return;
     }
 
-    // day needs to be a 3-char str (e.g. "Mon") time needs to be an interval
-    check_availability(day, time){
-        return;
-    }
-
-    // Given the TA's availability as a List[Interval], 
-    set_availability(availability){
+    removeAssignment(event){
         return;
     }
 }
@@ -188,6 +211,7 @@ class Calendar {
         // Generate the table rows with each time
         var tableBody = table.createTBody();
         tableBody.className += "table-secondary border-dark";
+        tableBody.addEventListener("click", (ele) => toggleAvailCell(ele));
 
         for (let i = 0; i < this.times.length; i++){
             
@@ -200,7 +224,7 @@ class Calendar {
             for (let j = 0; j < this.days.length; j++){
                 var newCell = newRow.insertCell();
                 newCell.id = this.days[j] + strTime;
-                newCell.classList.add("availCell");
+                newCell.classList.add("calCell");
             }
         }
     }
@@ -213,19 +237,6 @@ class Calendar {
     // Given a TA, display their availability on the calendar (highlighted in green)
     displayAvail(ta){
         return;
-    }
-}
-
-function roundTimeObj(t){
-    // Take time obj {"hrs": ..., "mins": ...} and round to nearest hour and XX min interval
-    if (t.mins < 15){
-        return t.hrs
-    }
-    else if (t.mins > 45){
-        return t.hrs + 1
-    }
-    else{
-        return t.hrs + 0.5
     }
 }
 
@@ -288,8 +299,13 @@ function loadCourseData(cname){
 
 function initializeCourse(){
     var courseSelect = document.getElementById("selectCourseInput");
-    var courseForm = document.getElementById("courseForm")
+    var courseForm = document.getElementById("courseForm");
     var submitBtn = document.getElementById("courseFormSubmitBtn");
+
+    // Hide the calendar
+    if (newCalendar !== undefined){
+        newCalendar.clear();
+    }
 
     // If Add New TA option is selected
     if (courseSelect.selectedIndex == 1){
@@ -299,9 +315,11 @@ function initializeCourse(){
         submitBtn.innerHTML = "Submit";
 
         // Hide the TA select and TA form if it is not hidden already
+        var taSelect = document.getElementById("selectTAInput");
+        taSelect.options.selectedIndex = 0;
+
         hideElement("selectTAInput");
         hideElement("taAccordion");
-
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
@@ -311,6 +329,7 @@ function initializeCourse(){
     }
 
     showElement("courseAccordion")
+    
 
     return;
 }
@@ -327,8 +346,8 @@ function createNewCourse(){
         }
     })
 
-    var startHr = roundTimeObj(strTimetoNumbers(document.getElementById("startHour").value));
-    var endHr = roundTimeObj(strTimetoNumbers(document.getElementById("endHour").value));
+    var startHr = strTimeToNumbers(document.getElementById("startHour").value);
+    var endHr = strTimeToNumbers(document.getElementById("endHour").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -367,8 +386,8 @@ function editCourse(){
         }
     })
 
-    var startHr = roundTimeObj(strTimetoNumbers(document.getElementById("startHour").value));
-    var endHr = roundTimeObj(strTimetoNumbers(document.getElementById("endHour").value));
+    var startHr = strTimeToNumbers(document.getElementById("startHour").value);
+    var endHr = strTimeToNumbers(document.getElementById("endHour").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -380,7 +399,7 @@ function editCourse(){
     if (isExistingCourse(name) && curCourse.name !== name){
         nameEle.classList.remove("is-valid");
         nameEle.classList.add("is-invalid");
-        nameFeedback.innerHTML = "A TA with that name already exists."
+        nameFeedback.innerHTML = "A course with that name already exists."
         return false;
     }
 
@@ -390,12 +409,9 @@ function editCourse(){
     const conf = confirm("Would you like to overwrite the current course?")
 
     if (conf){
-        courses.filter(c => c.name !== curCourse.name);
-
         var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events);
 
-        courses.push(newCourse);
-        newCourse.saveCourseData();
+        newCourse.overwriteCourseData(curCourse);
         location.reload();
     }
     else{
@@ -449,11 +465,23 @@ function updateTAForm(){
 }
 
 function createNewTA(){
+    parseAvailabilityFromCalendar();
+    /*
     var nameEle = document.getElementById("inputName");
     var nameFeedback = document.getElementById("taNameFeedback")
     var name = nameEle.value;
-    // TODO: Add a form field for max hours and max consec hours
-    var newTA = TA(name, 128, 2)
+    var hours = parseInt(document.getElementById("taMaxHoursInput").value);
+    var canConsec = document.getElementById("consecSelect").value;
+    var avail = parseAvailabilityFromCalendar();
+
+    if (canConsec == "yes"){
+        var consec = 4;
+    }
+    else{
+        var consec = 2;
+    }
+
+    var newTA = TA(name, hours, consec)
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -476,33 +504,53 @@ function createNewTA(){
     saveTAs();
 
     return true;
+    */
 }
 
-function loadTAAvailability(){
-    // Upon select value changing, update the calendar with the TA's availability
-    var select = document.getElementById("selectTAInput");
+function toggleAvailCell(e){
+    target = e.target;
 
-    if (select.selectedIndex > 1){
-        ta = curCourse.findTA(select.value);
-
-        // Update the calendar with highlighted sections for the TA's availability
-        newCalendar.showAvailability(ta.avail);
-
-        // Change the "modeDisplay" so it also mentions the TA we are viewing
-        document.getElementById("modeDisplay").innerHTML = "Availability for" + ta.name;
-
-        // Update the form with the TA's info
-        var nameEle = document.getElementById("inputName");
-        var availInputElement = document.getElementById("inputAvailability");
-        nameEle.value = ta.name;
-        availInputElement.value = ta.get_availability_str();
+    if (target.nodeName == "TD"){
+        if (target.classList.contains("avail")){
+            target.classList.remove("avail");
+        }
+        else{
+            target.classList.add("avail");
+        }
     }
     else{
         return;
     }
 }
 
+function parseAvailabilityFromCalendar(){
+    cells = document.querySelectorAll(".avail");
+    var parsedAvail = [];
+    var time_interv;
+
+    for (var i = 0; i < cells.length; i++){
+        id = cells[i].id;
+        day = id.slice(0, 3);
+        start = strTimeToNumbers(id.slice(3, ));
+        const time_range_str = createStrTimeRange(start, curCourse.interv);
+        const interv = createTimeRange(start, curCourse.interv);
+    }
+
+    console.log(time_interv);
+    return;
+}
+
 /* Utility Functions */
+function createStrTimeRange(start, step){
+    end_time = start + step;
+    return floatToStrTime(start) + " - " + floatToStrTime(end_time);
+}
+
+function createTimeRange(start, step){
+    end_time = start + step;
+    return Interval(start, start+step);
+}
+
 function showElement(id){
     var ele = document.getElementById(id);
 
@@ -521,66 +569,20 @@ function hideElement(id){
     return;
 }
 
-function parseAvailability(s){
-    // convert time which is in a large string of DDD HH:MM, DDD HH:MM to a JSON with form {"DDD": [], "DDD", []}
-    const re = /[A-Z]\w\w\s\d?\d\:\d\d\-\d?\d\:\d\d/;
-    var possibleDays = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    var words = s.split(", ");
-    var good = [];
-    var bad = [];
-    var obj = {};
-    
-    // Make sure each time matches the pattern we want
-    // If it doesn't, then we will store these and let the user know
-    // Need to check if times are in ascending order (e.g. 2:00-4:00 rather than 4:00-2:00)
-    // TODO: Need to check if times are overlapping
-    for (i in words){
-        if (re.test(words[i]) && isAscendingTime(words[i])){
-            good.push(words[i]);
-        }
-        else{
-            bad.push(words[i]);
-        }
-    }
-
-    // Take the good strings and convert them to JSON object
-    for (i in good){
-        // DDD HH:MM
-        let day = good[i].slice(0, 3);
-        let time = good[i].slice(4)
-
-        // If the day already exists, then we can add it to the array, otherwise
-        // we need to initialize an array for the specified day
-        if (day in obj && possibleDays.includes(day)){
-            if (!obj[day].includes(time)){
-                continue;
-            }
-            obj[day].push(time);
-        }
-        else{
-            obj[day] = [time];
-        }
-    }
-
-    return {"good": obj, "bad": bad};
-}
-
-function isAscendingTime(t){
-    // 
-    const timeSplit = t.slice(4).split("-");
-    const time1 = timeSplit[0].split(":");
-    const time1_hr = parseInt(time1);
-
-    const time2 = timeSplit[1].split(":");
-    const time2_hr = parseInt(time2);
-
-    return time1_hr <= time2_hr;
-}
-
-function strTimetoNumbers(s){
+function strTimeToNumbers(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
     const timeSplit = s.split(":")
-    return {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
+    const t = {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
+
+    if (t.mins < 15){
+        return t.hrs
+    }
+    else if (t.mins > 45){
+        return t.hrs + 1
+    }
+    else{
+        return t.hrs + 0.5
+    }
 }
 
 function floatToStrTime(x){

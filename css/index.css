@@ -8,8 +8,17 @@
     user-select: none;
 }
 
-.availCell:hover{
+.calCell.avail{
     background: lightgreen;
+}
+
+.calCell.avail:hover{
+    background: lightgreen;
+}
+
+.calCell:hover{
+    background: gold;
+    cursor: pointer;
 }
 
 button.event:hover{
