@@ -1,3 +1,7 @@
+//TODO: Fix the course creation so that it selects the course automatically when first created
+//      might want to do the same for overwriting instead of refreshing page
+// Work on interval implementation
+
 // Define the days, start, and end time here
 var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 var start_time = 9 // start time in hours (e.g. 8 = 8:00 AM)
