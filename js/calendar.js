@@ -1,12 +1,4 @@
-//TODO: Fix the course creation so that it selects the course automatically when first created
-//      might want to do the same for overwriting instead of refreshing page
-// Work on interval implementation
-
-// Define the days, start, and end time here
-var days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-var start_time = 9 // start time in hours (e.g. 8 = 8:00 AM)
-var end_time = 19  // end time in hours   (e.g. 20 = 8:00 PM)
-var timeLength = 0.5; // 0.5 hour time gap
+// TODO: Replace the reloading of webpage when overwriting course/TA data.
 
 var newCalendar;
 var courses = [];
@@ -18,33 +10,158 @@ var curTASelected;
 // Data structure for an interval that is closed on both sides
 class Interval{
     constructor(start, end){
-        this.start = start;
-        this.end = end;
+        this.interval = [start, end];
+        this.intervals = [[start, end]]
     }
 
     // Join the two intervals together
     union(i2){
+        const s2 = i2.interval[0];
+        const e2 = i2.interval[1];
+        let new_interval = [];
+
+        if (this.isEmpty()){
+            this.interval = i2.interval;
+            this.intervals = i2.intervals;
+            return;
+        }
+
+        if (i2.isEmpty()){
+            return;
+        }
+
+        if (this.hasOverlap(i2)){
+            for (let i = 0; i < this.intervals.length; i++){
+                let s1 = this.intervals[i][0]
+                let e1 = this.intervals[i][1]
+    
+                if (this.checkSingleOverlap(s1, e1, s2, e2)){
+                    console.log(s1, e1, s2, e2);
+                    new_interval.push([Math.min(s1, s2), Math.max(e1, e2)])
+                    continue;
+                }
+
+                new_interval.push([s1, e1])
+            }
+            this.intervals = new_interval;
+        }
+        else{
+            this.intervals.push([s2, e2])
+        }
+        console.log(this.intervals);
         return;
     }
 
-    // Checks if i1 overlaps with i2
+    // Checks if i1 overlaps with i2, assumes i2 is single interval
+    // Assumes single overlap
     hasOverlap(i2){
-        return;
+        const s2 = i2.interval[0]
+        const e2 = i2.interval[1]
+
+        if (this.isEmpty()){
+            return false;
+        }
+
+        if (this.contains(i2)){
+            return true;
+        }
+
+        for (let i = 0; i < this.intervals.length; i++){
+            let s1 = this.intervals[i][0]
+            let e1 = this.intervals[i][1]
+
+            // check for left or right overlap
+            if ((s2 <= s1 && e2 >= s2) || (s2 >= s1 && e2 >= e1 && s2 <= e1)){
+                console.log(`Found overlap with ${s1} - ${e1} and ${s2} - ${e2}.`);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    checkSingleOverlap(s1, e1, s2, e2){
+        // 20 23 11 14
+        if (s2 <= s1 && e2 <= e1 && e2 >= s1){
+            console.log("left overlap");
+            return true;
+        }
+        else if (s2 >= s1 && e2 >= e1 && s2 <= e1){
+            console.log("right overlap");
+            return true;
+        }
+        else if (s2 >= s1 && e2 <= e1){
+            console.log("contains overlap");
+            return true;
+        }
+        else{
+            console.log("no overlap");
+            return false;
+        }
     }
 
     // check if i1 contains the entire i2 interval
     contains(i2){
-        return;
+        const s2 = i2.interval[0]
+        const e2 = i2.interval[1]
+
+        if (this.isEmpty()){
+            return false;
+        }
+
+        for (let i = 0; i < this.intervals.length; i++){
+            let s1 = this.intervals[i][0]
+            let e1 = this.intervals[i][1]
+
+            if (s2 >= s1 && e2 <= e1){
+                return true;
+            }
+        }
+
+        return false;
     }
 
     // Check if the interval is empty
     isEmpty(){
-        return this.start == null || this.end == null;
+        return this.interval[0] == null || this.interval[1] == null;
     }
 
-    // Convert interval to JSON object (e.g. [[1,3], [2,4], [6,9]])
-    jsonify(){
-        return;
+    toTimeString(){
+        if (this.isEmpty()){
+            return "";
+        }
+
+        let s_arr = []
+        for (let i = 0; i < this.intervals.length; i++){
+            const new_s = createStrTimeRange(this.intervals[i][0], this.intervals[i][1])
+            s_arr.push(new_s)        
+        }
+
+        return s_arr.join(", ");
+    }
+
+    // converts [5, 7] to ["5:00", "5:30", "6:00", "6:30"]
+    toTimeStrArray(interv){
+        var arr = []
+
+        if (this.isEmpty()){
+            return [];
+        }
+
+        for (let i = 0; i < this.intervals.length; i++){
+            const s = this.intervals[i][0]
+            const e = this.intervals[i][1]
+            const interv_len = (e - s) / interv
+
+            console.log(interv_len);
+
+            for (let j = 0; j < interv_len; j++){
+                arr.push(floatToStrTime(s + (interv * j)))
+            }
+        }
+
+        console.log(arr);
+        return arr;
     }
 }
 
@@ -69,6 +186,19 @@ class Course{
         // TODO: Read the data/events.json file and populate the schedule
     }
     
+    deleteCourseData(){
+        for (var i = 0; i < localStorage.length; i++){
+            const key = localStorage.key(i)
+            if (key == this.name){
+                localStorage.removeItem(key);
+                console.log(`Deleted ${this.name} from the system.`);
+                location.reload();
+            }
+        }
+
+        return false;
+    }
+
     overwriteCourseData(oldCourse){
         const newData = this.courseToJson();
 
@@ -112,6 +242,30 @@ class Course{
         document.getElementById("endHour").value = floatToStrTime(this.end_t);
     }
 
+    addTA(ta){
+        if (this.isExistingTA(ta.name)){
+            console.log("A TA with this name already exists.");
+            return false;
+        }
+        else{
+            this.tas.push(ta);
+            this.saveCourseData();
+        }
+    }
+
+    overwriteTA(oldTA, newTA){
+        for (let i = 0; i < this.tas.length; i++){
+            if (this.tas[i].name == oldTA.name){
+                this.tas[i] = newTA;
+                this.saveCourseData();
+                location.reload();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     populateTASelect(){
         // Clear the select menu and then repopulate the select menu
         var select = document.getElementById("selectTAInput");
@@ -120,9 +274,20 @@ class Course{
         
         for (var i in this.tas){
             var option = document.createElement("option");
-            option.text = name;
+            option.text = this.tas[i].name;
+            option.value = this.tas[i].name;
             select.add(option);
         }
+    }
+
+    isExistingTA(name){
+        for (let i = 0; i < this.tas.length; i++){
+            if (this.tas[i].name == name){
+                return true;
+            }
+        }
+    
+        return false;
     }
 
     courseToJson(){
@@ -136,11 +301,6 @@ class Course{
         data["events"] = this.events;
 
         return data;
-    }
-
-    saveCourses(){
-        var data = this.courseToJson();
-        localStorage.setItem(this.name, JSON.stringify(data));
     }
     
     findTA(name){
@@ -163,6 +323,24 @@ class TA {
         this.avail = avail;
         this.assigned = [];
         this.assigned_avail = {};
+    }
+
+    fillTAForm(){
+        var nameEle = document.getElementById("inputName");
+        var hours = document.getElementById("taMaxHoursInput");
+        var canConsec = document.getElementById("consecSelect");
+
+        nameEle.value = this.name;
+        hours.value = this.max_hrs;
+        
+        if (this.consec == 2){
+            canConsec.options.selectedIndex = 1;
+        }
+        else{
+            canConsec.options.selectedIndex = 0;
+        }
+
+        newCalendar.loadAvail(this.avail);
     }
 
     checkAvailability(event){
@@ -189,12 +367,12 @@ class Calendar {
 
     generateTimes(){
         
-        var totalTimes = (this.end - this.start) / timeLength;
+        var totalTimes = (this.end - this.start) / curCourse.interv;
         var curTime = this.start;
 
         for (let i = 0; i < totalTimes; i++){
             this.times.push(curTime)
-            curTime += timeLength
+            curTime += curCourse.interv
         }
     }
     
@@ -238,8 +416,49 @@ class Calendar {
         table.innerHTML = "";
     }
 
+    resetAvail(){
+        var cells = document.querySelectorAll(".calCell");
+
+        for (let i = 0; i < cells.length; i++){
+            if (cells[i].classList.contains("avail")){
+                cells[i].classList.remove("avail");
+            }
+        }
+
+        return;
+    }
+
     // Given a TA, display their availability on the calendar (highlighted in green)
-    displayAvail(ta){
+    loadAvail(avail){
+        this.resetAvail();
+
+        for (let i = 0; i < curCourse.days.length; i++){
+            const day_avail = avail[curCourse.days[i]];
+            console.log(day_avail);
+
+            if (day_avail.isEmpty()){
+                continue;
+            }
+            else{
+                day_avail.toTimeStrArray(curCourse.interv);
+                this.highlightAvail(curCourse.days[i], day_avail.toTimeStrArray(curCourse.interv));
+                console.log(`Loaded availability for ${curCourse.days[i]}!`)
+            }
+        }
+        return;
+    }
+
+    // Highlight the availability for a given day and a list of times
+    highlightAvail(day, times){
+        for (let i = 0; i < times.length; i++){
+            const id = day + times[i];
+            const ele = document.getElementById(id);
+
+            if (!ele.classList.contains("avail")){
+                ele.classList.add("avail");
+            }
+        }
+
         return;
     }
 }
@@ -278,7 +497,7 @@ function loadCourses(){
 
     for (var i = 0; i < localStorage.length; i++){
         const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
-        course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, data.tas, data.events);
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), data.events);
         courses.push(course);
     }
 
@@ -306,7 +525,6 @@ function initializeCourse(){
     var courseForm = document.getElementById("courseForm");
     var submitBtn = document.getElementById("courseFormSubmitBtn");
 
-    // Hide the calendar
     if (newCalendar !== undefined){
         newCalendar.clear();
     }
@@ -324,16 +542,17 @@ function initializeCourse(){
 
         hideElement("selectTAInput");
         hideElement("taAccordion");
+        hideElement("courseDeleteBtn");
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
         loadCourseData(courseSelect.value);
         courseForm.removeEventListener("submit", createNewCourse);
         courseForm.addEventListener("submit", editCourse);
+        showElement("courseDeleteBtn")
     }
 
     showElement("courseAccordion")
-    
 
     return;
 }
@@ -342,6 +561,7 @@ function createNewCourse(){
     var nameEle = document.getElementById("inputCourseName");
     var nameFeedback = document.getElementById("courseNameFeedback")
     var name = nameEle.value;
+    var courseSelect = document.getElementById("selectCourseInput");
 
     var days = [];
     document.querySelectorAll(".form-check-input").forEach((ele) => {
@@ -370,10 +590,15 @@ function createNewCourse(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, [], []);
+    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], []);
     courses.push(newCourse);
     newCourse.saveCourseData();
     populateCourseSelect();
+    courseSelect.selectedIndex = courseSelect.options.length - 1;
+    initializeCourse();
+    curCourse = newCourse;
+
+    alert(`The new course ${newCourse.name} has been created successfully!`)
 
     return true;
 }
@@ -423,6 +648,18 @@ function editCourse(){
     }
 }
 
+function deleteCourse(){
+    const conf = confirm(`Are you sure you want to delete ${curCourse.name}? This action CANNOT be undone!`);
+
+    if (conf){
+        curCourse.deleteCourseData();
+    }
+    else{
+        return false;
+    }
+
+}
+
 function isExistingCourse(cname){
     for (var i in courses){
         if (courses[i].name == cname){
@@ -438,6 +675,17 @@ function updateTAForm(){
     var taForm = document.getElementById("newTAForm");
     var submitBtn = document.getElementById("taFormSubmitBtn");
 
+    // Show Calendar
+    if (newCalendar === undefined){
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar.generateRows();
+    }
+    else{
+        newCalendar.clear();
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar.generateRows();
+    }
+
     // If Add New TA option is selected
     if (select.selectedIndex == 1){
         // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
@@ -450,27 +698,24 @@ function updateTAForm(){
         submitBtn.innerHTML = "Confirm Changes";
         taForm.removeEventListener("submit", createNewTA);
         taForm.addEventListener("submit", editTA);
+
+        const ta = curCourse.findTA(select.value);
+
+        if (ta){
+            ta.fillTAForm();
+            curTASelected = ta;
+        }
+        else{
+            console.log("TA couldn't be found.")
+        }
     }
 
     showElement("taAccordion");
-
-    // Show Calendar
-    if (newCalendar === undefined){
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
-        newCalendar.generateRows();
-    }
-    else{
-        newCalendar.clear();
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
-        newCalendar.generateRows();
-    }
 
     return;
 }
 
 function createNewTA(){
-    parseAvailabilityFromCalendar();
-    /*
     var nameEle = document.getElementById("inputName");
     var nameFeedback = document.getElementById("taNameFeedback")
     var name = nameEle.value;
@@ -485,8 +730,6 @@ function createNewTA(){
         var consec = 2;
     }
 
-    var newTA = TA(name, hours, consec)
-
     if (name == ""){
         nameEle.classList.remove("is-valid");
         nameEle.classList.add("is-invalid");
@@ -494,7 +737,7 @@ function createNewTA(){
         return false;
     }
 
-    if (isExistingTA(name)){
+    if (curCourse.isExistingTA(name)){
         nameEle.classList.remove("is-valid");
         nameEle.classList.add("is-invalid");
         nameFeedback.innerHTML = "A TA with that name already exists."
@@ -504,11 +747,83 @@ function createNewTA(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    cur_tas.push(newTA);
-    saveTAs();
+    const availStr = availJsonToString(avail);
+    const conf = confirm("You have selected the following availability, please confirm it:\n\n" + availStr);
+    
+    if (conf){
+        var newTA = new TA(name, hours, consec, avail);
+        curCourse.addTA(newTA);
 
-    return true;
-    */
+        return true;
+    }
+
+    return false;
+}
+
+function editTA(){
+    var nameEle = document.getElementById("inputName");
+    var nameFeedback = document.getElementById("taNameFeedback")
+    var name = nameEle.value;
+    var hours = parseInt(document.getElementById("taMaxHoursInput").value);
+    var canConsec = document.getElementById("consecSelect").value;
+    var avail = parseAvailabilityFromCalendar();
+
+    if (canConsec == "yes"){
+        var consec = 4;
+    }
+    else{
+        var consec = 2;
+    }
+
+    if (name == ""){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "The specified name is invalid."
+        return false;
+    }
+
+    if (curCourse.isExistingTA(name) && curTASelected.name !== name){
+        nameEle.classList.remove("is-valid");
+        nameEle.classList.add("is-invalid");
+        nameFeedback.innerHTML = "A TA with that name already exists."
+        return false;
+    }
+
+    nameEle.classList.remove("is-invalid");
+    nameEle.classList.add("is-valid");
+
+    const availStr = availJsonToString(avail);
+    const conf = confirm("Are yo sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
+
+    if (conf){
+        var newTA = new TA(name, hours, consec, avail);
+        curCourse.overwriteTA(curTASelected, newTA)
+    }
+
+    return;
+}
+
+function loadTAs(days, tas_arr){
+    arr = []
+    for (let i = 0; i < tas_arr.length; i++){
+        ta_obj = tas_arr[i]
+        ta = new TA(ta_obj.name, ta_obj.max_hrs, ta_obj.consec, intervalize(days, ta_obj.avail))
+        arr.push(ta);
+    }
+
+    return arr;
+}
+
+// Convert the TA's avail from obj to obj with intervals
+function intervalize(days, avail){
+    for (let i = 0; i < days.length; i++){
+        var new_interv = new Interval(avail[days[i]].interval[0], avail[days[i]].interval[1])
+        new_interv.intervals = avail[days[i]].intervals;
+
+        avail[days[i]] = new_interv;
+    }
+    
+    return avail;
 }
 
 function toggleAvailCell(e){
@@ -529,30 +844,41 @@ function toggleAvailCell(e){
 
 function parseAvailabilityFromCalendar(){
     cells = document.querySelectorAll(".avail");
-    var parsedAvail = [];
-    var time_interv;
+    avail_json = {}
+    
+    for (var i = 0; i < curCourse.days.length; i++){
+        avail_json[curCourse.days[i]] = new Interval(null, null);
+    }
 
     for (var i = 0; i < cells.length; i++){
         id = cells[i].id;
         day = id.slice(0, 3);
         start = strTimeToNumbers(id.slice(3, ));
-        const time_range_str = createStrTimeRange(start, curCourse.interv);
-        const interv = createTimeRange(start, curCourse.interv);
+        avail_json[day].union(new Interval(start, start + curCourse.interv));
     }
 
-    console.log(time_interv);
-    return;
+    return avail_json;
+}
+
+function availJsonToString(aj){
+    new_s = ""
+
+    for (var i = 0; i < curCourse.days.length; i++){
+        const availForDay = aj[curCourse.days[i]].toTimeString()
+        if (availForDay == ""){
+            new_s += curCourse.days[i] + ": Not Available\n";
+        }
+        else{
+            new_s += curCourse.days[i] + ": " + availForDay + "\n";
+        }
+    }
+
+    return new_s;
 }
 
 /* Utility Functions */
-function createStrTimeRange(start, step){
-    end_time = start + step;
-    return floatToStrTime(start) + " - " + floatToStrTime(end_time);
-}
-
-function createTimeRange(start, step){
-    end_time = start + step;
-    return Interval(start, start+step);
+function createStrTimeRange(start, end){
+    return floatToStrTime(start) + "-" + floatToStrTime(end);
 }
 
 function showElement(id){
@@ -612,3 +938,42 @@ function floatToStrTime(x){
 }
 
 loadCourses();
+
+// Testing for Intervals
+/*
+i1 = new Interval(12, 15)
+i2 = new Interval(11, 14)
+i3 = new Interval(13, 14)
+i4 = new Interval(14, 17)
+i5 = new Interval(20, 23)
+i6 = new Interval(null, null)
+
+console.log("Test for left overlap");
+console.log(i1.hasOverlap(i2))
+console.log(i1.contains(i2))
+
+console.log("Test for middle overlap");
+console.log(i1.hasOverlap(i3))
+console.log(i1.contains(i2))
+
+console.log("Test for right overlap");
+console.log(i1.hasOverlap(i4))
+console.log(i1.contains(i4));
+
+console.log("Test for no overlap");
+console.log(i1.hasOverlap(i5));
+console.log(i1.contains(i5));
+
+console.log("Test for union");
+i1 = new Interval(12, 15)
+i1.union(i6)
+
+i1 = new Interval(12, 15)
+i1.union(i3)
+
+i1 = new Interval(12, 15)
+i1.union(i5)
+i1.union(i2)
+console.log(i1.intervals);
+console.log(i1.toTimeString());
+*/
