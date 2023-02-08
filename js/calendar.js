@@ -709,6 +709,7 @@ function updateTAForm(){
         // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
         taForm.reset();
         taForm.addEventListener("submit", createNewTA);
+        taForm.removeEventListener("submit", editTA);
         submitBtn.innerHTML = "Submit";
         hideElement("taDeleteBtn");
 
@@ -743,6 +744,7 @@ function createNewTA(){
     var hours = parseInt(document.getElementById("taMaxHoursInput").value);
     var canConsec = document.getElementById("consecSelect").value;
     var avail = parseAvailabilityFromCalendar();
+    var select = document.getElementById("selectTAInput");
 
     if (canConsec == "yes"){
         var consec = 4;
@@ -774,6 +776,9 @@ function createNewTA(){
     if (conf){
         var newTA = new TA(name, hours, consec, avail);
         curCourse.addTA(newTA);
+        curCourse.populateTASelect();
+        curTASelected = newTA;
+        select.options.selectedIndex = select.options.length - 1;
 
         return true;
     }
