@@ -1,5 +1,4 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
-// TODO: Add a delete TA button
 // TODO: Add the events system
 
 var newCalendar;
