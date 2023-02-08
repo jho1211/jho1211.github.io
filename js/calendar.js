@@ -1,4 +1,6 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
+// TODO: Add a delete TA button
+// TODO: Add the events system
 
 var newCalendar;
 var courses = [];
@@ -264,6 +266,22 @@ class Course{
         }
 
         return false;
+    }
+
+    deleteTA(ta){
+        var new_arr = []
+
+        for (let i = 0; i < this.tas.length; i++){
+            if (this.tas[i].name !== ta.name){
+                new_arr.push(this.tas[i]);
+            }
+        }
+
+        this.tas = new_arr;
+        this.saveCourseData();
+        location.reload();
+
+        return new_arr;
     }
 
     populateTASelect(){
@@ -692,12 +710,15 @@ function updateTAForm(){
         taForm.reset();
         taForm.addEventListener("submit", createNewTA);
         submitBtn.innerHTML = "Submit";
+        hideElement("taDeleteBtn");
 
     }
     else if (select.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
         taForm.removeEventListener("submit", createNewTA);
         taForm.addEventListener("submit", editTA);
+
+        showElement("taDeleteBtn");
 
         const ta = curCourse.findTA(select.value);
 
@@ -801,6 +822,16 @@ function editTA(){
     }
 
     return;
+}
+
+function deleteTA(){
+    const conf = confirm(`Are you sure you want to delete ${curTASelected.name}? This action CANNOT be undone!`);
+
+    if (conf){
+        curCourse.deleteTA(curTASelected);
+    }
+    
+    return false;
 }
 
 function loadTAs(days, tas_arr){
