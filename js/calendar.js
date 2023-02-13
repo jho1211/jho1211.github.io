@@ -7,6 +7,96 @@ var courses = [];
 // For populating the TA select menu
 var curCourse;
 var curTASelected;
+var curEvent;
+
+class CourseEvent {
+    // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
+    constructor(name, day, start, dur, loc, desc, needed, id){
+        this.name = name;
+        this.day = day;
+        this.start = start;
+        this.end = start + dur;
+        this.loc = loc;
+        this.description = desc;
+        this.tas_needed = needed;
+        this.assigned = []
+
+        this.newModal("event" + id);
+        this.newEventButton("event" + id)
+    }
+
+    // Checks if event is fully assigned yet
+    isFullyAssigned(){
+        return this.assigned.length == this.tas_needed;
+    }
+
+    // Updates the event with new info
+    updateEvent(name, day, start, dur, loc, desc, needed){
+        this.name = name;
+        this.day = day;
+        this.start = start;
+        this.end = start + dur;
+        this.loc = loc;
+        this.description = desc;
+        this.tas_needed = needed;
+        return;
+    }
+
+    // Assigns a TA to the event
+    assignTA(ta){
+        if (!this.isFullyAssigned()){
+            this.assigned.push(ta);
+        }
+        return;
+    }
+
+    // Creates new modal or updates existing modal
+    // TODO: Add a toggle edit button and a delete button
+    newModal(id){
+        var modal = document.getElementById(id);
+        // if modal already exists, then update it
+        if (modal !== null){
+            return false;
+        }
+
+        // otherwise create new modal
+        modal = document.createElement("div");
+        modal.classList.add("modal", "fade")
+        modal.id = id;
+        modal.tabIndex = "-1";
+        modal.innerHTML = `<div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">${this.name}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <p><b>Location: </b>${this.loc} <br>
+              <b>Time: </b>${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)} <br>
+              <br>
+              <b>Description: </b>
+              ${this.description}
+            </p>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-warning">Edit</button>
+              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
+          </div>
+        </div>
+      </div>`
+
+        // Store it in a div
+        const cal = document.getElementById("modalEvents");
+        cal.appendChild(modal);
+
+    }
+
+    // Creates new event button to be shown on calendar or updates existing button
+    // TODO:
+    newEventButton(id){
+        return;
+    }
+}
 
 // Data structure for an interval that is closed on both sides
 class Interval{
@@ -241,6 +331,12 @@ class Course{
         // Set the start and end hour
         document.getElementById("startHour").value = floatToStrTime(this.start_t);
         document.getElementById("endHour").value = floatToStrTime(this.end_t);
+    }
+
+    createEvent(ename, eday, estart, edur, eloc, edesc){
+        var event = new CourseEvent(ename, eday, estart, edur, eloc, edesc, this.events.length);
+        this.events.push(event);
+        console.log("Event has been created.")
     }
 
     addTA(ta){
@@ -911,6 +1007,26 @@ function availJsonToString(aj){
     return new_s;
 }
 
+function loadEvents(){
+    var form = document.getElementById("newEventForm");
+    form.addEventListener("submit", newEvent);
+}
+
+function newEvent(){
+    var form = document.getElementById("newEventForm");
+    const ename = form.elements[0].value;
+    const eday = form.elements[2].value;
+    const estart = strTimeToNumbers(form.elements[3].value);
+    const edur = parseInt(form.elements[4].value);
+    const eloc = form.elements[5].value;
+    const edesc = form.elements[6].value;
+
+    curCourse.addEvent(ename, eday, estart, edur, eloc, edesc);
+    console.log("Event has been created.");
+
+    return true;
+}
+
 /* Utility Functions */
 function createStrTimeRange(start, end){
     return floatToStrTime(start) + "-" + floatToStrTime(end);
@@ -973,6 +1089,7 @@ function floatToStrTime(x){
 }
 
 loadCourses();
+loadEvents();
 
 // Testing for Intervals
 /*

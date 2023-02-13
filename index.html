@@ -193,6 +193,12 @@
                                         </select>
                                     </div>
                                 </div>
+                                <div class="row">
+                                    <div class="container">
+                                        <h2 class="text-white">Availability Calendar</h1>
+                                        <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="schedule" oncontextmenu="return false;"></table>
+                                    </div>
+                                </div>
                                 <hr class="text-white" />
                                 <div class="row">
                                     <div class="col-3">
@@ -209,15 +215,19 @@
             </div>
     </div>
     <div class="vr" style="height: 5px"></div>
-    <div class="container">
-        <table class="table text-white table-bordered noselect" style="table-layout: fixed" id="schedule" oncontextmenu="return false;"></table>
-    </div>
 
     <!--
         Testing out the modal system for the events
     -->
 
     <div class="container">
+        
+        <div class="eventCalendarText mb-3">
+            <h1 class="text-white">Event Calendar</h1>
+            <button type="button" id="newEventBtn" class="btn btn-lg btn-outline-light" data-bs-toggle="modal" data-bs-target="#newEventModal">
+                <img src="img/plus-circle.svg" width="32" height="32"> New Event
+            </button>
+        </div>
         <table class="table text-white table-bordered" style="table-layout: fixed">
             <thead class="table-primary border-dark">
                 <th></th>
@@ -266,6 +276,10 @@
         </table>
     </div>
 
+    <div id="modalEvents">
+
+    </div>
+
     <div class="modal fade" id="exampleModal" tabindex="-1">
         <div class="modal-dialog">
           <div class="modal-content">
@@ -286,7 +300,62 @@
             </div>
           </div>
         </div>
-      </div>
+    </div>
+
+    <div class="modal fade" id="newEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="newEventForm" onsubmit="return false;">
+                    <div class="modal-header">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text"><b>Event Name</b></span>
+                                    <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Day</span>
+                            <select class="form-select form-select-sm" id="newEventDaySelect" required>
+                                <option value="Mon">Monday</option>
+                                <option value="Tue">Tuesday</option>
+                                <option value="Wed">Wednesday</option>
+                                <option value="Thu">Thursday</option>
+                                <option value="Fri">Friday</option>
+                                <option value="Sat">Saturday</option>
+                                <option value="Sun">Sunday</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Start Time</span>
+                            <input type="time" class="form-control form-control-sm" aria-label="Start Time Input" id="newEventStartTimeInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Duration</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">minutes</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Location</span>
+                            <input type="text" class="form-control form-control-sm" aria-label="Location Input" id="newEventLocInput">
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Description</span>
+                            <textarea class="form-control" id="newEventDescriptionInput" row="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 
 </body>
 

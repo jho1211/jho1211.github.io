@@ -35,3 +35,8 @@ button.availEvent {
     --bs-accordion-btn-color: #0c63e4;
     --bs-accordion-btn-bg: #e7f1ff;
 }
+
+.eventCalendarText {
+    display: flex;
+    justify-content: space-between;
+}
