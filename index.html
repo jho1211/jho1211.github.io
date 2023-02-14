@@ -240,7 +240,7 @@
             <tbody class="table-secondary border-dark">
                 <tr>
                     <th>8:00</th>
-                    <td><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <td id="dayHH:MM"><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
                         <h6>Office Hours</h6>
                         DLC Table 1 <br>
                         Mon 8:00-8:30
@@ -342,6 +342,11 @@
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Location</span>
                             <input type="text" class="form-control form-control-sm" aria-label="Location Input" id="newEventLocInput">
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">TAs Required</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">TAs</span>
                         </div>
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Description</span>
