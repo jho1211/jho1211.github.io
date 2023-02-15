@@ -12,7 +12,7 @@ var curEvent;
 
 class CourseEvent {
     // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
-    constructor(name, day, start, dur, loc, desc, needed, id){
+    constructor(name, day, start, dur, loc, desc, needed){
         this.name = name;
         this.day = day;
         this.start = start;
@@ -21,9 +21,6 @@ class CourseEvent {
         this.description = desc;
         this.tas_needed = needed;
         this.assigned = []
-
-        this.newModal("event" + id);
-        this.newEventButton("event" + id)
 
         return;
     }
@@ -128,7 +125,8 @@ class CourseEvent {
         }
 
         const ecal = document.getElementById("eventCalendar")
-        const td = ecal.getElementById("dayHH:MM")
+        // TODO: need to escape the : in the string to query select it
+        const td = ecal.querySelector("#" + this.day + floatToStrTime(this.start))
         td.appendChild(eventBtn);
         console.log(td);
 
@@ -322,6 +320,10 @@ class Course{
         eventCalendar.clear();
         eventCalendar.generateEventRows();
 
+        for (let i = 0; i < this.events.length; i++){
+            this.events[i].newModal("event" + i);
+            this.events[i].newEventButton("event" + i);
+        }
     }
     
     deleteCourseData(){
@@ -381,8 +383,11 @@ class Course{
     }
 
     addEvent(ename, eday, estart, edur, eloc, needed, edesc){
-        var event = new CourseEvent(ename, eday, estart, edur, eloc, edesc, needed, this.events.length);
+        var event = new CourseEvent(ename, eday, estart, edur, eloc, edesc, needed);
         this.events.push(event);
+
+        event.newModal("event" + this.events.length);
+        event.newEventButton("event" + this.events.length)
         console.log("Event has been created.")
     }
 
@@ -693,7 +698,7 @@ function loadCourses(){
 
     for (var i = 0; i < localStorage.length; i++){
         const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
-        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), data.events);
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events));
         courses.push(course);
     }
 
@@ -1032,6 +1037,36 @@ function loadTAs(days, tas_arr){
     return arr;
 }
 
+// TODO: Load in the list of events and convert to Event objects. Also, need to find the corresponding TAs that have already been assigned to the event.
+function loadEvents(days, events){
+    var arr = []
+
+    /*
+    this.name = name;
+        this.day = day;
+        this.start = start;
+        this.end = start + dur;
+        this.loc = loc;
+        this.description = desc;
+        this.tas_needed = needed;
+        this.assigned = []
+    */
+
+    for (var i = 0; i < events.length; i++){
+        const e = events[i];
+        var cevent = new CourseEvent(e.name, e.day, e.start, e.dur, e.loc, e.desc, e.needed);
+        cevent.assigned = loadTAs(days, e.assigned);
+        arr.push(cevent);
+    }
+
+    return arr;
+}
+
+// TODO: Store the events that all TAs are assigned to. Will need to do this in a separate function after loading the events.
+function loadTAEvents(){
+    return;
+}
+
 // Convert the TA's avail from obj to obj with intervals
 function intervalize(days, avail){
     for (let i = 0; i < days.length; i++){
@@ -1092,11 +1127,6 @@ function availJsonToString(aj){
     }
 
     return new_s;
-}
-
-function loadEvents(){
-    var form = document.getElementById("newEventForm");
-    form.addEventListener("submit", newEvent);
 }
 
 function newEvent(){
@@ -1177,7 +1207,8 @@ function floatToStrTime(x){
 }
 
 loadCourses();
-loadEvents();
+
+document.getElementById("newEventForm").addEventListener("submit", newEvent);
 
 // Testing for Intervals
 /*
