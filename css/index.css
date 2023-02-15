@@ -40,3 +40,12 @@ button.availEvent {
     display: flex;
     justify-content: space-between;
 }
+
+.btn-new-event {
+    background-color: white;
+}
+
+.btn-new-event:hover {
+    background-color: white;
+    transform: scale(1.05);
+}

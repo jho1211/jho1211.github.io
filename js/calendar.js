@@ -2,6 +2,7 @@
 // TODO: Add the events system
 
 var newCalendar;
+var eventCalendar;
 var courses = [];
 
 // For populating the TA select menu
@@ -83,10 +84,12 @@ class CourseEvent {
               ${this.description}
             </p>
           </div>
-          <div class="modal-footer">
-              <button type="button" class="btn btn-warning">Edit</button>
-              <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
-          </div>
+          <div class="modal-footer" style="justify-content: space-between;">
+                <div>
+                    <button type="button" class="btn btn-warning">Edit</button>
+                    <button type="button" class="btn btn-danger">Delete Event</button>
+                </div>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
         </div>
       </div>`
 
@@ -124,7 +127,8 @@ class CourseEvent {
         ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
         }
 
-        const td = document.getElementById("dayHH:MM")
+        const ecal = document.getElementById("eventCalendar")
+        const td = ecal.getElementById("dayHH:MM")
         td.appendChild(eventBtn);
         console.log(td);
 
@@ -308,7 +312,16 @@ class Course{
         this.populateTASelect();
         this.fillCourseForm();
     
-        // TODO: Read the data/events.json file and populate the schedule
+        // TODO: generate event calendar and populate the schedule with events
+        this.generateEvents();
+    }
+
+    generateEvents(){
+        eventCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "eventCalendar")
+
+        eventCalendar.clear();
+        eventCalendar.generateEventRows();
+
     }
     
     deleteCourseData(){
@@ -504,17 +517,19 @@ class TA {
 }
 
 class Calendar {
-    constructor(days, start, end){
+    constructor(days, start, end, interv, id){
         this.days = days;
         this.start = start;
         this.end = end;
+        this.interv = interv;
         this.events = [];
-        this.times = []
+        this.times = [];
+        this.id = id;
     }
 
     generateTimes(){
         
-        var totalTimes = (this.end - this.start) / curCourse.interv;
+        var totalTimes = Math.ceil((this.end - this.start) / this.interv);
         var curTime = this.start;
 
         for (let i = 0; i < totalTimes; i++){
@@ -526,7 +541,7 @@ class Calendar {
     generateRows(){
         this.generateTimes();
 
-        var table = document.getElementById("schedule")
+        var table = document.getElementById(this.id);
         // Generate the table header with the days
         var header = table.createTHead();
         header.className += "table-primary border-dark"
@@ -558,8 +573,42 @@ class Calendar {
         }
     }
 
+    generateEventRows(){
+        this.generateTimes();
+
+        var table = document.getElementById(this.id);
+        // Generate the table header with the days
+        var header = table.createTHead();
+        header.className += "table-primary border-dark"
+        var headerRow = header.insertRow(0)
+        headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
+        
+        for (let i = 0; i < this.days.length; i++){
+            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i] + "</th>";
+        }
+
+        // Generate the table rows with each time
+        var tableBody = table.createTBody();
+        tableBody.className += "table-secondary border-dark";
+        tableBody.addEventListener("click", (ele) => toggleAvailCell(ele));
+
+        for (let i = 0; i < this.times.length; i++){
+            
+            var newRow = tableBody.insertRow();
+            // Add the XX:XX cell
+            var strTime = floatToStrTime(this.times[i])
+            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
+
+            // Add an empty cell for the rest of the cols for this ros
+            for (let j = 0; j < this.days.length; j++){
+                var newCell = newRow.insertCell();
+                newCell.id = this.days[j] + strTime;
+            }
+        }
+    }
+
     clear(){
-        var table = document.getElementById("schedule");
+        var table = document.getElementById(this.id);
         table.innerHTML = "";
     }
 
@@ -658,8 +707,8 @@ function loadCourseData(cname){
     for (var i in courses){
         if (courses[i].name == cname){
             const course = courses[i]
-            course.initialize();
             curCourse = course;
+            course.initialize();
             return;
         }
     }
@@ -672,9 +721,11 @@ function initializeCourse(){
     var courseForm = document.getElementById("courseForm");
     var submitBtn = document.getElementById("courseFormSubmitBtn");
 
+    /*
     if (newCalendar !== undefined){
         newCalendar.clear();
     }
+    */
 
     // If Add New TA option is selected
     if (courseSelect.selectedIndex == 1){
@@ -690,16 +741,18 @@ function initializeCourse(){
         hideElement("selectTAInput");
         hideElement("taAccordion");
         hideElement("courseDeleteBtn");
+        hideElement("eventsDiv");
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
         loadCourseData(courseSelect.value);
         courseForm.removeEventListener("submit", createNewCourse);
         courseForm.addEventListener("submit", editCourse);
-        showElement("courseDeleteBtn")
+        showElement("courseDeleteBtn");
+        showElement("eventsDiv");
     }
 
-    showElement("courseAccordion")
+    showElement("courseAccordion");
 
     return;
 }
@@ -824,12 +877,12 @@ function updateTAForm(){
 
     // Show Calendar
     if (newCalendar === undefined){
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
         newCalendar.generateRows();
     }
     else{
         newCalendar.clear();
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t);
+        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
         newCalendar.generateRows();
     }
 
