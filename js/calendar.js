@@ -33,13 +33,13 @@ class CourseEvent {
     }
 
     deleteEvent(){
-        var modal = document.getElementById(this.id + "modal");
-        var eventBtn = document.getElementById(this.id + "btn");
+        var modal = document.getElementById("event" + this.id + "modal");
+        var eventBtn = document.getElementById("event" + this.id + "btn");
 
         // Need to hide the modal if visible when deleting it
 
         if (modal !== null){
-            // TODO: Hide modal if visible before deleting it.
+            $("#" + "event" + this.id + "modal").modal("hide");
             modal.remove();
         }
 
@@ -51,21 +51,27 @@ class CourseEvent {
     }
 
     // TODO: Updates the event with new info
-    updateEvent(name, day, start, dur, loc, desc, needed, assigned){
-        this.name = name;
-        this.day = day;
-        this.start = start;
-        this.end = start + dur;
-        this.loc = loc;
-        this.description = desc;
-        this.tas_needed = needed;
-        this.assigned = assigned;
+    editEvent(name, day, start, end, loc, needed, desc, assigned){
+        const conf = "Are you sure you want to overwrite the current event?"
 
-        // Delete the current modal and event button and replace with new one in the Course class
-        this.newEventButton()
-        this.newModal();
+        if (conf){
+            this.name = name;
+            this.day = day;
+            this.start = start;
+            this.end = end;
+            this.loc = loc;
+            this.description = desc;
+            this.tas_needed = needed;
+            this.assigned = assigned;
 
-        return;
+            // Delete the current modal and event button and replace with new one in the Course class
+            this.newEventButton()
+            this.newModal();
+
+            return true;
+        }
+
+        return false;;
     }
 
     // Assigns a TA to the event
@@ -81,18 +87,18 @@ class CourseEvent {
     // Creates new modal or updates existing modal
     // TODO: Add a toggle edit button and a delete button
     newModal(){
-        var modal = document.getElementById(this.id + "modal");
+        var modal = document.getElementById("event" + this.id + "modal");
         // if modal already exists, then remove it and create a new one
         if (modal !== null){
             // Hide the modal if currently active
-            modal.classList.remove("show");
+            $("#" + "event" + this.id + "modal").modal("hide");
             modal.remove();
         }
 
         // otherwise create new modal
         modal = document.createElement("div");
         modal.classList.add("modal", "fade")
-        modal.id = this.id + "modal";
+        modal.id = "event" + this.id + "modal";
         modal.tabIndex = "-1";
         modal.innerHTML = `<div class="modal-dialog">
         <div class="modal-content">
@@ -110,7 +116,7 @@ class CourseEvent {
           </div>
           <div class="modal-footer" style="justify-content: space-between;">
                 <div>
-                    <button type="button" class="btn btn-warning">Edit</button>
+                    <button type="button" class="btn btn-warning" onClick="openEditEvent(${this.id})">Edit</button>
                     <button type="button" class="btn btn-danger" onclick="deleteEvent(${this.id})">Delete Event</button>
                 </div>
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
@@ -127,7 +133,7 @@ class CourseEvent {
     // TODO: Add TA assignment text to the modal
     // TODO: Change button class based on the TA selected's availability
     newEventButton(){
-        var eventBtn = document.getElementById(this.id +"btn");
+        var eventBtn = document.getElementById("event" + this.id +"btn");
 
         if (eventBtn !== null){
             eventBtn.remove();
@@ -136,9 +142,9 @@ class CourseEvent {
         var eventBtn = document.createElement("button");
         eventBtn["type"] = "button";
         eventBtn.classList.add("event");
-        eventBtn.id = this.id + "btn";
+        eventBtn.id = "event" + this.id + "btn";
         eventBtn.dataset.bsToggle = "modal"
-        eventBtn.dataset.bsTarget = `#${this.id}modal`;
+        eventBtn.dataset.bsTarget = `#event${this.id}modal`;
 
         if (this.isFullyAssigned()){
             eventBtn.innerHTML = `<h5>${this.name} <img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
@@ -329,7 +335,7 @@ class Course{
         this.interv = interv;
         this.tas = tas;
         this.events = events;
-        this.eventUUID = euuid;
+        this.euuid = euuid;
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
@@ -337,6 +343,31 @@ class Course{
         this.populateTASelect();
         this.fillCourseForm();
         this.generateEvents();
+    }
+
+    getEvent(id){
+        for (let i = 0; i < this.events.length; i++){
+            if (this.events[i].id == id){
+                return this.events[i]
+            }
+        }
+        
+        return null;
+    }
+
+    editEvent(id, name, day, start, end, loc, desc, needed){
+        for (let i = 0; i < this.events.length; i++){
+            if (this.events[i].id == id){
+                var res = this.events[i].editEvent(name, day, start, end, loc, desc, needed, this.events[i].assigned);
+
+                if (res){
+                    curCourse.saveCourseData();
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     generateEvents(){
@@ -383,6 +414,7 @@ class Course{
         }
 
         const data = this.courseToJson();
+        console.log(data);
 
         localStorage.setItem(this.name, JSON.stringify(data));
 
@@ -407,8 +439,8 @@ class Course{
         document.getElementById("endHour").value = floatToStrTime(this.end_t);
     }
 
-    addEvent(ename, eday, estart, edur, eloc, needed, edesc){
-        var event = new CourseEvent(ename, eday, estart, estart + edur, eloc, edesc, needed, this.eventUUID);
+    addEvent(ename, eday, estart, end, eloc, needed, edesc){
+        var event = new CourseEvent(ename, eday, estart, end, eloc, edesc, needed, this.euuid);
         this.events.push(event);
 
         event.newModal();
@@ -512,6 +544,7 @@ class Course{
         data["interv"] = this.interv;
         data["tas"] = this.tas;
         data["events"] = this.events;
+        data["euuid"] = this.euuid;
 
         return data;
     }
@@ -1088,20 +1121,10 @@ function loadTAs(days, tas_arr){
 function loadEvents(days, events){
     var arr = []
 
-    /*
-    this.name = name;
-        this.day = day;
-        this.start = start;
-        this.end = start + dur;
-        this.loc = loc;
-        this.description = desc;
-        this.tas_needed = needed;
-        this.assigned = []
-    */
-
     for (var i = 0; i < events.length; i++){
         const e = events[i];
-        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.needed, e.id);
+        console.log(e);
+        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id);
         cevent.assigned = loadTAs(days, e.assigned);
         arr.push(cevent);
     }
@@ -1186,7 +1209,14 @@ function newEvent(){
     const tas_needed = parseInt(form.elements[6].value);
     const edesc = form.elements[7].value;
 
-    curCourse.addEvent(ename, eday, estart, edur / 60, eloc, tas_needed, edesc);
+    curCourse.addEvent(ename, eday, estart, estat + (edur / 60), eloc, tas_needed, edesc);
+
+    form.reset();
+
+    // Hide the new event modal
+    $("#newEventModal").modal("hide");
+    
+    // TODO: Create a popup to inform user that the event was successfully created or not
     console.log("Event has been created.");
 
     return true;
@@ -1203,6 +1233,71 @@ function deleteEvent(id){
     }
 
     console.log("No course selected.");
+    return false;
+}
+
+function openNewEvent(){
+    var form = document.getElementById("newEventForm")
+    form.addEventListener("submit", newEvent);
+    form.removeEventListener("submit", editEvent)
+    form.reset();
+}
+
+function openEditEvent(id){
+    if (curCourse !== null || curCourse !== undefined){
+
+        var form = document.getElementById("newEventForm");
+
+        form.removeEventListener("submit", newEvent);
+        form.addEventListener("submit", editEvent, false);
+        form.targetID = id;
+
+        var e = curCourse.getEvent(id);
+
+        if (e !== null){
+            form.elements[0].value = e.name; // Event Name
+            form.elements[2].value = e.day; // Day
+            form.elements[3].value = floatToStrTime(e.start); // Start Time
+            form.elements[4].value = (e.end - e.start) * 60; // Duration
+            form.elements[5].value = e.loc; // Location
+            form.elements[6].value = e.tas_needed; // TAs needed
+            form.elements[7].value = e.description; // Description
+
+            $("#event" + id + "modal").modal("hide");
+            $("#newEventModal").modal("show");
+
+            return true;
+        }
+
+        console.log("Couldn't find the specified event for some reason...")
+        return false;
+    }
+
+    console.log("Hello World");
+}
+
+function editEvent(evt){
+    if (curCourse !== null || curCourse !== undefined){
+        // TODO: After editing the event, need to set the add event form back to normal
+        var form = document.getElementById("newEventForm");
+
+        const ename = form.elements[0].value;
+        const eday = form.elements[2].value;
+        const estart = strTimeToNumbers(form.elements[3].value);
+        const edur = parseInt(form.elements[4].value) / 60; // converted to hours
+        const eloc = form.elements[5].value;
+        const tas_needed = parseInt(form.elements[6].value);
+        const edesc = form.elements[7].value;
+
+        var res = curCourse.editEvent(evt.currentTarget.targetID, ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
+
+        if (res){
+            $("#newEventModal").modal("hide");
+            return true;
+        }
+    }
+    
+    console.log("An unexpected error occurred while editing the event.");
     return false;
 }
 
@@ -1290,8 +1385,6 @@ function floatToEscStrTime(x){
 }
 
 loadCourses();
-
-document.getElementById("newEventForm").addEventListener("submit", newEvent);
 
 // Testing for Intervals
 /*

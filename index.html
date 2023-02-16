@@ -225,7 +225,7 @@
         
         <div class="eventCalendarText mb-3">
             <h1 class="text-white">Event Calendar</h1>
-            <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal">
+            <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
                 <img src="img/plus-circle.svg" width="26" height="26"> New Event
             </button>
         </div>
@@ -361,7 +361,7 @@
                         </div>
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">TAs Required</span>
-                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of TAs Input" id="newEventTARequiredInput" aria-describedby="basic-addon2" required>
                             <span class="input-group-text" id="basic-addon2">TAs</span>
                         </div>
                         <div class="input-group input-group-sm mb-2">
