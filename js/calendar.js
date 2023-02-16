@@ -1,5 +1,6 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
 // TODO: Add the events system
+// TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
 
 var newCalendar;
 var eventCalendar;
@@ -12,15 +13,16 @@ var curEvent;
 
 class CourseEvent {
     // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
-    constructor(name, day, start, dur, loc, desc, needed){
+    constructor(name, day, start, end, loc, desc, needed, id){
         this.name = name;
         this.day = day;
         this.start = start;
-        this.end = start + dur;
+        this.end = end;
         this.loc = loc;
         this.description = desc;
         this.tas_needed = needed;
         this.assigned = []
+        this.id = id;
 
         return;
     }
@@ -30,8 +32,26 @@ class CourseEvent {
         return this.assigned.length == this.tas_needed;
     }
 
+    deleteEvent(){
+        var modal = document.getElementById(this.id + "modal");
+        var eventBtn = document.getElementById(this.id + "btn");
+
+        // Need to hide the modal if visible when deleting it
+
+        if (modal !== null){
+            // TODO: Hide modal if visible before deleting it.
+            modal.remove();
+        }
+
+        if (eventBtn !== null){
+            eventBtn.remove();
+        }
+
+        return;
+    }
+
     // TODO: Updates the event with new info
-    updateEvent(name, day, start, dur, loc, desc, needed, id){
+    updateEvent(name, day, start, dur, loc, desc, needed, assigned){
         this.name = name;
         this.day = day;
         this.start = start;
@@ -39,8 +59,11 @@ class CourseEvent {
         this.loc = loc;
         this.description = desc;
         this.tas_needed = needed;
+        this.assigned = assigned;
 
-        // Delete the current modal and event button and replace with new one
+        // Delete the current modal and event button and replace with new one in the Course class
+        this.newEventButton()
+        this.newModal();
 
         return;
     }
@@ -49,23 +72,27 @@ class CourseEvent {
     assignTA(ta){
         if (!this.isFullyAssigned()){
             this.assigned.push(ta);
+            this.updateEvent(this.name, this.day, this.start, this.dur, this.loc, this.desc, this.needed, this.assigned);
+            curCourse.saveCourseData();
         }
         return;
     }
 
     // Creates new modal or updates existing modal
     // TODO: Add a toggle edit button and a delete button
-    newModal(id){
-        var modal = document.getElementById(id + "modal");
-        // if modal already exists, then update it
+    newModal(){
+        var modal = document.getElementById(this.id + "modal");
+        // if modal already exists, then remove it and create a new one
         if (modal !== null){
-            return false;
+            // Hide the modal if currently active
+            modal.classList.remove("show");
+            modal.remove();
         }
 
         // otherwise create new modal
         modal = document.createElement("div");
         modal.classList.add("modal", "fade")
-        modal.id = id + "modal";
+        modal.id = this.id + "modal";
         modal.tabIndex = "-1";
         modal.innerHTML = `<div class="modal-dialog">
         <div class="modal-content">
@@ -84,7 +111,7 @@ class CourseEvent {
           <div class="modal-footer" style="justify-content: space-between;">
                 <div>
                     <button type="button" class="btn btn-warning">Edit</button>
-                    <button type="button" class="btn btn-danger">Delete Event</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteEvent(${this.id})">Delete Event</button>
                 </div>
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
         </div>
@@ -99,19 +126,19 @@ class CourseEvent {
     // Creates new event button to be shown on calendar or updates existing button
     // TODO: Add TA assignment text to the modal
     // TODO: Change button class based on the TA selected's availability
-    newEventButton(id){
-        var eventBtn = document.getElementById(id +"btn");
+    newEventButton(){
+        var eventBtn = document.getElementById(this.id +"btn");
 
         if (eventBtn !== null){
-            return false;
+            eventBtn.remove();
         }
         
         var eventBtn = document.createElement("button");
         eventBtn["type"] = "button";
         eventBtn.classList.add("event");
-        eventBtn.id = id + "btn";
+        eventBtn.id = this.id + "btn";
         eventBtn.dataset.bsToggle = "modal"
-        eventBtn.dataset.bsTarget = `#${id}modal`;
+        eventBtn.dataset.bsTarget = `#${this.id}modal`;
 
         if (this.isFullyAssigned()){
             eventBtn.innerHTML = `<h5>${this.name} <img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
@@ -126,7 +153,7 @@ class CourseEvent {
 
         const ecal = document.getElementById("eventCalendar")
         // TODO: need to escape the : in the string to query select it
-        const td = ecal.querySelector("#" + this.day + floatToStrTime(this.start))
+        const td = ecal.querySelector("#" + this.day + floatToEscStrTime(this.start))
         td.appendChild(eventBtn);
         console.log(td);
 
@@ -294,7 +321,7 @@ class Interval{
 
 // Data structure for a course, which contains the TAs, events, course name, start/end time and days for scheduling
 class Course{
-    constructor(name, days, start_t, end_t, interv, tas, events){
+    constructor(name, days, start_t, end_t, interv, tas, events, euuid){
         this.name = name;
         this.days = days;
         this.start_t = start_t;
@@ -302,15 +329,13 @@ class Course{
         this.interv = interv;
         this.tas = tas;
         this.events = events;
+        this.eventUUID = euuid;
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
     initialize(){
-        // Repopulate the TA select menu
         this.populateTASelect();
         this.fillCourseForm();
-    
-        // TODO: generate event calendar and populate the schedule with events
         this.generateEvents();
     }
 
@@ -321,8 +346,8 @@ class Course{
         eventCalendar.generateEventRows();
 
         for (let i = 0; i < this.events.length; i++){
-            this.events[i].newModal("event" + i);
-            this.events[i].newEventButton("event" + i);
+            this.events[i].newModal();
+            this.events[i].newEventButton();
         }
     }
     
@@ -383,12 +408,35 @@ class Course{
     }
 
     addEvent(ename, eday, estart, edur, eloc, needed, edesc){
-        var event = new CourseEvent(ename, eday, estart, edur, eloc, edesc, needed);
+        var event = new CourseEvent(ename, eday, estart, estart + edur, eloc, edesc, needed, this.eventUUID);
         this.events.push(event);
 
-        event.newModal("event" + this.events.length);
-        event.newEventButton("event" + this.events.length)
+        event.newModal();
+        event.newEventButton()
+        this.eventUUID += 1;
+
+        this.saveCourseData();
         console.log("Event has been created.")
+    }
+
+    deleteEvent(id){
+        var arr = [];
+
+        for (let i = 0; i < this.events.length; i++){
+            if (this.events[i].id != id){
+                arr.push(this.events[i]);
+                continue;
+            }
+            else{
+                this.events[i].deleteEvent();
+            }
+        }
+
+        // Replace current events with new list excluding the event and save the data
+        this.events = arr;
+        this.saveCourseData();
+
+        return arr;
     }
 
     addTA(ta){
@@ -698,7 +746,7 @@ function loadCourses(){
 
     for (var i = 0; i < localStorage.length; i++){
         const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
-        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events));
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid);
         courses.push(course);
     }
 
@@ -795,7 +843,7 @@ function createNewCourse(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], []);
+    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], [], 0);
     courses.push(newCourse);
     newCourse.saveCourseData();
     populateCourseSelect();
@@ -843,7 +891,7 @@ function editCourse(){
     const conf = confirm("Would you like to overwrite the current course?")
 
     if (conf){
-        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events);
+        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events, curCourse.euuid);
 
         newCourse.overwriteCourseData(curCourse);
         location.reload();
@@ -1037,7 +1085,6 @@ function loadTAs(days, tas_arr){
     return arr;
 }
 
-// TODO: Load in the list of events and convert to Event objects. Also, need to find the corresponding TAs that have already been assigned to the event.
 function loadEvents(days, events){
     var arr = []
 
@@ -1054,7 +1101,7 @@ function loadEvents(days, events){
 
     for (var i = 0; i < events.length; i++){
         const e = events[i];
-        var cevent = new CourseEvent(e.name, e.day, e.start, e.dur, e.loc, e.desc, e.needed);
+        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.needed, e.id);
         cevent.assigned = loadTAs(days, e.assigned);
         arr.push(cevent);
     }
@@ -1145,6 +1192,20 @@ function newEvent(){
     return true;
 }
 
+function deleteEvent(id){
+    if (curCourse !== null || curCourse !== undefined){
+        const conf = confirm("Are you sure you want to delete this event? This action cannot be undone!")
+
+        if (conf){
+            curCourse.deleteEvent(id);
+            return true;
+        }
+    }
+
+    console.log("No course selected.");
+    return false;
+}
+
 /* Utility Functions */
 function createStrTimeRange(start, end){
     return floatToStrTime(start) + "-" + floatToStrTime(end);
@@ -1204,6 +1265,28 @@ function floatToStrTime(x){
     }
 
     return hr + ":" + mins;
+}
+
+function floatToEscStrTime(x){
+    // convert float to str time by flooring the number and then taking the decimal remainder and converting to minutes
+    var hr = Math.floor(x);
+    var mins = ((x - hr) * 60);
+
+    if (hr < 10){
+        hr = "0" + hr.toString();
+    }
+    else{
+        hr = hr.toString()
+    }
+
+    if (mins == 0){
+        mins = "00"
+    }
+    else{
+        mins = mins.toString();
+    }
+
+    return hr + "\\:" + mins;
 }
 
 loadCourses();
