@@ -428,9 +428,12 @@ class Course{
         // Select the days for TAs
         var day_options = document.querySelectorAll(".form-check-input");
 
-        for (var i in day_options){
+        for (var i = 0; i < day_options.length; i++){
             if (this.days.includes(day_options[i].value)){
                 day_options[i].checked = true;
+            }
+            else{
+                day_options[i].checked = false;
             }
         }
 
@@ -818,6 +821,7 @@ function initializeCourse(){
         // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
         courseForm.reset();
         courseForm.addEventListener("submit", createNewCourse);
+        courseForm.removeEventListener("submit", editCourse);
         submitBtn.innerHTML = "Submit";
 
         // Hide the TA select and TA form if it is not hidden already
@@ -1123,8 +1127,8 @@ function loadEvents(days, events){
 
     for (var i = 0; i < events.length; i++){
         const e = events[i];
-        console.log(e);
         var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id);
+
         cevent.assigned = loadTAs(days, e.assigned);
         arr.push(cevent);
     }
