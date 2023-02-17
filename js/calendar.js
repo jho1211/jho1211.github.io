@@ -445,7 +445,7 @@ class Course{
 
         event.newModal();
         event.newEventButton()
-        this.eventUUID += 1;
+        this.euuid += 1;
 
         this.saveCourseData();
         console.log("Event has been created.")
@@ -1204,12 +1204,12 @@ function newEvent(){
     const ename = form.elements[0].value;
     const eday = form.elements[2].value;
     const estart = strTimeToNumbers(form.elements[3].value);
-    const edur = parseInt(form.elements[4].value);
+    const edur = parseInt(form.elements[4].value) / 60;
     const eloc = form.elements[5].value;
     const tas_needed = parseInt(form.elements[6].value);
     const edesc = form.elements[7].value;
 
-    curCourse.addEvent(ename, eday, estart, estat + (edur / 60), eloc, tas_needed, edesc);
+    curCourse.addEvent(ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
 
     form.reset();
 
@@ -1277,7 +1277,9 @@ function openEditEvent(id){
 }
 
 function editEvent(evt){
-    if (curCourse !== null || curCourse !== undefined){
+    const conf = confirm("Are you sure you want to overwrite this event?");
+
+    if (conf && (curCourse !== null || curCourse !== undefined)){
         // TODO: After editing the event, need to set the add event form back to normal
         var form = document.getElementById("newEventForm");
 
