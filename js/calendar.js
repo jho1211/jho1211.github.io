@@ -1213,6 +1213,12 @@ function newEvent(){
     const tas_needed = parseInt(form.elements[6].value);
     const edesc = form.elements[7].value;
 
+    // Check if estart is out of range
+    if (estart + edur > curCourse.end_t){
+        alert("The specified start/end time for the event is out of the schedulable range. Please pick an earlier time");
+        return false;
+    }
+
     curCourse.addEvent(ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
 
     form.reset();
@@ -1294,6 +1300,12 @@ function editEvent(evt){
         const eloc = form.elements[5].value;
         const tas_needed = parseInt(form.elements[6].value);
         const edesc = form.elements[7].value;
+
+        // Check if estart is out of range
+        if (estart + edur > curCourse.end_t){
+            alert("The specified start/end time for the event is out of the schedulable range. Please pick an earlier time");
+            return false;
+        }
 
         var res = curCourse.editEvent(evt.currentTarget.targetID, ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
 
