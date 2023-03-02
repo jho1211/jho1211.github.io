@@ -13,7 +13,7 @@ var curEvent;
 
 class CourseEvent {
     // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
-    constructor(name, day, start, end, loc, desc, needed, id){
+    constructor(name, day, start, end, loc, desc, needed, id, assigned){
         this.name = name;
         this.day = day;
         this.start = start;
@@ -21,24 +21,35 @@ class CourseEvent {
         this.loc = loc;
         this.description = desc;
         this.tas_needed = needed;
-        this.assigned = {}
+        this.assigned = assigned;
         this.id = id;
 
-        for (let i = 0; i < this.tas_needed; i++){
-            this.assigned[i] = "";
+        console.log(assigned);
+
+        if (Object.keys(assigned).length === 0){
+            for (let i = 0; i < this.tas_needed; i++){
+                this.assigned[i] = "";
+            }
         }
 
         return;
     }
 
-    // Checks if event is fully assigned yet
+    // Returns True if event is fully assigned (no empty assignments)
     isFullyAssigned(){
-        return this.assigned.length == this.tas_needed;
+        var num = 0;
+        for (let i = 0; i < Object.keys(this.assigned).length; i++){
+            if (this.assigned[i] === ""){
+                num++;
+            }
+        }
+        return num == 0;
     }
 
+    // Returns True if TA is assigned to the event
     isTAAssigned(ta){
         for (let i = 0; i < Object.keys(this.assigned).length; i++){
-            if (this.assigned[i] == ta){
+            if (this.assigned[i] === ta.id){
                 return true;
             }
         }
@@ -89,19 +100,40 @@ class CourseEvent {
 
     // Assigns a TA to the event
     assignTA(ta, slot){
-        // Check that the event isn't fully assigned yet and that the TA hasn't already been assigned
-        if (ta === null){
-            this.assigned[slot] = null;
+
+        console.log(ta);
+        // If the TA is null, then we empty the specified slot instead
+        if (ta === null || ta === undefined){
+            this.assigned[slot] = ""
+            return true;
         }
 
-        if (!this.isTAAssigned(ta.id)){
+        // If TA isn't already assigned, then assign them to the event
+        if (!this.isTAAssigned(ta)){
             this.assigned[slot] = ta.id;
+            return true;
         }
-        else{
-            alert("This TA is already assigned, please choose another one");
+
+        console.log("This TA is already assigned to the event.");
+        return false;
+    }
+
+    unassignTA(ta, slot){
+        console.log(ta);
+        if (ta === null){
+            console.log("Couldn't unassign a null TA");
+            return false;
         }
-        
-        return;
+
+        if (this.assigned[slot] === ta.id){
+            console.log("Unassigned TA " + ta.name + " from the event.");
+            this.assigned[slot] = ""
+            return true;
+        }
+    }
+
+    isSlotTaken(slot){
+        return this.assigned[slot] !== ""
     }
 
     // Creates new modal or updates existing modal
@@ -158,6 +190,8 @@ class CourseEvent {
 
     }
 
+
+
     generateTASelect(){
         var div = document.createElement("DIV");
 
@@ -174,7 +208,7 @@ class CourseEvent {
             // Add an empty option
             var option = document.createElement("option");
             option.text = "";
-            option.value = "";
+            option.value = "-1";
             select.add(option);
 
             select.selectedIndex = 0;
@@ -182,17 +216,15 @@ class CourseEvent {
             // If TAs are already assigned, then set those TAs first
             for (var j = 0; j < avail_tas.length; j++){
                 var option = document.createElement("option");
-                option.text = avail_tas[j].name;
+                option.text = avail_tas[j].name + ` (${avail_tas[j].totalHoursRemaining()} hrs available)`;
                 option.value = avail_tas[j].id;
                 select.add(option);
 
-                if (this.assigned[i] !== null && this.assigned[i] == avail_tas[j].id){
-                    select.selectedIndex = 1 + j
+                if (this.assigned[i] !== null && this.assigned[i] === avail_tas[j].id){
+                    option.selected = true;
+                    // TODO: Need to make sure that the TA is pre-selected in the select menu if currently assigned
                 }
             }
-
-            // TODO: Add an event listener to add the specified TA to the event onchange
-            // Need to know the slot that is being modified and the TA who is being added
 
             div.appendChild(select);
         }
@@ -201,11 +233,8 @@ class CourseEvent {
     }
 
     filterAvailableTAs(){
-        console.log(this);
         var arr = []
         for (let i = 0; i < curCourse.tas.length; i++){
-            console.log(curCourse.tas[i].isAvailable(this))
-            console.log(curCourse.tas[i].isAssigned(this))
             if (curCourse.tas[i].isAvailable(this) || curCourse.tas[i].isAssigned(this)){
                 arr.push(curCourse.tas[i]);
             }
@@ -266,13 +295,18 @@ class Interval{
 
         if (this.contains(i2)){
             for (let i = 0; i < this.intervals.length; i++){
-                let s1 = this.intervals[i][0]
-                let e1 = this.intervals[i][1]
+                let s1 = this.intervals[i][0];
+                let e1 = this.intervals[i][1];
 
                 if (s1 != s2 && e1 != e2){
-                    new_interval.push([s1, e1])
+                    new_interval.push([s1, e1]);
                 }
             }
+        }
+
+        if (new_intervals.length == 0){
+            this.interval = [null, null];
+            this.intervals = [[null, null]];
         }
 
         this.intervals = new_intervals;
@@ -444,7 +478,7 @@ class Interval{
 
 // Data structure for a course, which contains the TAs, events, course name, start/end time and days for scheduling
 class Course{
-    constructor(name, days, start_t, end_t, interv, tas, events, euuid){
+    constructor(name, days, start_t, end_t, interv, tas, events, euuid, taid){
         this.name = name;
         this.days = days;
         this.start_t = start_t;
@@ -453,6 +487,7 @@ class Course{
         this.tas = tas;
         this.events = events;
         this.euuid = euuid;
+        this.numTAs = taid;
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
@@ -560,7 +595,7 @@ class Course{
     }
 
     addEvent(ename, eday, estart, end, eloc, needed, edesc){
-        var event = new CourseEvent(ename, eday, estart, end, eloc, edesc, needed, this.euuid);
+        var event = new CourseEvent(ename, eday, estart, end, eloc, edesc, needed, this.euuid, {});
         this.events.push(event);
 
         event.newModal();
@@ -580,6 +615,14 @@ class Course{
                 continue;
             }
             else{
+                // When deleting the event, also unassign the event from all the currently assigned TAs
+                for (let j = 0; j < Object.keys(this.events[j].assigned); i++){
+                    const ta = findTA(this.events[i].assigned[j])
+
+                    if (ta !== null){
+                        ta.unassignEvent(this.events[i])
+                    }
+                }
                 this.events[i].deleteEvent();
             }
         }
@@ -598,6 +641,7 @@ class Course{
         }
         else{
             this.tas.push(ta);
+            this.numTAs += 1;
             this.saveCourseData();
         }
     }
@@ -670,7 +714,7 @@ class Course{
     }
     
     findTA(id){
-        if (id === null){
+        if (id === null || id === "-1"){
             return null;
         }
 
@@ -696,10 +740,25 @@ class Course{
 
     // Event and TA are both the IDs
     assignTAEvent(taID, eID, slot){
+        console.log(slot);
         const e = this.findEvent(eID);
         const ta = this.findTA(taID)
-        e.assignTA(ta, slot);
-        ta.assignEvent(e);
+
+        // Determine if slot is already filled with TA. If it is, then unassign old TA and then assign new TA
+        if (e.isSlotTaken(slot)){
+            console.log("Slot was already taken so unassigning previous TA");
+            const oldTA = this.findTA(e.assigned[slot])
+
+            e.unassignTA(e.assigned[slot], slot);
+            oldTA.unassignEvent(e);
+            e.assignTA(ta, slot);
+            ta.assignEvent(e)
+        }
+        else{
+            console.log("Slot is available so assigning new TA");
+            e.assignTA(ta, slot);
+            ta.assignEvent(e);
+        }
 
         curCourse.saveCourseData();
     }
@@ -744,11 +803,11 @@ class TA {
     isAvailable(event){
         var e_interv = new Interval(event.start, event.end);
         var ta_avail_day = this.avail[event.day];
-        var ta_assign_avail_day = this.assigned_avail[event.day];
+        var ta_assign_avail_day = intervalize(curCourse.days, JSON.parse(JSON.stringify(this.assigned_avail)))[event.day] // create a copy of the interval
+        console.log(ta_assign_avail_day);
 
-        if (ta_avail_day.contains(e_interv) && !ta_assign_avail_day.hasOverlap(e_interv) && !this.isAssigned(event)){
+        if (ta_avail_day.contains(e_interv) && !ta_assign_avail_day.hasOverlap(e_interv)){
             ta_assign_avail_day.union(e_interv)
-            console.log("TA is available but working too much");
 
             if (ta_assign_avail_day.checkMaxLen() <= this.consec){
                 console.log("TA is available");
@@ -756,14 +815,15 @@ class TA {
             }
         }
 
-        console.log("TA not available")
         return false;
     }
 
+    // Returns True if event ID is found in TA's assigned array
     isAssigned(event){
         return this.assigned.includes(event.id);
     }
 
+    // Adds event ID to the TA's assigned array if they are available and updates their assigned_avail interval
     assignEvent(event){
         if (this.isAvailable(event)){
             this.assigned.push(event.id);
@@ -774,6 +834,7 @@ class TA {
         return false;
     }
 
+    // Removes event ID from the TA's assigned array if they are already assigned
     unassignEvent(event){
         if (this.assigned.includes(event.id)){
             var arr = []
@@ -784,7 +845,6 @@ class TA {
                 }
             }
 
-            event.unassignTA(this.id);
             this.assigned = arr;
             this.assigned_avail[event.day].remove(new Interval(event.start, event.end));
             curCourse.saveCourseData();
@@ -792,6 +852,24 @@ class TA {
         }
         
         return false;
+    }
+
+    // Returns the total amount of hrs assigned so far
+    totalHoursAssigned(){
+        var total = 0;
+        for (let i = 0; i < this.assigned.length; i++){
+            const event = curCourse.findEvent(this.assigned[i]);
+
+            if (event !== null){
+                total += event.end - event.start;
+            }
+        }
+
+        return total;
+    }
+
+    totalHoursRemaining(){
+        return this.max_hrs - this.totalHoursAssigned();
     }
 }
 
@@ -972,7 +1050,7 @@ function loadCourses(){
 
     for (var i = 0; i < localStorage.length; i++){
         const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
-        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid);
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
         courses.push(course);
     }
 
@@ -1070,7 +1148,7 @@ function createNewCourse(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], [], 0);
+    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], [], 0, 0);
     courses.push(newCourse);
     newCourse.saveCourseData();
     populateCourseSelect();
@@ -1118,7 +1196,7 @@ function editCourse(){
     const conf = confirm("Would you like to overwrite the current course?")
 
     if (conf){
-        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events, curCourse.euuid);
+        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
 
         newCourse.overwriteCourseData(curCourse);
         location.reload();
@@ -1199,6 +1277,7 @@ function updateTAForm(){
     return;
 }
 
+// TODO: After creating new TA, the available TAs should also update for the event modals
 function createNewTA(){
     var nameEle = document.getElementById("inputName");
     var nameFeedback = document.getElementById("taNameFeedback")
@@ -1236,7 +1315,8 @@ function createNewTA(){
     const conf = confirm("You have selected the following availability, please confirm it:\n\n" + availStr);
     
     if (conf){
-        var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.tas.length, curCourse.days);
+         // TODO: Change this so that you can calculate based on contract weeks instead of constant
+        var newTA = new TA(name, hours / 16, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
         curCourse.addTA(newTA);
         curCourse.populateTASelect();
         curTASelected = newTA;
@@ -1317,9 +1397,7 @@ function loadEvents(days, events){
 
     for (var i = 0; i < events.length; i++){
         const e = events[i];
-        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id);
-
-        cevent.assigned = e.assigned;
+        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id, e.assigned);
         arr.push(cevent);
     }
 
