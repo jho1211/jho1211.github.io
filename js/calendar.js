@@ -1,5 +1,4 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
-// TODO: Add event scheduling functionality
 // TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
 
 var newCalendar;
@@ -114,7 +113,7 @@ class CourseEvent {
             return true;
         }
 
-        console.log("This TA is already assigned to the event.");
+        alert("This TA is already assigned to the event.");
         return false;
     }
 
@@ -184,13 +183,25 @@ class CourseEvent {
         const cal = document.getElementById("modalEvents");
         cal.appendChild(modal);
 
+        const sel = cal.querySelectorAll(`[id*='${this.id}-SelectInput']`).forEach((sel) => { this.selectAssignedTA(sel) })
+
         document.querySelectorAll(".ta-modal-select").forEach((sel) => {
             sel.addEventListener("change", (evt) => { assignTAToEvent(evt) })
         })
 
     }
 
+    // If one of the TA select options matches the currently assigned TA, then set the selectedIndex to that TA
+    selectAssignedTA(sel){
+        const spl = sel.id.split("-")
+        const slot = parseInt(spl[spl.length - 1]);
 
+        for (let i = 0; i < sel.options.length; i++){
+            if (sel.options[i].value == this.assigned[slot]){
+                sel.selectedIndex = i;
+            }
+        }
+    }
 
     generateTASelect(){
         var div = document.createElement("DIV");
@@ -219,11 +230,6 @@ class CourseEvent {
                 option.text = avail_tas[j].name + ` (${avail_tas[j].totalHoursRemaining()} hrs available)`;
                 option.value = avail_tas[j].id;
                 select.add(option);
-
-                if (this.assigned[i] !== null && this.assigned[i] === avail_tas[j].id){
-                    option.selected = true;
-                    // TODO: Need to make sure that the TA is pre-selected in the select menu if currently assigned
-                }
             }
 
             div.appendChild(select);
@@ -244,8 +250,7 @@ class CourseEvent {
     }
 
     // Creates new event button to be shown on calendar or updates existing button
-    // TODO: Add TA assignment text to the modal
-    // TODO: Change button class based on the TA selected's availability
+    // TODO: Add a filter for events based on the TA you want to schedule
     newEventButton(){
         var eventBtn = document.getElementById("event" + this.id +"btn");
 
@@ -749,15 +754,19 @@ class Course{
             console.log("Slot was already taken so unassigning previous TA");
             const oldTA = this.findTA(e.assigned[slot])
 
-            e.unassignTA(e.assigned[slot], slot);
-            oldTA.unassignEvent(e);
-            e.assignTA(ta, slot);
-            ta.assignEvent(e)
+            // Make sure that TA isn't already assigned before unassigning previous TA
+            if (e.assignTA(ta, slot)){
+                e.unassignTA(e.assigned[slot], slot);
+                oldTA.unassignEvent(e);
+                ta.assignEvent(e)
+            };
         }
         else{
             console.log("Slot is available so assigning new TA");
-            e.assignTA(ta, slot);
-            ta.assignEvent(e);
+
+            if (e.assignTA(ta, slot)){
+                ta.assignEvent(e);
+            }
         }
 
         curCourse.saveCourseData();
@@ -1402,11 +1411,6 @@ function loadEvents(days, events){
     }
 
     return arr;
-}
-
-// TODO: Store the events that all TAs are assigned to. Will need to do this in a separate function after loading the events.
-function loadTAEvents(){
-    return;
 }
 
 // Convert the TA's avail from obj to obj with intervals
