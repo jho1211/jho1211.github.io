@@ -1,5 +1,7 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
 // TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
+// TODO: Add dismissible alerts
+// TODO: Add a bulk add TAs feature
 
 var newCalendar;
 var eventCalendar;
@@ -15,8 +17,8 @@ class CourseEvent {
     constructor(name, day, start, end, loc, desc, needed, id, assigned){
         this.name = name;
         this.day = day;
-        this.start = start;
-        this.end = end;
+        this.start = start; // float
+        this.end = end; // float
         this.loc = loc;
         this.description = desc;
         this.tas_needed = needed;
@@ -77,7 +79,7 @@ class CourseEvent {
     editEvent(name, day, start, end, loc, needed, desc, assigned){
         const conf = "Are you sure you want to overwrite the current event?"
 
-        if (conf){
+        if (conf === true){
             this.name = name;
             this.day = day;
             this.start = start;
@@ -249,6 +251,10 @@ class CourseEvent {
         return arr;
     }
 
+    hasNoAvailableTAs(){
+        return this.filterAvailableTAs().length === 0;
+    }
+
     // Creates new event button to be shown on calendar or updates existing button
     // TODO: Add a filter for events based on the TA you want to schedule
     newEventButton(){
@@ -266,12 +272,17 @@ class CourseEvent {
         eventBtn.dataset.bsTarget = `#event${this.id}modal`;
 
         if (this.isFullyAssigned()){
-            eventBtn.innerHTML = `<h5>${this.name} <img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
+            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
+        ${this.loc} <br>
+        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
+        }
+        else if (this.hasNoAvailableTAs()){
+            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-dash.svg" width="60px" height="30px"></h5>
         ${this.loc} <br>
         ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
         }
         else{
-            eventBtn.innerHTML = `<h5>${this.name}</h5>
+            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-add.svg" width="60px" height="30px"></h5>
         ${this.loc} <br>
         ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
         }
@@ -1204,7 +1215,7 @@ function editCourse(){
 
     const conf = confirm("Would you like to overwrite the current course?")
 
-    if (conf){
+    if (conf === true){
         var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
 
         newCourse.overwriteCourseData(curCourse);
@@ -1218,7 +1229,7 @@ function editCourse(){
 function deleteCourse(){
     const conf = confirm(`Are you sure you want to delete ${curCourse.name}? This action CANNOT be undone!`);
 
-    if (conf){
+    if (conf === true){
         curCourse.deleteCourseData();
     }
     else{
@@ -1323,7 +1334,7 @@ function createNewTA(){
     const availStr = availJsonToString(avail);
     const conf = confirm("You have selected the following availability, please confirm it:\n\n" + availStr);
     
-    if (conf){
+    if (conf === true){
          // TODO: Change this so that you can calculate based on contract weeks instead of constant
         var newTA = new TA(name, hours / 16, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
         curCourse.addTA(newTA);
@@ -1372,7 +1383,7 @@ function editTA(){
     const availStr = availJsonToString(avail);
     const conf = confirm("Are yo sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
 
-    if (conf){
+    if (conf === true){
         var newTA = new TA(name, hours, consec, avail, curTASelected.assigned, curTASelected.assigned_avail, curTASelected.id, curCourse.days);
         curCourse.overwriteTA(curTASelected, newTA)
     }
@@ -1383,7 +1394,7 @@ function editTA(){
 function deleteTA(){
     const conf = confirm(`Are you sure you want to delete ${curTASelected.name}? This action CANNOT be undone!`);
 
-    if (conf){
+    if (conf === true){
         curCourse.deleteTA(curTASelected);
     }
     
@@ -1508,7 +1519,7 @@ function deleteEvent(id){
     if (curCourse !== null || curCourse !== undefined){
         const conf = confirm("Are you sure you want to delete this event? This action cannot be undone!")
 
-        if (conf){
+        if (conf === true){
             curCourse.deleteEvent(id);
             return true;
         }
@@ -1599,6 +1610,93 @@ function assignTAToEvent(evt){
     curCourse.assignTAEvent(ta, eventID, slot);
 }
 
+/* Upload Bulk Events System
+Allows users to upload a CSV file with multiple events at once for enhanced workflow
+*/
+
+function readBulkEvents(){
+    const file = document.getElementById("bulkAddEventsFileInput").files[0]
+
+    if (file === undefined){
+        return;
+    }
+
+    Papa.parse(file, {
+        complete: function(results){
+            parseBulkEvents(results.data);
+        }
+    })
+}
+
+function parseBulkEvents(arr){
+    const header = arr[0];
+    const data = arr.slice(1);
+    var events_arr = [];
+    const valid_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+
+    // Check if the header length matches
+    if (header.length == 7){
+        for (let i = 0; i < data.length; i++){
+            // skip any empty rows
+            if (data[i].length !== 7){
+                continue;
+            }
+
+            // Name, day, start, end, location, desc, needed, euuid
+            const name = data[i][0]
+            const day = data[i][1].charAt(0).toUpperCase() + data[i][1].slice(1).toLowerCase();
+            const start = strTimeToNumbers(data[i][2])
+            const end = start + (parseInt(data[i][3]) / 60)
+            const loc = data[i][4]
+            const needed = parseInt(data[i][5])
+            const desc = data[i][6]
+
+            // Check that the data is valid before proceeding
+            if (name === "" || !valid_days.includes(day) || start === null || isNaN(needed)){
+                alert("Failed to parse the data for row " + (i+1) + "! Please check the CSV file and correct the error.");
+                return;
+            }
+
+            if (end > curCourse.end_t){
+                alert("The event on row " + (i+1) + ` can't be scheduled because the event ends (${floatToStrTime(end)}) outside of the schedulable time range (${floatToStrTime(curCourse.end_t)})!`);
+                return;
+            }
+
+            events_arr.push({"name": name, "day": day, "start": start, "end": end, "loc": loc, "needed": needed, "desc": desc});
+        }
+
+        let conf = confirm("The following events will be added:\n\n" + stringifyBulkEvents(events_arr) + "\nPress [OK] to confirm or [Cancel] if you would like to make changes. This action CANNOT be undone!")
+
+        if (conf === true){
+            for (let i = 0; i < events_arr.length; i++){
+                const curEvent = events_arr[i]
+                curCourse.addEvent(curEvent.name, curEvent.day, curEvent.start, curEvent.end, curEvent.loc, curEvent.needed, curEvent.desc);
+            }
+
+            console.log("All events were added successfully!");
+            return true;
+        }
+        else{
+            console.log("Didn't add the events");
+            return;
+        }
+    }
+    else {
+        alert("Failed to parse uploaded CSV file. Please make sure that you have the correct headers. The correct order is:\nEvent Name, Event Day, Start Time, Duration, Location, TAs Required, Description");
+        return;
+    }
+}
+
+function stringifyBulkEvents(arr){
+    var eventListStr = ""
+    for (let i = 0; i < arr.length; i++){
+        const curEvent = arr[i]
+        eventListStr += `${curEvent.name} - ${curEvent.day} ${floatToStrTime(curEvent.start)}-${floatToStrTime(curEvent.end)} @ ${curEvent.loc} (${curEvent.needed} TAs required)\n`
+    }
+
+    return eventListStr;
+}
+
 /* Utility Functions */
 function createStrTimeRange(start, end){
     return floatToStrTime(start) + "-" + floatToStrTime(end);
@@ -1626,6 +1724,10 @@ function strTimeToNumbers(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
     const timeSplit = s.split(":")
     const t = {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
+
+    if (isNaN(t.hrs) || isNaN(t.mins)){
+        return null;
+    }
 
     if (t.mins < 15){
         return t.hrs
@@ -1683,6 +1785,9 @@ function floatToEscStrTime(x){
 }
 
 loadCourses();
+
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 // Testing for Intervals
 /*

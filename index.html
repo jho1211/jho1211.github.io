@@ -5,6 +5,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.3.slim.min.js" integrity="sha256-ZwqZIVdD3iXNyGHbSYdsmWP//UBokj2FHAxKuSBKDSo=" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/papaparse@5.4.0/papaparse.min.js" crossorigin="anonymous"></script>
     <link href="css/index.css" rel="stylesheet"></script>
 </head>
 <body class="bg-dark">
@@ -229,6 +230,13 @@
                 <img src="img/plus-circle.svg" width="26" height="26"> New Event
             </button>
         </div>
+        <div class="eventCalLegend">
+            <p>
+                <img src="img/person-fill-check.svg" width="60px" height="30px"> All TAs Filled
+                <img src="img/person-fill-add.svg" width="60px" height="30px"> More TAs Required
+                <img src="img/person-fill-dash.svg" width="60px" height="30px"> No TAs Available
+            </p>
+        </div>
         <table class="table text-white table-bordered" style="table-layout: fixed" id="eventCalendar">
         </table>
     </div>
@@ -373,8 +381,20 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <h5>Bulk Add Events</h5>
+                        <div class="input-group mb-3">
+                            <input type="file" class="form-control" id="bulkAddEventsFileInput" accept=".csv" onchange="readBulkEvents()">
+                            <label class="input-group-text" for="inputGroupFile02">Upload</label>
+                            <button type="button" data-bs-toggle="tooltip" data-bs-placement="right" 
+                            data-bs-title="The uploaded file must be in CSV format with the following columns: Event Name, Event Day (DDD), Start Time (24hr time), Duration (mins), Location, TAs Required, Description"
+                            style="border-width: 0px;">
+                                <img src="img/question-circle-fill.svg">
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -384,6 +404,5 @@
 </body>
 
 <script src="js/calendar.js"></script>
-<script src="js/math-interval.js"></script>
 
 </html>
