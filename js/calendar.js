@@ -1,7 +1,10 @@
 // TODO: Replace the reloading of webpage when overwriting course/TA data.
+// TODO: Refresh the event calendar when a TA is added/modified/assigned
 // TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
-// TODO: Add dismissible alerts
+// TODO: Change alerts to dismissible alerts
 // TODO: Add a bulk add TAs feature
+// TODO: Add a TA schedule viewer with ical/google calendar export feature
+// TODO: Fix the TA assignment
 
 var newCalendar;
 var eventCalendar;
@@ -24,8 +27,6 @@ class CourseEvent {
         this.tas_needed = needed;
         this.assigned = assigned;
         this.id = id;
-
-        console.log(assigned);
 
         if (Object.keys(assigned).length === 0){
             for (let i = 0; i < this.tas_needed; i++){
@@ -504,6 +505,7 @@ class Course{
         this.events = events;
         this.euuid = euuid;
         this.numTAs = taid;
+        this.clength = 16 // TODO: Change this so that it is a field on the form. Used to calculate how many hrs per week on avg a TA can work
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
@@ -692,10 +694,10 @@ class Course{
     }
 
     populateTASelect(){
-        // Clear the select menu and then repopulate the select menu
         var select = document.getElementById("selectTAInput");
         clearSelect("selectTAInput");
         showElement("selectTAInput");
+        showElement("bulkAddTAsDiv");
         
         for (var i in this.tas){
             var option = document.createElement("option");
@@ -889,7 +891,7 @@ class TA {
     }
 
     totalHoursRemaining(){
-        return this.max_hrs - this.totalHoursAssigned();
+        return (this.max_hrs / curCourse.clength) - this.totalHoursAssigned();
     }
 }
 
@@ -1120,6 +1122,7 @@ function initializeCourse(){
         hideElement("taAccordion");
         hideElement("courseDeleteBtn");
         hideElement("eventsDiv");
+        hideElement("bulkAddTAsDiv")
     }
     else if (courseSelect.selectedIndex >= 1){
         submitBtn.innerHTML = "Confirm Changes";
@@ -1336,7 +1339,7 @@ function createNewTA(){
     
     if (conf === true){
          // TODO: Change this so that you can calculate based on contract weeks instead of constant
-        var newTA = new TA(name, hours / 16, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
+        var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
         curCourse.addTA(newTA);
         curCourse.populateTASelect();
         curTASelected = newTA;
@@ -1402,7 +1405,7 @@ function deleteTA(){
 }
 
 function loadTAs(days, tas_arr){
-    arr = []
+    var arr = []
     for (let i = 0; i < tas_arr.length; i++){
         ta_obj = tas_arr[i]
         ta = new TA(ta_obj.name, ta_obj.max_hrs, ta_obj.consec, intervalize(days, ta_obj.avail), ta_obj.assigned, intervalize(days, ta_obj.assigned_avail), ta_obj.id, days);
@@ -1437,7 +1440,7 @@ function intervalize(days, avail){
 }
 
 function toggleAvailCell(e){
-    target = e.target;
+    var target = e.target;
 
     if (target.nodeName == "TD"){
         if (target.classList.contains("avail")){
@@ -1453,8 +1456,8 @@ function toggleAvailCell(e){
 }
 
 function parseAvailabilityFromCalendar(){
-    cells = document.querySelectorAll(".avail");
-    avail_json = {}
+    var cells = document.querySelectorAll(".avail");
+    var avail_json = {}
     
     for (var i = 0; i < curCourse.days.length; i++){
         avail_json[curCourse.days[i]] = new Interval(null, null);
@@ -1471,7 +1474,7 @@ function parseAvailabilityFromCalendar(){
 }
 
 function availJsonToString(aj){
-    new_s = ""
+    var new_s = ""
 
     for (var i = 0; i < curCourse.days.length; i++){
         const availForDay = aj[curCourse.days[i]].toTimeString()
@@ -1610,6 +1613,103 @@ function assignTAToEvent(evt){
     curCourse.assignTAEvent(ta, eventID, slot);
 }
 
+/* Upload Bulk TAs System
+Allows users to upload a CSV file with multiple TAs at once for enhanced workflow
+*/
+
+function readBulkTAs(){
+    const file = document.getElementById("bulkAddTAsFileInput").files[0]
+
+    if (file === undefined){
+        return;
+    }
+
+    Papa.parse(file, {
+        complete: function(results){
+            parseBulkTAs(results.data);
+        }
+    })
+}
+
+// We need the TA name, contracted hours, max consec hours, and avail for each day (in the order listed)
+function parseBulkTAs(arr){
+    const header = arr[0]
+    const data = arr.slice(1);
+    var tas_arr = [];
+    const days_needed = curCourse.days;
+
+    if (header.length !== days_needed.length + 3){
+        alert("Failed to parse uploaded CSV file, please ensure that you have the correct headers for the CSV file.");
+        return;
+    }
+
+    for (let i = 0; i < data.length; i++){
+        if (data[i].length !== header.length){
+            continue;
+        }
+
+        const name = data[i][0];
+        const hrs = parseInt(data[i][1]);
+        const max_consec = parseInt(data[i][2]);
+        const avail = parseAvailability(data[i].slice(3), days_needed);
+
+        if (curCourse.isExistingTA(name)){
+            alert(`The TA, ${name}, couldn't be added because a TA with that name already exists.`);
+            continue;
+        }
+
+        if (isNaN(hrs) || isNaN(max_consec)){
+            alert(`The contracted hours and/or consec hours couldn't be parsed for row ${i + 2}. This TA will not be added at this time.`);
+            continue;
+        }
+
+        var ta = new TA(name, hrs, max_consec, avail, {}, {}, curCourse.numTAs, days_needed);
+        tas_arr.push(ta);
+    }
+
+    const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr))
+
+    if (conf){
+        for (let i = 0; i < tas_arr.length; i++){
+            curCourse.addTA(ta);
+        }
+        alert("The TAs were added successfully!")
+
+        return;
+    }
+
+    return;
+}
+
+function parseAvailability(arr, days){
+    console.log(arr);
+    var avail_json = {}
+
+    for (var i = 0; i < days.length; i++){
+        // split based on comma and then based on dash to get the start and end time for each range
+        // then convert it to interval and store it in a dict
+        const day_avail = arr[i].split(",");
+        for (var j = 0; j < day_avail.length; j++){
+            const ranges = day_avail.split("-");
+            // TODO:
+        }
+    }
+
+    return;
+}
+
+function stringifyBulkTAs(arr){
+    var taListStr = ""
+
+    for (let i = 0; i < arr.length; i++){
+        const ta = arr[i]
+        const taStr = `${ta.name} - ${ta.max_hrs} hrs and can work up to ${ta.consec} hrs consecutively.\n`
+        taListStr += taStr;
+    }
+
+    return taListStr;
+}
+
 /* Upload Bulk Events System
 Allows users to upload a CSV file with multiple events at once for enhanced workflow
 */
@@ -1653,12 +1753,12 @@ function parseBulkEvents(arr){
 
             // Check that the data is valid before proceeding
             if (name === "" || !valid_days.includes(day) || start === null || isNaN(needed)){
-                alert("Failed to parse the data for row " + (i+1) + "! Please check the CSV file and correct the error.");
+                alert("Failed to parse the data for row " + (i+2) + "! Please check the CSV file and correct the error.");
                 return;
             }
 
             if (end > curCourse.end_t){
-                alert("The event on row " + (i+1) + ` can't be scheduled because the event ends (${floatToStrTime(end)}) outside of the schedulable time range (${floatToStrTime(curCourse.end_t)})!`);
+                alert("The event on row " + (i+2) + ` can't be scheduled because the event ends (${floatToStrTime(end)}) outside of the schedulable time range (${floatToStrTime(curCourse.end_t)})!`);
                 return;
             }
 
@@ -1786,6 +1886,7 @@ function floatToEscStrTime(x){
 
 loadCourses();
 
+// Activate tooltip for bootstrap
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 

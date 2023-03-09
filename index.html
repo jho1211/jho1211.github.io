@@ -44,6 +44,18 @@
                     <label for="selectTAInput" class="form-label">Select a TA to schedule:</label>
                 </div>
             </div>
+            <div class="col" hidden id="bulkAddTAsDiv">
+                <label for="bulkAddTAsFileInput" class="form-label text-white">Bulk Add TAs</label>
+                <div class="input-group mb-3">
+                    <input type="file" class="form-control" id="bulkAddTAsFileInput" accept=".csv" onchange="readBulkTAs()">
+                    <label class="input-group-text" for="inputGroupFile02">Upload</label>
+                    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" 
+                    data-bs-title="The uploaded file must be in CSV format with the following columns: TA Name, Contracted Hours, Max Consec Hours, Availability for Mon, Tue, Wed, ..."
+                    style="border-width: 0px;">
+                        <img src="img/question-circle-fill.svg">
+                    </button>
+                </div>
+            </div>
         </div>
 
         <div class="accordion accordion-flush mb-2" id="courseAccordion" hidden>
@@ -241,93 +253,8 @@
         </table>
     </div>
 
-    <!--
-    <div class="container" id="eventsDiv">
-        
-        <div class="eventCalendarText mb-3">
-            <h1 class="text-white">Placeholder Event Calendar</h1>
-            <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal">
-                <img src="img/plus-circle.svg" width="26" height="26"> New Event
-            </button>
-        </div>
-        <table class="table text-white table-bordered" style="table-layout: fixed">
-            <thead class="table-primary border-dark">
-                <th></th>
-                <th>Mon</th>
-                <th>Tue</th>
-                <th>Wed</th>
-                <th>Thu</th>
-                <th>Fri</th>
-            </thead>
-            <tbody class="table-secondary border-dark">
-                <tr>
-                    <th>8:00</th>
-                    <td id="dayHH:MM"><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                        <h6>Office Hours</h6>
-                        DLC Table 1 <br>
-                        Mon 8:00-8:30
-                    </button>
-                    <button type="button" class="event" id="modalBtnEventNameDDDHH:MM">
-                        <h5>L1A<img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
-                        ICCS X251 <br>
-                        Mon 8:00-8:30
-                    </button></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <th>8:30</th>
-                    <td><button type="button" class="event availEvent" id="modalBtnEventNameDDDHH:MM" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                        <h6>Office Hours</h6>
-                        DLC Table 1 <br>
-                        Mon 8:00-8:30
-                    </button>
-                    <button type="button" class="event" id="modalBtnEventNameDDDHH:MM">
-                        <h5>L1A<img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
-                        ICCS X251 <br>
-                        Mon 8:00-8:30
-                    </button></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-    -->
     <div id="modalEvents">
-
     </div>
-
-    <!--
-    <div class="modal fade" id="exampleModal" tabindex="-1">
-        <div class="modal-dialog">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Office Hours</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-              <p><b>Location: </b>ICCS X251 <br>
-                <b>Time: </b>Mon 8:00-8:30 <br>
-                <br>
-                Detailed description goes here.
-              </p>
-            </div>
-            <div class="modal-footer" style="justify-content: space-between;">
-                <div>
-                    <button type="button" class="btn btn-warning">Edit</button>
-                    <button type="button" class="btn btn-danger">Delete Event</button>
-                </div>
-                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Save changes</button>
-            </div>
-          </div>
-        </div>
-    </div>
-    -->
 
     <div class="modal fade" id="newEventModal" tabindex="-1">
         <div class="modal-dialog">
