@@ -727,6 +727,7 @@ class Course{
         data["tas"] = this.tas;
         data["events"] = this.events;
         data["euuid"] = this.euuid;
+        data["numTAs"] = this.numTAs;
 
         return data;
     }
@@ -1151,8 +1152,8 @@ function createNewCourse(){
         }
     })
 
-    var startHr = strTimeToNumbers(document.getElementById("startHour").value);
-    var endHr = strTimeToNumbers(document.getElementById("endHour").value);
+    var startHr = strTimeToFloat(document.getElementById("startHour").value);
+    var endHr = strTimeToFloat(document.getElementById("endHour").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -1196,8 +1197,8 @@ function editCourse(){
         }
     })
 
-    var startHr = strTimeToNumbers(document.getElementById("startHour").value);
-    var endHr = strTimeToNumbers(document.getElementById("endHour").value);
+    var startHr = strTimeToFloat(document.getElementById("startHour").value);
+    var endHr = strTimeToFloat(document.getElementById("endHour").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -1466,7 +1467,7 @@ function parseAvailabilityFromCalendar(){
     for (var i = 0; i < cells.length; i++){
         id = cells[i].id;
         day = id.slice(0, 3);
-        start = strTimeToNumbers(id.slice(3, ));
+        start = strTimeToFloat(id.slice(3, ));
         avail_json[day].union(new Interval(start, start + curCourse.interv));
     }
 
@@ -1493,7 +1494,7 @@ function newEvent(){
     var form = document.getElementById("newEventForm");
     const ename = form.elements[0].value;
     const eday = form.elements[2].value;
-    const estart = strTimeToNumbers(form.elements[3].value);
+    const estart = strTimeToFloat(form.elements[3].value);
     const edur = parseInt(form.elements[4].value) / 60;
     const eloc = form.elements[5].value;
     const tas_needed = parseInt(form.elements[6].value);
@@ -1580,7 +1581,7 @@ function editEvent(evt){
 
         const ename = form.elements[0].value;
         const eday = form.elements[2].value;
-        const estart = strTimeToNumbers(form.elements[3].value);
+        const estart = strTimeToFloat(form.elements[3].value);
         const edur = parseInt(form.elements[4].value) / 60; // converted to hours
         const eloc = form.elements[5].value;
         const tas_needed = parseInt(form.elements[6].value);
@@ -1651,8 +1652,11 @@ function parseBulkTAs(arr){
         const name = data[i][0];
         const hrs = parseInt(data[i][1]);
         const max_consec = parseInt(data[i][2]);
-        const avail = parseAvailability(data[i].slice(3), days_needed);
+        const avail = parseAvailability(i + 2, data[i].slice(3), days_needed);
 
+        // TODO: Overwrite the TAs instead of ignoring them
+        // TODO: Create a list of TAs that are being overwritten and display it rather than having an alert for each TA
+        // TODO: Create a list of TAs that were not added due to errors and display it as one alert
         if (curCourse.isExistingTA(name)){
             alert(`The TA, ${name}, couldn't be added because a TA with that name already exists.`);
             continue;
@@ -1663,15 +1667,15 @@ function parseBulkTAs(arr){
             continue;
         }
 
-        var ta = new TA(name, hrs, max_consec, avail, {}, {}, curCourse.numTAs, days_needed);
+        var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed);
         tas_arr.push(ta);
     }
 
-    const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr))
+    const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr, days_needed))
 
     if (conf){
         for (let i = 0; i < tas_arr.length; i++){
-            curCourse.addTA(ta);
+            curCourse.addTA(tas_arr[i]);
         }
         alert("The TAs were added successfully!")
 
@@ -1681,29 +1685,54 @@ function parseBulkTAs(arr){
     return;
 }
 
-function parseAvailability(arr, days){
+function parseAvailability(row, arr, days){
     console.log(arr);
     var avail_json = {}
 
     for (var i = 0; i < days.length; i++){
+        avail_json[days[i]] = new Interval(null, null);
         // split based on comma and then based on dash to get the start and end time for each range
         // then convert it to interval and store it in a dict
-        const day_avail = arr[i].split(",");
-        for (var j = 0; j < day_avail.length; j++){
-            const ranges = day_avail.split("-");
-            // TODO:
+        if (arr[i] !== ""){
+            const day_avail = arr[i].split(",");
+
+            for (var j = 0; j < day_avail.length; j++){
+                const ranges = day_avail[j].split("-");
+                const start = strTimeToFloat(ranges[0]);
+                const end = strTimeToFloat(ranges[1]);
+
+                if (start === null || end === null){
+                    alert("There was an error parsing the availability for row " + row + "! Please check that the availability is formatted correctly on " + days[i] + ".");
+                    break;
+                }
+
+                let interv = new Interval(start, end);
+                avail_json[days[i]].union(interv);
+            }
         }
     }
 
-    return;
+    return avail_json;
 }
 
-function stringifyBulkTAs(arr){
+function stringifyBulkTAs(tas_arr, days){
     var taListStr = ""
 
-    for (let i = 0; i < arr.length; i++){
-        const ta = arr[i]
-        const taStr = `${ta.name} - ${ta.max_hrs} hrs and can work up to ${ta.consec} hrs consecutively.\n`
+    for (var i = 0; i < tas_arr.length; i++){
+        const ta = tas_arr[i]
+        var taStr = `${ta.name} - ${ta.max_hrs} hrs and can work up to ${ta.consec} hrs consecutively.\n`
+
+        for (var j = 0; j < days.length; j++){
+            const timeS = ta.avail[days[j]].toTimeString()
+
+            if (timeS === ""){
+                taStr += " " + days[j] + ": " + "Not Available" + "\n"
+            }
+            else {
+                taStr += " " + days[j] + ": " + timeS + "\n"
+            }
+        }
+
         taListStr += taStr;
     }
 
@@ -1745,7 +1774,7 @@ function parseBulkEvents(arr){
             // Name, day, start, end, location, desc, needed, euuid
             const name = data[i][0]
             const day = data[i][1].charAt(0).toUpperCase() + data[i][1].slice(1).toLowerCase();
-            const start = strTimeToNumbers(data[i][2])
+            const start = strTimeToFloat(data[i][2])
             const end = start + (parseInt(data[i][3]) / 60)
             const loc = data[i][4]
             const needed = parseInt(data[i][5])
@@ -1820,7 +1849,7 @@ function hideElement(id){
     return;
 }
 
-function strTimeToNumbers(s){
+function strTimeToFloat(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
     const timeSplit = s.split(":")
     const t = {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
