@@ -253,6 +253,32 @@
         </table>
     </div>
 
+    <div class="container" id="indivScheduleDiv" hidden>
+        
+        <div class="eventCalendarText mb-3 row">
+            <div class="col-6">
+                <h1 class="text-white">Individual TA Schedule</h1>
+            </div>
+            <div class="col-3">
+                <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
+                    <option selected>Select a TA to View</option>
+                </select>
+            </div>
+        </div>
+
+        <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
+        </table>
+
+        <div class="row">
+            <div class="col-3">
+                <button type="button" class="btn btn-primary">Export to iCal</button>
+            </div>
+            <div class="col-3">
+                <button type="button" class="btn btn-primary">Export to Google Calendar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modalEvents">
     </div>
 

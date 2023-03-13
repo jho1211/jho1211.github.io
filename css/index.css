@@ -55,3 +55,8 @@ button.availEvent {
     color: white;
     border-radius: 5px;
 }
+
+td.indivAssigned{
+    background: lightgreen;
+    border-color: green;
+}

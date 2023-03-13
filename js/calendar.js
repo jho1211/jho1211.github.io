@@ -6,8 +6,9 @@
 // TODO: Add a TA schedule viewer with ical/google calendar export feature
 // TODO: Fix the TA assignment
 
-var newCalendar;
+var newTACalendar;
 var eventCalendar;
+var indivCalendar;
 var courses = [];
 
 // For populating the TA select menu
@@ -510,7 +511,10 @@ class Course{
     }
 
     initialize(){
-        this.populateTASelect();
+        this.populateTASelect("selectTAInput", 3);
+        this.populateTASelect("indivTAScheduleSelect", 1);
+        showElement("bulkAddTAsDiv");
+        this.generateIndividualCal();
         this.fillCourseForm();
         this.generateEvents();
     }
@@ -543,12 +547,25 @@ class Course{
     generateEvents(){
         eventCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "eventCalendar")
 
-        eventCalendar.clear();
+        eventCalendar.clearAll();
         eventCalendar.generateEventRows();
 
         for (let i = 0; i < this.events.length; i++){
             this.events[i].newModal();
             this.events[i].newEventButton();
+        }
+    }
+
+    generateIndividualCal(){
+        indivCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "indivTACalendar");
+        indivCalendar.clearAll();
+        indivCalendar.generateEventRows(null);
+
+        let indivTASelect = document.getElementById("indivTAScheduleSelect")
+        
+        if (indivTASelect !== null || indivTASelect !== undefined){
+            indivTASelect.removeEventListener("change", (e) => showIndividualTASchedule(e));
+            indivTASelect.addEventListener("change", (e) => showIndividualTASchedule(e));
         }
     }
     
@@ -693,11 +710,10 @@ class Course{
         return new_arr;
     }
 
-    populateTASelect(){
-        var select = document.getElementById("selectTAInput");
-        clearSelect("selectTAInput");
-        showElement("selectTAInput");
-        showElement("bulkAddTAsDiv");
+    populateTASelect(id, offset){
+        var select = document.getElementById(id);
+        clearSelect(id, offset);
+        showElement(id);
         
         for (var i in this.tas){
             var option = document.createElement("option");
@@ -819,7 +835,7 @@ class TA {
             canConsec.options.selectedIndex = 0;
         }
 
-        newCalendar.loadAvail(this.avail);
+        newTACalendar.loadAvail(this.avail);
     }
 
     // Make sure that they are available for the event and that their current assigned avail doesn't have overlap and they aren't working more than consec hours
@@ -905,10 +921,7 @@ class Calendar {
         this.events = [];
         this.times = [];
         this.id = id;
-    }
 
-    generateTimes(){
-        
         var totalTimes = Math.ceil((this.end - this.start) / this.interv);
         var curTime = this.start;
 
@@ -919,8 +932,6 @@ class Calendar {
     }
     
     generateRows(){
-        this.generateTimes();
-
         var table = document.getElementById(this.id);
         // Generate the table header with the days
         var header = table.createTHead();
@@ -954,8 +965,6 @@ class Calendar {
     }
 
     generateEventRows(){
-        this.generateTimes();
-
         var table = document.getElementById(this.id);
         // Generate the table header with the days
         var header = table.createTHead();
@@ -970,7 +979,6 @@ class Calendar {
         // Generate the table rows with each time
         var tableBody = table.createTBody();
         tableBody.className += "table-secondary border-dark";
-        tableBody.addEventListener("click", (ele) => toggleAvailCell(ele));
 
         for (let i = 0; i < this.times.length; i++){
             
@@ -987,7 +995,7 @@ class Calendar {
         }
     }
 
-    clear(){
+    clearAll(){
         var table = document.getElementById(this.id);
         table.innerHTML = "";
     }
@@ -1037,12 +1045,45 @@ class Calendar {
 
         return;
     }
+
+    // Fills the TD with the events that a particular TA is assigned to, given the TA's ID
+    fillIndividualSchedule(taID){
+        indivCalendar.clearAll();
+        indivCalendar.generateEventRows();
+
+        let ta = curCourse.findTA(taID);
+        var indivCalEle = document.getElementById(this.id);
+
+        if (ta === null){
+            console.log("Couldn't find the specified TA.");
+            return;
+        }
+
+        for (let i = 0; i < ta.assigned.length; i++){
+            var evt = curCourse.findEvent(ta.assigned[i]);
+
+            if (evt !== null){
+                const selector = "#" + evt.day + floatToEscStrTime(evt.start)
+                var cell = indivCalEle.querySelector(selector);
+
+                console.log(selector);
+                console.log(cell);
+
+                if (cell !== null || cell !== undefined){
+                    cell.classList.add("indivAssigned")
+                    cell.innerHTML = `<h5>${evt.name}</h5>
+                    ${evt.loc}<br>
+                    ${floatToStrTime(evt.start)} - ${floatToStrTime(evt.end)}`
+                }
+            }
+        }
+    }
 }
 
 function populateCourseSelect(){
     // Clear the select menu and then repopulate the select menu
     var select = document.getElementById("selectCourseInput");
-    clearSelect("selectCourseInput");
+    clearSelect("selectCourseInput", 3);
     showElement("selectCourseInput");
     
     for (var i in courses){
@@ -1051,18 +1092,6 @@ function populateCourseSelect(){
         option.value = courses[i].name;
         select.add(option);
     }
-}
-
-function clearSelect(id){
-    var select = document.getElementById(id);
-    var numOptions = select.options.length - 3;
-
-    for (var i = 0; i < numOptions; i++){
-        last = select.options.length - 1
-        select.options.remove(last);
-    }
-
-    return;
 }
 
 function loadCourses(){
@@ -1102,8 +1131,8 @@ function initializeCourse(){
     var submitBtn = document.getElementById("courseFormSubmitBtn");
 
     /*
-    if (newCalendar !== undefined){
-        newCalendar.clear();
+    if (newTACalendar !== undefined){
+        newTACalendar.clearAll();
     }
     */
 
@@ -1123,6 +1152,7 @@ function initializeCourse(){
         hideElement("taAccordion");
         hideElement("courseDeleteBtn");
         hideElement("eventsDiv");
+        hideElement("indivScheduleDiv")
         hideElement("bulkAddTAsDiv")
     }
     else if (courseSelect.selectedIndex >= 1){
@@ -1132,6 +1162,7 @@ function initializeCourse(){
         courseForm.addEventListener("submit", editCourse);
         showElement("courseDeleteBtn");
         showElement("eventsDiv");
+        showElement("indivScheduleDiv")
     }
 
     showElement("courseAccordion");
@@ -1258,14 +1289,14 @@ function updateTAForm(){
     var submitBtn = document.getElementById("taFormSubmitBtn");
 
     // Show Calendar
-    if (newCalendar === undefined){
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
-        newCalendar.generateRows();
+    if (newTACalendar === undefined){
+        newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+        newTACalendar.generateRows();
     }
     else{
-        newCalendar.clear();
-        newCalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
-        newCalendar.generateRows();
+        newTACalendar.clearAll();
+        newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+        newTACalendar.generateRows();
     }
 
     // If Add New TA option is selected
@@ -1342,7 +1373,9 @@ function createNewTA(){
          // TODO: Change this so that you can calculate based on contract weeks instead of constant
         var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
         curCourse.addTA(newTA);
-        curCourse.populateTASelect();
+        curCourse.populateTASelect("selectTAInput", 3);
+        curCourse.populateTASelect("indivTAScheduleSelect", 1)
+        showElement("bulkAddTAsDiv");
         curTASelected = newTA;
         select.options.selectedIndex = select.options.length - 1;
 
@@ -1826,6 +1859,17 @@ function stringifyBulkEvents(arr){
     return eventListStr;
 }
 
+/*
+Individual TA Schedule Viewer System
+*/
+function showIndividualTASchedule(evt){
+    if (indivCalendar !== null || indivCalendar !== undefined){
+        indivCalendar.fillIndividualSchedule(evt.target.value);
+    }
+
+    return;
+}
+
 /* Utility Functions */
 function createStrTimeRange(start, end){
     return floatToStrTime(start) + "-" + floatToStrTime(end);
@@ -1844,6 +1888,18 @@ function hideElement(id){
 
     if (ele.hidden == false){
         ele.hidden = true;
+    }
+
+    return;
+}
+
+function clearSelect(id, offset){
+    var select = document.getElementById(id);
+    var numOptions = select.options.length - offset;
+
+    for (var i = 0; i < numOptions; i++){
+        last = select.options.length - 1
+        select.options.remove(last);
     }
 
     return;
