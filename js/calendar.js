@@ -187,9 +187,9 @@ class CourseEvent {
         const cal = document.getElementById("modalEvents");
         cal.appendChild(modal);
 
-        const sel = cal.querySelectorAll(`[id*='${this.id}-SelectInput']`).forEach((sel) => { this.selectAssignedTA(sel) })
+        const sels = cal.querySelectorAll(`[id*='${this.id}-SelectInput']`).forEach((sel) => { this.selectAssignedTA(sel) })
 
-        document.querySelectorAll(".ta-modal-select").forEach((sel) => {
+        modal.querySelectorAll(".ta-modal-select").forEach((sel) => {
             sel.addEventListener("change", (evt) => { assignTAToEvent(evt) })
         })
 
@@ -775,26 +775,39 @@ class Course{
 
     // Event and TA are both the IDs
     assignTAEvent(taID, eID, slot){
-        console.log(slot);
         const e = this.findEvent(eID);
         const ta = this.findTA(taID)
 
-        // Determine if slot is already filled with TA. If it is, then unassign old TA and then assign new TA
+        // If the TA is null, then we are unassigning the current TA in the slot
+        if (taID === "-1" && e.isSlotTaken(slot)){
+            const oldTA = this.findTA(e.assigned[slot])
+            e.unassignTA(e.assigned[slot], slot);
+            oldTA.unassignEvent(e);
+        }
+
+        // If slot is already filled with TA, then unassign old TA and then assign new TA
         if (e.isSlotTaken(slot)){
-            console.log("Slot was already taken so unassigning previous TA");
             const oldTA = this.findTA(e.assigned[slot])
 
-            // Make sure that TA isn't already assigned before unassigning previous TA
-            if (e.assignTA(ta, slot)){
+            // If TA is already assigned, then do nothing and inform user
+            if (!e.isTAAssigned(ta)){
                 e.unassignTA(e.assigned[slot], slot);
+                e.assignTA(ta, slot)
                 oldTA.unassignEvent(e);
                 ta.assignEvent(e)
-            };
+            }
+            else {
+                // TODO: Prevent the select from changing to the new option if this happens!
+                alert("The specified TA is already assigned to this event.")
+                return;
+            }
         }
+
         else{
             console.log("Slot is available so assigning new TA");
 
-            if (e.assignTA(ta, slot)){
+            if (!e.isTAAssigned(ta)){
+                e.assignTA(ta, slot);
                 ta.assignEvent(e);
             }
         }
