@@ -107,10 +107,8 @@ class CourseEvent {
 
     // Assigns a TA to the event
     assignTA(ta, slot){
-
-        console.log(ta);
         // If the TA is null, then we empty the specified slot instead
-        if (ta === null || ta === undefined || ta === ""){
+        if (ta === null || ta === undefined){
             this.assigned[slot] = ""
             return true;
         }
@@ -125,13 +123,13 @@ class CourseEvent {
         return false;
     }
 
-    unassignTA(taID, slot){
-        if (taID === ""){
+    unassignTA(ta, slot){
+        if (ta === null || ta === ""){
             console.log("Couldn't unassign a null TA");
             return false;
         }
 
-        if (this.assigned[slot] === taID){
+        if (this.assigned[slot] === ta.id){
             this.assigned[slot] = ""
             return true;
         }
@@ -280,6 +278,8 @@ class CourseEvent {
             }
         }
 
+        console.log(arr);
+
         return arr;
     }
 
@@ -347,7 +347,7 @@ class Interval{
                 let e1 = this.intervals[i][1];
 
                 if (s1 != s2 && e1 != e2){
-                    new_interval.push([s1, e1]);
+                    new_intervals.push([s1, e1]);
                 }
             }
         }
@@ -376,7 +376,7 @@ class Interval{
             return;
         }
 
-        if (this.hasOverlap(i2)){
+        if (this.hasOverlap(i2) || this.isAdjacent(i2)){
             for (let i = 0; i < this.intervals.length; i++){
                 let s1 = this.intervals[i][0]
                 let e1 = this.intervals[i][1]
@@ -417,8 +417,28 @@ class Interval{
             let e1 = this.intervals[i][1]
 
             // check for left or right overlap
-            if ((s2 <= s1 && e2 >= s2) || (s2 >= s1 && e2 >= e1 && s2 <= e1)){
+            // s1 = 11, e2 = 11.5
+            // s2 = 10, e1 = 11
+            if ((s2 <= s1 && e2 > s1) || (s2 >= s1 && e2 >= e1 && s2 <= e1)){
                 console.log(`Found overlap with ${s1} - ${e1} and ${s2} - ${e2}.`);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    isAdjacent(i2){
+        const s2 = i2.interval[0]
+        const e2 = i2.interval[1]
+
+        for (let i = 0; i < this.intervals.length; i++){
+            let s1 = this.intervals[i][0]
+            let e1 = this.intervals[i][1]
+
+            // either left adjacent or right adjacent
+            if ((s2 <= s1 && e2 == s1) || (s2 >= s1 && e2 >= e1 && s2 == e1)){
+                console.log(`Found adjacency with ${s1} - ${e1} and ${s2} - ${e2}.`);
                 return true;
             }
         }
@@ -429,19 +449,19 @@ class Interval{
     checkSingleOverlap(s1, e1, s2, e2){
         // 20 23 11 14
         if (s2 <= s1 && e2 <= e1 && e2 >= s1){
-            console.log("left overlap");
+            //console.log("left overlap");
             return true;
         }
         else if (s2 >= s1 && e2 >= e1 && s2 <= e1){
-            console.log("right overlap");
+            //console.log("right overlap");
             return true;
         }
         else if (s2 >= s1 && e2 <= e1){
-            console.log("contains overlap");
+            //console.log("contains overlap");
             return true;
         }
         else{
-            console.log("no overlap");
+            //console.log("no overlap");
             return false;
         }
     }
@@ -811,7 +831,7 @@ class Course{
         // If the TA is null, then we are unassigning the current TA in the slot
         if (ta === null && e.isSlotTaken(slot)){
             const oldTA = this.findTA(e.assigned[slot])
-            e.unassignTA(e.assigned[slot], slot);
+            e.unassignTA(oldTA, slot);
             oldTA.unassignEvent(e);
             console.log("Unassigned " + oldTA.name);
         }
@@ -822,7 +842,7 @@ class Course{
 
                 // If TA is already assigned, then do nothing and inform user
                 if (!e.isTAAssigned(ta)){
-                    e.unassignTA(e.assigned[slot], slot);
+                    e.unassignTA(oldTA, slot);
                     e.assignTA(ta, slot)
                     oldTA.unassignEvent(e);
                     ta.assignEvent(e)
@@ -887,13 +907,16 @@ class TA {
     isAvailable(event){
         var e_interv = new Interval(event.start, event.end);
         var ta_avail_day = this.avail[event.day];
-        var ta_assign_avail_day = intervalize(curCourse.days, JSON.parse(JSON.stringify(this.assigned_avail)))[event.day] // create a copy of the interval
-        console.log(ta_assign_avail_day);
+        var ta_assigned_day = intervalize(curCourse.days, JSON.parse(JSON.stringify(this.assigned_avail)))[event.day] // create a copy of the interval
+        //console.log(ta_assign_avail_day);
+        console.log(this.name);
+        console.log(ta_avail_day.contains(e_interv))
+        console.log(!ta_assigned_day.hasOverlap(e_interv))
 
-        if (ta_avail_day.contains(e_interv) && !ta_assign_avail_day.hasOverlap(e_interv)){
-            ta_assign_avail_day.union(e_interv)
+        if (ta_avail_day.contains(e_interv) && !ta_assigned_day.hasOverlap(e_interv)){
+            ta_assigned_day.union(e_interv)
 
-            if (ta_assign_avail_day.checkMaxLen() <= this.consec){
+            if (ta_assigned_day.checkMaxLen() <= this.consec){
                 console.log("TA is available");
                 return true;
             }
