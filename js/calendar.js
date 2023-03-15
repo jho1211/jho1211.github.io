@@ -110,7 +110,7 @@ class CourseEvent {
 
         console.log(ta);
         // If the TA is null, then we empty the specified slot instead
-        if (ta === null || ta === undefined){
+        if (ta === null || ta === undefined || ta === ""){
             this.assigned[slot] = ""
             return true;
         }
@@ -125,15 +125,13 @@ class CourseEvent {
         return false;
     }
 
-    unassignTA(ta, slot){
-        console.log(ta);
-        if (ta === null){
+    unassignTA(taID, slot){
+        if (taID === ""){
             console.log("Couldn't unassign a null TA");
             return false;
         }
 
-        if (this.assigned[slot] === ta.id){
-            console.log("Unassigned TA " + ta.name + " from the event.");
+        if (this.assigned[slot] === taID){
             this.assigned[slot] = ""
             return true;
         }
@@ -811,36 +809,38 @@ class Course{
         const ta = this.findTA(taID)
 
         // If the TA is null, then we are unassigning the current TA in the slot
-        if (taID === "-1" && e.isSlotTaken(slot)){
+        if (ta === null && e.isSlotTaken(slot)){
             const oldTA = this.findTA(e.assigned[slot])
             e.unassignTA(e.assigned[slot], slot);
             oldTA.unassignEvent(e);
+            console.log("Unassigned " + oldTA.name);
         }
+        else {
+            // If slot is already filled with TA, then unassign old TA and then assign new TA
+            if (e.isSlotTaken(slot)){
+                const oldTA = this.findTA(e.assigned[slot])
 
-        // If slot is already filled with TA, then unassign old TA and then assign new TA
-        if (e.isSlotTaken(slot)){
-            const oldTA = this.findTA(e.assigned[slot])
-
-            // If TA is already assigned, then do nothing and inform user
-            if (!e.isTAAssigned(ta)){
-                e.unassignTA(e.assigned[slot], slot);
-                e.assignTA(ta, slot)
-                oldTA.unassignEvent(e);
-                ta.assignEvent(e)
+                // If TA is already assigned, then do nothing and inform user
+                if (!e.isTAAssigned(ta)){
+                    e.unassignTA(e.assigned[slot], slot);
+                    e.assignTA(ta, slot)
+                    oldTA.unassignEvent(e);
+                    ta.assignEvent(e)
+                }
+                else {
+                    // TODO: Prevent the select from changing to the new option if this happens!
+                    alert("The specified TA is already assigned to this event.")
+                    return;
+                }
             }
-            else {
-                // TODO: Prevent the select from changing to the new option if this happens!
-                alert("The specified TA is already assigned to this event.")
-                return;
-            }
-        }
 
-        else{
-            console.log("Slot is available so assigning new TA");
+            else{
+                console.log("Slot is available so assigning new TA");
 
-            if (!e.isTAAssigned(ta)){
-                e.assignTA(ta, slot);
-                ta.assignEvent(e);
+                if (!e.isTAAssigned(ta)){
+                    e.assignTA(ta, slot);
+                    ta.assignEvent(e);
+                }
             }
         }
 
@@ -1964,13 +1964,15 @@ function autoSchedule(events, tas){
                 break;
             }
 
-            const curTA = tas[i];
+            const curTA = tas[j];
+            console.log(curTA);
 
             // TODO: Add a check to see if they are working overtime
             if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent)){
                 curEvent.assignTA(curTA, availSlots.pop());
                 curTA.assignEvent(curEvent);
                 numTAsNeededStill--;
+                console.log(`Assigned ${curTA.name} to ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}`)
             }
         }
     }
