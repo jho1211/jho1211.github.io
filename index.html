@@ -121,7 +121,7 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="col">
                                     <div>
                                         <label for="startHour" class="form-label text-light">Start Hour:</label>
                                         <input type="time" list="startHours" id="startHour" required>
@@ -132,9 +132,7 @@
                                             <option value="09:30"></option>
                                             <option value="10:00"></option>
                                         </datalist>
-                                    </div>
-                                    
-                                    <div>
+
                                         <label for="endHour" class="form-label text-light">End Hour:&nbsp;</label>
                                         <input type="time" list="endHours" id="endHour" required>
                                         <datalist id="endHours">
@@ -150,6 +148,16 @@
                                             <option value="21:30"></option>
                                             <option value="22:00"></option>
                                         </datalist>
+                                    </div>
+
+                                    <p class="form-label text-light">Course Term Length: 
+                                        <button type="button" class="img-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Winter Term: 16 wks, Summer Term: 8 wks">
+                                            <img src="img/question-circle-fill.svg">
+                                        </button>
+                                    </p>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" aria-label="Course Term Length" id="courseLengthInput" value="16">
+                                        <span class="input-group-text">weeks</span>
                                     </div>
                                 </div>
                             </div>

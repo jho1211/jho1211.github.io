@@ -60,3 +60,9 @@ td.indivAssigned{
     background: lightgreen;
     border-color: green;
 }
+
+button.img-btn{
+    border-width: 0px;
+    background: none;
+    color: blue;
+}

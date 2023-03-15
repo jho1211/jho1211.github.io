@@ -278,8 +278,6 @@ class CourseEvent {
             }
         }
 
-        console.log(arr);
-
         return arr;
     }
 
@@ -546,7 +544,7 @@ class Interval{
 
 // Data structure for a course, which contains the TAs, events, course name, start/end time and days for scheduling
 class Course{
-    constructor(name, days, start_t, end_t, interv, tas, events, euuid, taid){
+    constructor(name, days, start_t, end_t, clength, interv, tas, events, euuid, taid){
         this.name = name;
         this.days = days;
         this.start_t = start_t;
@@ -556,7 +554,7 @@ class Course{
         this.events = events;
         this.euuid = euuid;
         this.numTAs = taid;
-        this.clength = 16 // TODO: Change this so that it is a field on the form. Used to calculate how many hrs per week on avg a TA can work
+        this.clength = clength // TODO: Change this so that it is a field on the form. Used to calculate how many hrs per week on avg a TA can work
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
@@ -789,6 +787,7 @@ class Course{
         data["days"] = this.days;
         data["start_t"] = this.start_t;
         data["end_t"] = this.end_t;
+        data["clength"] = this.clength;
         data["interv"] = this.interv;
         data["tas"] = this.tas;
         data["events"] = this.events;
@@ -908,10 +907,6 @@ class TA {
         var e_interv = new Interval(event.start, event.end);
         var ta_avail_day = this.avail[event.day];
         var ta_assigned_day = intervalize(curCourse.days, JSON.parse(JSON.stringify(this.assigned_avail)))[event.day] // create a copy of the interval
-        //console.log(ta_assign_avail_day);
-        console.log(this.name);
-        console.log(ta_avail_day.contains(e_interv))
-        console.log(!ta_assigned_day.hasOverlap(e_interv))
 
         if (ta_avail_day.contains(e_interv) && !ta_assigned_day.hasOverlap(e_interv)){
             ta_assigned_day.union(e_interv)
@@ -1174,7 +1169,7 @@ function loadCourses(){
 
     for (var i = 0; i < localStorage.length; i++){
         const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
-        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
         courses.push(course);
     }
 
@@ -1257,6 +1252,7 @@ function createNewCourse(){
 
     var startHr = strTimeToFloat(document.getElementById("startHour").value);
     var endHr = strTimeToFloat(document.getElementById("endHour").value);
+    var cLength = parseInt(document.getElementById("courseLengthInput").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -1275,7 +1271,7 @@ function createNewCourse(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, 0.5, [], [], 0, 0);
+    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, cLength, 0.5, [], [], 0, 0);
     courses.push(newCourse);
     newCourse.saveCourseData();
     populateCourseSelect();
@@ -1302,6 +1298,7 @@ function editCourse(){
 
     var startHr = strTimeToFloat(document.getElementById("startHour").value);
     var endHr = strTimeToFloat(document.getElementById("endHour").value);
+    var cLength = parseInt(document.getElementById("courseLengthInput").value);
 
     if (name == ""){
         nameEle.classList.remove("is-valid");
@@ -1323,7 +1320,7 @@ function editCourse(){
     const conf = confirm("Would you like to overwrite the current course?")
 
     if (conf === true){
-        var newCourse = new Course(nameEle.value, days, startHr, endHr, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
+        var newCourse = new Course(nameEle.value, days, startHr, endHr, cLength, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
 
         newCourse.overwriteCourseData(curCourse);
         location.reload();
@@ -1988,7 +1985,6 @@ function autoSchedule(events, tas){
             }
 
             const curTA = tas[j];
-            console.log(curTA);
 
             // TODO: Add a check to see if they are working overtime
             if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent)){
@@ -1997,6 +1993,10 @@ function autoSchedule(events, tas){
                 numTAsNeededStill--;
                 console.log(`Assigned ${curTA.name} to ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}`)
             }
+        }
+
+        if (numTAsNeededStill > 0){
+            console.log(`Couldn't find enough TAs for ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}. There are ${numTAsNeededStill} TAs required still.`)
         }
     }
 
