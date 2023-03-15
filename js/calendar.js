@@ -1,10 +1,14 @@
-// TODO: Replace the reloading of webpage when overwriting course/TA data.
-// TODO: Refresh the event calendar when a TA is added/modified/assigned
-// TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
-// TODO: Change alerts to dismissible alerts
-// TODO: Add a bulk add TAs feature
-// TODO: Add a TA schedule viewer with ical/google calendar export feature
-// TODO: Fix the TA assignment
+/*
+TODO: Replace the reloading of webpage when overwriting course/TA data.
+TODO: Refresh the event calendar when a TA is added/modified/assigned
+TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
+TODO: Change alerts to dismissible alerts
+TODO: Add ical/google calendar export feature for TA independent cal viewer
+TODO: Separate into admin and TA portal
+    TA portal will be for TAs to enter their info/availability
+    Admin portal can override their info
+*/
+
 
 var newTACalendar;
 var eventCalendar;
@@ -135,6 +139,18 @@ class CourseEvent {
         }
     }
 
+    getAvailSlots(){
+        var availSlots = []
+
+        for (let i = 0; i < Object.keys(this.assigned).length; i++){
+            if (!this.isSlotTaken(this.assigned[i])){
+                availSlots.push(i);
+            }
+        }
+
+        return availSlots;
+    }
+
     isSlotTaken(slot){
         return this.assigned[slot] !== ""
     }
@@ -240,6 +256,22 @@ class CourseEvent {
         }
 
         return div.innerHTML;
+    }
+
+    getNumTAsNeededStill(){
+        var needed = 0;
+
+        for (let i = 0; i < Object.keys(this.assigned).length; i++){
+            if (this.assigned[i] === ""){
+                needed++;
+            }
+        }
+
+        return needed;
+    }
+
+    getNumAvailableTAs(){
+        return this.filterAvailableTAs().length;
     }
 
     filterAvailableTAs(){
@@ -864,6 +896,10 @@ class TA {
             if (ta_assign_avail_day.checkMaxLen() <= this.consec){
                 console.log("TA is available");
                 return true;
+            }
+            else{
+                console.log("TA will work overtime");
+                return false;
             }
         }
 
@@ -1881,6 +1917,71 @@ function showIndividualTASchedule(evt){
     }
 
     return;
+}
+
+/* Auto Scheduling */
+
+/* 
+Given the events (with/without TAs already assigned) and the list of TAs (with/without events already assigned) and assigns TAs automatically
+
+Algorithm:
+1. Sort the events by those with the least availability
+2. Iterate through the events
+    a. Filter for the TAs that are available for that event
+    b. Sort them based on those with most hours still available (reverse sort)
+    c. Assign TAs until the event is full
+        - Check that the TA is available at that time and isn't already assigned to the event
+        - Then assign TA to event and assign event to TA
+        - Need to get the list of numbers for empty slots
+3. Return the events and TAs
+
+Produce an overview of what events/TAs were fully assigned, partially assigned, or not assigned
+Will also create a way to export the Allocation of Hours sheet
+
+Will need to override the events and TAs afterwards to save it
+
+*/
+function autoSchedule(events, tas){
+    // Sort events based on availability (least -> greatest)
+    events.sort((e1, e2) => {
+        return e1.getNumAvailableTAs() - e2.getNumAvailableTAs();
+    })
+
+    // Iterate through all the events and assign TAs
+    for (var i = 0; i < events.length; i++){
+        const curEvent = events[i]
+        var availSlots = curEvent.getAvailSlots();
+        var numTAsNeededStill = curEvent.getNumTAsNeededStill();
+
+        // Sort TAs based on most hours still available (greatest -> least)
+        tas.sort((h1, h2) => {
+            return h2.totalHoursRemaining() - h1.totalHoursRemaining()
+        })
+
+        // Iterate through TAs and find the TAs who are avialable and aren't already assigned
+        for (var j = 0; j < tas.length; j++){
+            if (numTAsNeededStill == 0){
+                break;
+            }
+
+            const curTA = tas[i];
+
+            // TODO: Add a check to see if they are working overtime
+            if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent)){
+                curEvent.assignTA(curTA, availSlots.pop());
+                curTA.assignEvent(curEvent);
+                numTAsNeededStill--;
+            }
+        }
+    }
+
+    console.log(events);
+    console.log(tas);
+
+    // Add a confirm message to confirm the assignments
+    if (confirm("Are you sure you want to automatically assign the events and TAs? This action CANNOT be undone!!!")){
+        console.log("Assigned the TAs and events successfully!");
+    }
 }
 
 /* Utility Functions */
