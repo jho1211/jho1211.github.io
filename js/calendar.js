@@ -2051,11 +2051,18 @@ Allocation of Hours System
                 <th scope="col">Total Hours</th>
                 <th scope="col">Max Hours</th>
 */
-function generateAllocOfHoursTable(){
+
+// Create the rows for the allocation of hours table
+function generateAllocationHoursTable(){
+    return;
+}
+
+// Create a list of objs for that contain the hours for each TA
+function generateTotalTAHours(){
     var arr = []
     for (var i = 0; i < curCourse.tas.length; i++){
         var curTA = curCourse.tas[i];
-        var obj = {"Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
+        var obj = {"Name": curCourse.tas.name, "Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
     "Curriculum Dev": 0, "Other": Math.round(curTA.max_hrs * 0.04 * 10) / 10, "Invigilation": 0, "Vacation": Math.round(curTA.max_hrs * 0.0417 * 10) / 10, "Total Hours": 0, "Max Hours": curTA.max_hrs};
 
         if (curTA.exp === "New"){
@@ -2067,8 +2074,14 @@ function generateAllocOfHoursTable(){
             obj["Meetings/Prep/Training"] = 2;
         }
 
+        // Go through all the events that a TA is assigned to
         for (var j = 0; j < curTA.assigned.length; j++){
             let evt = curCourse.findEvent(curTA.assigned[j]);
+
+            if (evt === null){
+                continue;
+            }
+
             let hrs = evt.getLength() * evt.numDays;
 
             if (evt.type === "Lecture"){
@@ -2087,6 +2100,13 @@ function generateAllocOfHoursTable(){
                 obj["Other"] += hrs;
             }
         }
+
+        // Sum up all the hours in obj to get the total hrs
+        for (let k = 1; k < Object.keys(obj).length - 2; k++){
+            obj["Total Hours"] += obj[k]
+        }
+
+        arr.push(obj);
     }
 }
 
