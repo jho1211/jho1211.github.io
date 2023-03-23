@@ -2056,18 +2056,44 @@ function generateAllocOfHoursTable(){
     for (var i = 0; i < curCourse.tas.length; i++){
         var curTA = curCourse.tas[i];
         var obj = {"Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
-    "Curriculum Dev": 0, "Other": 0, "Invigilation": 0, "Vacation": 0, "Total Hours": 0, "Max Hours": curTA.max_hrs};
+    "Curriculum Dev": 0, "Other": Math.round(curTA.max_hrs * 0.04 * 10) / 10, "Invigilation": 0, "Vacation": Math.round(curTA.max_hrs * 0.0417 * 10) / 10, "Total Hours": 0, "Max Hours": curTA.max_hrs};
+
+        if (curTA.exp === "New"){
+            obj["Safety"] = 2.5;
+            obj["Meetings/Prep/Training"] = 5.5;
+        }
+        else {
+            obj["Safety"] = 1;
+            obj["Meetings/Prep/Training"] = 2;
+        }
 
         for (var j = 0; j < curTA.assigned.length; j++){
             let evt = curCourse.findEvent(curTA.assigned[j]);
+            let hrs = evt.getLength() * evt.numDays;
 
-            evt.getLength() * evt.numDays;
+            if (evt.type === "Lecture"){
+                obj["Assisting Instructors"] += hrs;
+            }
+            else if (evt.type === "Lab/Tutorial"){
+                obj["Teaching"] += hrs;
+            }
+            else if (evt.type === "Piazza"){
+                obj["OHs/Piazza"] += hrs;
+            }
+            else if (evt.type === "Curriculum Dev"){
+                obj["Curriculum Dev"] += hrs;
+            }
+            else {
+                obj["Other"] += hrs;
+            }
         }
     }
 }
 
+// Use Papa.unparse to generate CSV file
 function exportAllocToCSV(){
     var arr = []
+    return arr;
 }
 
 /* Utility Functions */
