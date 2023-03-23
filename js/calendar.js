@@ -9,7 +9,6 @@ TODO: Separate into admin and TA portal
     Admin portal can override their info
 
 TODO: Create tabs for "Event Calendar" "Individual TA Schedule" "Allocation of Hours"
-TODO: Add one field for TAs (New/Returning) => used to calculate training time
 TODO: Add two fields for Events (Event Type and Event Length)
 */
 
@@ -327,6 +326,10 @@ class CourseEvent {
         console.log(td);
 
         return;
+    }
+
+    getLength(){
+        return Math.round(this.end - this.start);
     }
 }
 
@@ -872,7 +875,7 @@ class Course{
 }
 
 class TA {
-    constructor(name, max_hrs, consec, avail, ass, ass_avail, id, days){
+    constructor(name, max_hrs, consec, avail, ass, ass_avail, id, days, exp){
         this.name = name;
         this.max_hrs = max_hrs;
         this.consec = consec;
@@ -880,6 +883,11 @@ class TA {
         this.assigned = ass;
         this.assigned_avail = ass_avail;
         this.id = id;
+        this.exp = exp;
+
+        if (exp === undefined || exp === null){
+            this.exp = "New";
+        }
 
         if (Object.keys(ass_avail).length == 0){
             for (var i = 0; i < days.length; i++){
@@ -892,6 +900,7 @@ class TA {
         var nameEle = document.getElementById("inputName");
         var hours = document.getElementById("taMaxHoursInput");
         var canConsec = document.getElementById("consecSelect");
+        var exp = document.getElementById("taExpSelect");
 
         nameEle.value = this.name;
         hours.value = this.max_hrs;
@@ -901,6 +910,13 @@ class TA {
         }
         else{
             canConsec.options.selectedIndex = 0;
+        }
+
+        if (this.exp === "New"){
+            exp.options.selectedIndex = 0;
+        }
+        else{
+            exp.options.selectedIndex = 1;
         }
 
         newTACalendar.loadAvail(this.avail);
@@ -1414,6 +1430,7 @@ function createNewTA(){
     var canConsec = document.getElementById("consecSelect").value;
     var avail = parseAvailabilityFromCalendar();
     var select = document.getElementById("selectTAInput");
+    var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
 
     if (canConsec == "yes"){
         var consec = 4;
@@ -1444,7 +1461,7 @@ function createNewTA(){
     
     if (conf === true){
          // TODO: Change this so that you can calculate based on contract weeks instead of constant
-        var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days);
+        var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days, exp);
         curCourse.addTA(newTA);
         curCourse.populateTASelect("selectTAInput", 3);
         curCourse.populateTASelect("indivTAScheduleSelect", 1)
@@ -1465,6 +1482,7 @@ function editTA(){
     var hours = parseInt(document.getElementById("taMaxHoursInput").value);
     var canConsec = document.getElementById("consecSelect").value;
     var avail = parseAvailabilityFromCalendar();
+    var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
 
     if (canConsec == "yes"){
         var consec = 4;
@@ -1494,7 +1512,7 @@ function editTA(){
     const conf = confirm("Are yo sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
 
     if (conf === true){
-        var newTA = new TA(name, hours, consec, avail, curTASelected.assigned, curTASelected.assigned_avail, curTASelected.id, curCourse.days);
+        var newTA = new TA(name, hours, consec, avail, curTASelected.assigned, curTASelected.assigned_avail, curTASelected.id, curCourse.days, exp);
         curCourse.overwriteTA(curTASelected, newTA)
     }
 
@@ -1515,7 +1533,7 @@ function loadTAs(days, tas_arr){
     var arr = []
     for (let i = 0; i < tas_arr.length; i++){
         ta_obj = tas_arr[i]
-        ta = new TA(ta_obj.name, ta_obj.max_hrs, ta_obj.consec, intervalize(days, ta_obj.avail), ta_obj.assigned, intervalize(days, ta_obj.assigned_avail), ta_obj.id, days);
+        ta = new TA(ta_obj.name, ta_obj.max_hrs, ta_obj.consec, intervalize(days, ta_obj.avail), ta_obj.assigned, intervalize(days, ta_obj.assigned_avail), ta_obj.id, days, ta_obj.exp);
         arr.push(ta);
     }
 
@@ -1756,9 +1774,10 @@ function parseBulkTAs(arr){
         }
 
         const name = data[i][0];
-        const hrs = parseInt(data[i][1]);
-        const max_consec = parseInt(data[i][2]);
-        const avail = parseAvailability(i + 2, data[i].slice(3), days_needed);
+        const exp = data[i][1]
+        const hrs = parseInt(data[i][2]);
+        const max_consec = parseInt(data[i][3]);
+        const avail = parseAvailability(i + 2, data[i].slice(4), days_needed);
 
         // TODO: Overwrite the TAs instead of ignoring them
         // TODO: Create a list of TAs that are being overwritten and display it rather than having an alert for each TA
@@ -1773,7 +1792,7 @@ function parseBulkTAs(arr){
             continue;
         }
 
-        var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed);
+        var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
         tas_arr.push(ta);
     }
 
@@ -2011,6 +2030,44 @@ function autoSchedule(events, tas){
     if (confirm("Are you sure you want to automatically assign the events and TAs? This action CANNOT be undone!!!")){
         console.log("Assigned the TAs and events successfully!");
     }
+}
+
+/*
+Allocation of Hours System
+
+<th scope="col">TA</th>
+                <th scope="col">Union Orientation</th>
+                <th scope="col">Safety</th>
+                <th scope="col">Teaching</th>
+                <th scope="col">Assisting Instructors</th>
+                <th scope="col">Meetings/Prep/Training</th>
+                <th scope="col">Grading</th>
+                <th scope="col">Admin</th>
+                <th scope="col">OHs/Piazza</th>
+                <th scope="col">Curriculum</th>
+                <th scope="col">Other</th>
+                <th scope="col">Invigilation</th>
+                <th scope="col">Vacation</th>
+                <th scope="col">Total Hours</th>
+                <th scope="col">Max Hours</th>
+*/
+function generateAllocOfHoursTable(){
+    var arr = []
+    for (var i = 0; i < curCourse.tas.length; i++){
+        var curTA = curCourse.tas[i];
+        var obj = {"Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
+    "Curriculum Dev": 0, "Other": 0, "Invigilation": 0, "Vacation": 0, "Total Hours": 0, "Max Hours": curTA.max_hrs};
+
+        for (var j = 0; j < curTA.assigned.length; j++){
+            let evt = curCourse.findEvent(curTA.assigned[j]);
+
+            evt.getLength() * evt.numDays;
+        }
+    }
+}
+
+function exportAllocToCSV(){
+    var arr = []
 }
 
 /* Utility Functions */
