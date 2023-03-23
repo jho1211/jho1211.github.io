@@ -7,6 +7,10 @@ TODO: Add ical/google calendar export feature for TA independent cal viewer
 TODO: Separate into admin and TA portal
     TA portal will be for TAs to enter their info/availability
     Admin portal can override their info
+
+TODO: Create tabs for "Event Calendar" "Individual TA Schedule" "Allocation of Hours"
+TODO: Add one field for TAs (New/Returning) => used to calculate training time
+TODO: Add two fields for Events (Event Type and Event Length)
 */
 
 

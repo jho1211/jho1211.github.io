@@ -151,7 +151,7 @@
                                     </div>
 
                                     <p class="form-label text-light">Course Term Length: 
-                                        <button type="button" class="img-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Winter Term: 16 wks, Summer Term: 8 wks">
+                                        <button type="button" class="img-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Winter Term: 16 weeks, Summer Term: 8 weeks">
                                             <img src="img/question-circle-fill.svg">
                                         </button>
                                     </p>
@@ -281,6 +281,36 @@
                 <button type="button" class="btn btn-primary">Export to Google Calendar</button>
             </div>
         </div>
+    </div>
+
+    <div class="container mt-3" id="allocationOfHoursDiv">
+        <div class="eventCalendarText row mb-3">
+            <div class="col-6">
+                <h1 class="text-white">Allocation of Hours</h1>
+            </div>
+            <div class="col-3">
+                <button type="button" id="allocExportCSVBtn" class="btn btn-primary">Export to CSV</button>
+            </div>
+        </div>
+        <table class="table text-white table-bordered" id="allocationHoursTable">
+            <thead class="table-primary border-dark">
+                <th scope="col">TA</th>
+                <th scope="col">Union Orientation</th>
+                <th scope="col">Safety</th>
+                <th scope="col">Teaching</th>
+                <th scope="col">Assisting Instructors</th>
+                <th scope="col">Meetings/Prep/Training</th>
+                <th scope="col">Grading</th>
+                <th scope="col">Admin</th>
+                <th scope="col">OHs/Piazza</th>
+                <th scope="col">Curriculum</th>
+                <th scope="col">Other</th>
+                <th scope="col">Invigilation</th>
+                <th scope="col">Vacation</th>
+                <th scope="col">Total Hours</th>
+                <th scope="col">Max Hours</th>
+            </thead>
+        </table>
     </div>
 
     <div id="modalEvents">
