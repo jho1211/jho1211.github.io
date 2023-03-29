@@ -85,8 +85,6 @@ class AllocHoursTable {
 
             for (var j = 0; j < this.headers.length; j++){
                 let newTD = newRow.insertCell(-1);
-                console.log(this.tableArr[i])
-                console.log(this.tableArr[i][this.headers[j]]);
                 newTD.innerHTML = `${this.tableArr[i][this.headers[j]]}`;
             }
         }
@@ -120,7 +118,6 @@ class AllocHoursTable {
                 }
 
                 let hrs = evt.getLength() * evt.numWeeks;
-                console.log(evt.getLength(), evt.numWeeks, hrs);
 
                 if (evt.type === "Lecture"){
                     obj["Assisting Instructors"] += hrs;
@@ -139,7 +136,6 @@ class AllocHoursTable {
                 }
             }
 
-            console.log(Object.keys(obj));
             // Sum up all the hours in obj to get the total hrs
             for (let k = 1; k < Object.keys(obj).length - 2; k++){
                 obj["Total Hours"] += obj[Object.keys(obj)[k]];
@@ -483,7 +479,7 @@ class CourseEvent {
     }
 
     getLength(){
-        return Math.round(this.end - this.start);
+        return this.end - this.start;
     }
 }
 
