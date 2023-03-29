@@ -23,9 +23,150 @@ var curCourse;
 var curTASelected;
 var curEvent;
 
+class AllocHoursTable {
+    constructor(){
+        this.table = document.getElementById("allocationHoursTable");
+        this.tableArr = this.generateTotalTAHours();
+        this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours"];
+
+        if (this.table !== null && this.table.innerHTML === ""){
+            this.generateTHead();
+            this.generateAllocationHoursBody();
+
+            return;
+        }
+        else if (this.table !== null && this.table !== undefined && this.table.innerHTML !== ""){
+            this.clearTable();
+            this.generateTHead();
+            this.generateAllocationHoursBody();
+
+            return;
+        }
+
+        return;
+    }
+
+    generateTHead(){
+        if (this.table !== null || this.table !== undefined){
+            this.table.innerHTML = `<thead class="table-primary border-dark">
+            <th scope="col">TA</th>
+            <th scope="col">Union Orientation</th>
+            <th scope="col">Safety</th>
+            <th scope="col">Teaching</th>
+            <th scope="col">Assisting Instructors</th>
+            <th scope="col">Meetings/Prep/Training</th>
+            <th scope="col">Grading</th>
+            <th scope="col">Admin</th>
+            <th scope="col">OHs/Piazza</th>
+            <th scope="col">Curriculum</th>
+            <th scope="col">Other</th>
+            <th scope="col">Invigilation</th>
+            <th scope="col">Vacation</th>
+            <th scope="col">Total Hours</th>
+            <th scope="col">Max Hours</th>
+            </thead>`
+
+            return true;
+        }
+        else{
+            return false;
+        }
+    }
+
+    // Create the rows for the allocation of hours table
+    generateAllocationHoursBody(){
+        if (this.table === null || this.table === undefined){
+            console.log("Alloc of Hours table not found");
+            return false;
+        }
+
+        for (var i = 0; i < this.tableArr.length; i++){
+            var newRow = this.table.insertRow(-1);
+
+            for (var j = 0; j < this.headers.length; j++){
+                let newTD = newRow.insertCell(-1);
+                console.log(this.tableArr[i])
+                console.log(this.tableArr[i][this.headers[j]]);
+                newTD.innerHTML = `${this.tableArr[i][this.headers[j]]}`;
+            }
+        }
+
+        return;
+    }
+
+    // Create a list of objs for that contain the hours for each TA
+    generateTotalTAHours(){
+        var arr = []
+        for (var i = 0; i < curCourse.tas.length; i++){
+            var curTA = curCourse.tas[i];
+            var obj = {"Name": curTA.name, "Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
+        "Curriculum Dev": 0, "Other": Math.round(curTA.max_hrs * 0.04 * 10) / 10, "Invigilation": 0, "Vacation": Math.round(curTA.max_hrs * 0.0417 * 10) / 10, "Total Hours": 0, "Max Hours": curTA.max_hrs};
+
+            if (curTA.exp === "New"){
+                obj["Safety"] = 2.5;
+                obj["Meetings/Prep/Training"] = 5.5;
+            }
+            else {
+                obj["Safety"] = 1;
+                obj["Meetings/Prep/Training"] = 2;
+            }
+
+            // Go through all the events that a TA is assigned to
+            for (var j = 0; j < curTA.assigned.length; j++){
+                let evt = curCourse.findEvent(curTA.assigned[j]);
+
+                if (evt === null){
+                    continue;
+                }
+
+                let hrs = evt.getLength() * evt.numDays;
+
+                if (evt.type === "Lecture"){
+                    obj["Assisting Instructors"] += hrs;
+                }
+                else if (evt.type === "Lab/Tutorial"){
+                    obj["Teaching"] += hrs;
+                }
+                else if (evt.type === "Piazza"){
+                    obj["OHs/Piazza"] += hrs;
+                }
+                else if (evt.type === "Curriculum Dev"){
+                    obj["Curriculum Dev"] += hrs;
+                }
+                else {
+                    obj["Other"] += hrs;
+                }
+            }
+
+            console.log(Object.keys(obj));
+            // Sum up all the hours in obj to get the total hrs
+            for (let k = 1; k < Object.keys(obj).length - 2; k++){
+                obj["Total Hours"] += obj[Object.keys(obj)[k]];
+                obj["Total Hours"] = Math.round(obj["Total Hours"]);
+            }
+
+            arr.push(obj);
+        }
+
+        return arr;
+    }
+
+    // Use Papa.unparse to generate CSV file
+    exportAllocToCSV(){
+        var arr = []
+        return arr;
+    }
+
+    clearTable(){
+        if (this.table !== null){
+            this.table.innerHTML = "";
+        }
+    }
+}
+
 class CourseEvent {
     // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
-    constructor(name, day, start, end, loc, desc, needed, id, assigned){
+    constructor(name, day, start, end, loc, desc, needed, id, assigned, type){
         this.name = name;
         this.day = day;
         this.start = start; // float
@@ -35,6 +176,7 @@ class CourseEvent {
         this.tas_needed = needed;
         this.assigned = assigned;
         this.id = id;
+        this.type = type;
 
         if (Object.keys(assigned).length === 0){
             for (let i = 0; i < this.tas_needed; i++){
@@ -572,6 +714,7 @@ class Course{
         this.generateIndividualCal();
         this.fillCourseForm();
         this.generateEvents();
+        this.generateAllocTable();
     }
 
     getEvent(id){
@@ -599,8 +742,14 @@ class Course{
         return false;
     }
 
+    generateAllocTable(){
+        var allocTable = new AllocHoursTable();
+
+        return;
+    }
+
     generateEvents(){
-        eventCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "eventCalendar")
+        var eventCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "eventCalendar")
 
         eventCalendar.clearAll();
         eventCalendar.generateEventRows();
@@ -612,7 +761,7 @@ class Course{
     }
 
     generateIndividualCal(){
-        indivCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "indivTACalendar");
+        var indivCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "indivTACalendar");
         indivCalendar.clearAll();
         indivCalendar.generateEventRows(null);
 
@@ -2051,70 +2200,6 @@ Allocation of Hours System
                 <th scope="col">Total Hours</th>
                 <th scope="col">Max Hours</th>
 */
-
-// Create the rows for the allocation of hours table
-function generateAllocationHoursTable(){
-    return;
-}
-
-// Create a list of objs for that contain the hours for each TA
-function generateTotalTAHours(){
-    var arr = []
-    for (var i = 0; i < curCourse.tas.length; i++){
-        var curTA = curCourse.tas[i];
-        var obj = {"Name": curCourse.tas.name, "Union Orientation": 0.5, "Safety": 0, "Teaching": 0, "Assisting Instructors": 0, "Meetings/Prep/Training": 0, "Grading": 0, "Admin": 0, "OHs/Piazza": 0,
-    "Curriculum Dev": 0, "Other": Math.round(curTA.max_hrs * 0.04 * 10) / 10, "Invigilation": 0, "Vacation": Math.round(curTA.max_hrs * 0.0417 * 10) / 10, "Total Hours": 0, "Max Hours": curTA.max_hrs};
-
-        if (curTA.exp === "New"){
-            obj["Safety"] = 2.5;
-            obj["Meetings/Prep/Training"] = 5.5;
-        }
-        else {
-            obj["Safety"] = 1;
-            obj["Meetings/Prep/Training"] = 2;
-        }
-
-        // Go through all the events that a TA is assigned to
-        for (var j = 0; j < curTA.assigned.length; j++){
-            let evt = curCourse.findEvent(curTA.assigned[j]);
-
-            if (evt === null){
-                continue;
-            }
-
-            let hrs = evt.getLength() * evt.numDays;
-
-            if (evt.type === "Lecture"){
-                obj["Assisting Instructors"] += hrs;
-            }
-            else if (evt.type === "Lab/Tutorial"){
-                obj["Teaching"] += hrs;
-            }
-            else if (evt.type === "Piazza"){
-                obj["OHs/Piazza"] += hrs;
-            }
-            else if (evt.type === "Curriculum Dev"){
-                obj["Curriculum Dev"] += hrs;
-            }
-            else {
-                obj["Other"] += hrs;
-            }
-        }
-
-        // Sum up all the hours in obj to get the total hrs
-        for (let k = 1; k < Object.keys(obj).length - 2; k++){
-            obj["Total Hours"] += obj[k]
-        }
-
-        arr.push(obj);
-    }
-}
-
-// Use Papa.unparse to generate CSV file
-function exportAllocToCSV(){
-    var arr = []
-    return arr;
-}
 
 /* Utility Functions */
 function createStrTimeRange(start, end){
