@@ -340,6 +340,17 @@
                     </div>
                     <div class="modal-body">
                         <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Type</span>
+                            <select class="form-select form-select-sm" id="newEventTypeSelect" required>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Lab/Tutorial">Lab/Tutorial</option>
+                                <option value="Piazza">Piazza</option>
+                                <option value="Office Hours">Office Hours</option>
+                                <option value="Curriciulum Dev">Development</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Event Day</span>
                             <select class="form-select form-select-sm" id="newEventDaySelect" required>
                                 <option value="Mon">Monday</option>
@@ -359,6 +370,11 @@
                             <span class="input-group-text">Duration</span>
                             <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
                             <span class="input-group-text" id="basic-addon2">minutes</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Length</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of weeks input" id="newEventLengthInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">weeks</span>
                         </div>
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Location</span>

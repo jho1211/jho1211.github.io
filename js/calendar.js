@@ -119,7 +119,8 @@ class AllocHoursTable {
                     continue;
                 }
 
-                let hrs = evt.getLength() * evt.numDays;
+                let hrs = evt.getLength() * evt.numWeeks;
+                console.log(evt.getLength(), evt.numWeeks, hrs);
 
                 if (evt.type === "Lecture"){
                     obj["Assisting Instructors"] += hrs;
@@ -127,7 +128,7 @@ class AllocHoursTable {
                 else if (evt.type === "Lab/Tutorial"){
                     obj["Teaching"] += hrs;
                 }
-                else if (evt.type === "Piazza"){
+                else if (evt.type === "Piazza" || evt.type === "Office Hours"){
                     obj["OHs/Piazza"] += hrs;
                 }
                 else if (evt.type === "Curriculum Dev"){
@@ -142,8 +143,10 @@ class AllocHoursTable {
             // Sum up all the hours in obj to get the total hrs
             for (let k = 1; k < Object.keys(obj).length - 2; k++){
                 obj["Total Hours"] += obj[Object.keys(obj)[k]];
-                obj["Total Hours"] = Math.round(obj["Total Hours"]);
             }
+
+            obj["Other"] = Math.round(obj["Other"]);
+            obj["Total Hours"] = Math.round(obj["Total Hours"]);
 
             arr.push(obj);
         }
@@ -165,8 +168,9 @@ class AllocHoursTable {
 }
 
 class CourseEvent {
-    // An event has a name, day, start time (in 24hr time as float), length (in hrs), location (str), description, and TAs assigned
-    constructor(name, day, start, end, loc, desc, needed, id, assigned, type){
+    // An event has a name, day, start and end time (in 24hr time as float), location (str), description, 
+    // TAs assigned, event type (Lecture, Lab/Tutorial, Piazza, Curriculum Dev, other)
+    constructor(name, day, start, end, loc, desc, needed, id, assigned, type, numWeeks){
         this.name = name;
         this.day = day;
         this.start = start; // float
@@ -177,11 +181,17 @@ class CourseEvent {
         this.assigned = assigned;
         this.id = id;
         this.type = type;
+        this.numWeeks = numWeeks;
 
         if (Object.keys(assigned).length === 0){
             for (let i = 0; i < this.tas_needed; i++){
                 this.assigned[i] = "";
             }
+        }
+
+        if (this.type === undefined){
+            this.type = "Other"
+            this.numWeeks = 14;
         }
 
         return;
@@ -227,7 +237,7 @@ class CourseEvent {
         return;
     }
 
-    editEvent(name, day, start, end, loc, needed, desc, assigned){
+    editEvent(name, day, start, end, loc, needed, desc, assigned, etype, numWeeks){
         const conf = "Are you sure you want to overwrite the current event?"
 
         if (conf === true){
@@ -239,6 +249,8 @@ class CourseEvent {
             this.description = desc;
             this.tas_needed = needed;
             this.assigned = assigned;
+            this.type = etype;
+            this.numWeeks = numWeeks;
 
             // Delete the current modal and event button and replace with new one in the Course class
             this.newEventButton()
@@ -727,10 +739,10 @@ class Course{
         return null;
     }
 
-    editEvent(id, name, day, start, end, loc, desc, needed){
+    editEvent(id, name, day, start, end, loc, desc, needed, etype, numWeeks){
         for (let i = 0; i < this.events.length; i++){
             if (this.events[i].id == id){
-                var res = this.events[i].editEvent(name, day, start, end, loc, desc, needed, this.events[i].assigned);
+                var res = this.events[i].editEvent(name, day, start, end, loc, desc, needed, this.events[i].assigned, etype, numWeeks);
 
                 if (res){
                     curCourse.saveCourseData();
@@ -833,8 +845,8 @@ class Course{
         document.getElementById("endHour").value = floatToStrTime(this.end_t);
     }
 
-    addEvent(ename, eday, estart, end, eloc, needed, edesc){
-        var event = new CourseEvent(ename, eday, estart, end, eloc, edesc, needed, this.euuid, {});
+    addEvent(ename, eday, estart, end, eloc, needed, edesc, etype, eNumWeeks){
+        var event = new CourseEvent(ename, eday, estart, end, eloc, edesc, needed, this.euuid, {}, etype, eNumWeeks);
         this.events.push(event);
 
         event.newModal();
@@ -1694,7 +1706,7 @@ function loadEvents(days, events){
 
     for (var i = 0; i < events.length; i++){
         const e = events[i];
-        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id, e.assigned);
+        var cevent = new CourseEvent(e.name, e.day, e.start, e.end, e.loc, e.description, e.tas_needed, e.id, e.assigned, e.type, e.numWeeks);
         arr.push(cevent);
     }
 
@@ -1766,12 +1778,14 @@ function availJsonToString(aj){
 function newEvent(){
     var form = document.getElementById("newEventForm");
     const ename = form.elements[0].value;
-    const eday = form.elements[2].value;
-    const estart = strTimeToFloat(form.elements[3].value);
-    const edur = parseInt(form.elements[4].value) / 60;
-    const eloc = form.elements[5].value;
-    const tas_needed = parseInt(form.elements[6].value);
-    const edesc = form.elements[7].value;
+    const etype = form.elements[2].value;
+    const eday = form.elements[3].value;
+    const estart = strTimeToFloat(form.elements[4].value);
+    const edur = parseInt(form.elements[5].value) / 60;
+    const eNumWeeks = parseInt(form.elements[6].value);
+    const eloc = form.elements[7].value;
+    const tas_needed = parseInt(form.elements[8].value);
+    const edesc = form.elements[9].value;
 
     // Check if estart is out of range
     if (estart + edur > curCourse.end_t){
@@ -1779,7 +1793,7 @@ function newEvent(){
         return false;
     }
 
-    curCourse.addEvent(ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
+    curCourse.addEvent(ename, eday, estart, estart + edur, eloc, tas_needed, edesc, etype, eNumWeeks);
 
     form.reset();
 
@@ -1826,12 +1840,14 @@ function openEditEvent(id){
 
         if (e !== null){
             form.elements[0].value = e.name; // Event Name
-            form.elements[2].value = e.day; // Day
-            form.elements[3].value = floatToStrTime(e.start); // Start Time
-            form.elements[4].value = (e.end - e.start) * 60; // Duration
-            form.elements[5].value = e.loc; // Location
-            form.elements[6].value = e.tas_needed; // TAs needed
-            form.elements[7].value = e.description; // Description
+            form.elements[2].value = e.type; // Event Type
+            form.elements[3].value = e.day;
+            form.elements[4].value = floatToStrTime(e.start); // Start Time
+            form.elements[5].value = (e.end - e.start) * 60; // Duration
+            form.elements[6].value = e.numWeeks
+            form.elements[7].value = e.loc; // Location
+            form.elements[8].value = e.tas_needed; // TAs needed
+            form.elements[9].value = e.description; // Description
 
             $("#event" + id + "modal").modal("hide");
             $("#newEventModal").modal("show");
@@ -1853,12 +1869,14 @@ function editEvent(evt){
         var form = document.getElementById("newEventForm");
 
         const ename = form.elements[0].value;
-        const eday = form.elements[2].value;
-        const estart = strTimeToFloat(form.elements[3].value);
-        const edur = parseInt(form.elements[4].value) / 60; // converted to hours
-        const eloc = form.elements[5].value;
-        const tas_needed = parseInt(form.elements[6].value);
-        const edesc = form.elements[7].value;
+        const etype = form.elements[2].value;
+        const eday = form.elements[3].value;
+        const estart = strTimeToFloat(form.elements[4].value);
+        const edur = parseInt(form.elements[5].value) / 60; // converted to hours
+        const numWeeks = parseInt(form.elements[6].value);
+        const eloc = form.elements[7].value;
+        const tas_needed = parseInt(form.elements[8].value);
+        const edesc = form.elements[9].value;
 
         // Check if estart is out of range
         if (estart + edur > curCourse.end_t){
@@ -1866,7 +1884,7 @@ function editEvent(evt){
             return false;
         }
 
-        var res = curCourse.editEvent(evt.currentTarget.targetID, ename, eday, estart, estart + edur, eloc, tas_needed, edesc);
+        var res = curCourse.editEvent(evt.currentTarget.targetID, ename, eday, estart, estart + edur, eloc, tas_needed, edesc, etype, numWeeks);
 
         if (res){
             $("#newEventModal").modal("hide");
@@ -2180,26 +2198,6 @@ function autoSchedule(events, tas){
         console.log("Assigned the TAs and events successfully!");
     }
 }
-
-/*
-Allocation of Hours System
-
-<th scope="col">TA</th>
-                <th scope="col">Union Orientation</th>
-                <th scope="col">Safety</th>
-                <th scope="col">Teaching</th>
-                <th scope="col">Assisting Instructors</th>
-                <th scope="col">Meetings/Prep/Training</th>
-                <th scope="col">Grading</th>
-                <th scope="col">Admin</th>
-                <th scope="col">OHs/Piazza</th>
-                <th scope="col">Curriculum</th>
-                <th scope="col">Other</th>
-                <th scope="col">Invigilation</th>
-                <th scope="col">Vacation</th>
-                <th scope="col">Total Hours</th>
-                <th scope="col">Max Hours</th>
-*/
 
 /* Utility Functions */
 function createStrTimeRange(start, end){
