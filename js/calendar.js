@@ -14,7 +14,6 @@ TODO: Create tabs for "Event Calendar" "Individual TA Schedule" "Allocation of H
 
 var newTACalendar;
 var eventCalendar;
-var indivCalendar;
 var courses = [];
 
 // For populating the TA select menu
@@ -775,9 +774,9 @@ class Course{
     }
 
     generateIndividualCal(){
-        var indivCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "indivTACalendar");
-        indivCalendar.clearAll();
-        indivCalendar.generateEventRows(null);
+        this.indivCalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "indivTACalendar");
+        this.indivCalendar.clearAll();
+        this.indivCalendar.generateEventRows(null);
 
         let indivTASelect = document.getElementById("indivTAScheduleSelect")
         
@@ -871,7 +870,6 @@ class Course{
                 // When deleting the event, also unassign the event from all the currently assigned TAs
                 for (let j = 0; j < Object.keys(this.events[i].assigned).length; j++){
                     const ta = curCourse.findTA(this.events[i].assigned[j])
-                    console.log(ta);
 
                     if (ta !== null){
                         ta.unassignEvent(this.events[i])
@@ -1299,8 +1297,8 @@ class Calendar {
 
     // Fills the TD with the events that a particular TA is assigned to, given the TA's ID
     fillIndividualSchedule(taID){
-        indivCalendar.clearAll();
-        indivCalendar.generateEventRows();
+        this.clearAll();
+        this.generateEventRows();
 
         let ta = curCourse.findTA(taID);
         var indivCalEle = document.getElementById(this.id);
@@ -2127,8 +2125,8 @@ function stringifyBulkEvents(arr){
 Individual TA Schedule Viewer System
 */
 function showIndividualTASchedule(evt){
-    if (indivCalendar !== null || indivCalendar !== undefined){
-        indivCalendar.fillIndividualSchedule(evt.target.value);
+    if (curCourse.indivCalendar !== null || curCourse.indivCalendar !== undefined){
+        curCourse.indivCalendar.fillIndividualSchedule(evt.target.value);
     }
 
     return;
