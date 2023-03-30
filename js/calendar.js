@@ -1400,8 +1400,8 @@ function initializeCourse(){
         hideElement("selectTAInput");
         hideElement("taAccordion");
         hideElement("courseDeleteBtn");
-        hideElement("eventsDiv");
-        hideElement("indivScheduleDiv")
+        hideElement("courseNavBar");
+        hideElement("navTabContent")
         hideElement("bulkAddTAsDiv")
     }
     else if (courseSelect.selectedIndex >= 1){
@@ -1410,8 +1410,8 @@ function initializeCourse(){
         courseForm.removeEventListener("submit", createNewCourse);
         courseForm.addEventListener("submit", editCourse);
         showElement("courseDeleteBtn");
-        showElement("eventsDiv");
-        showElement("indivScheduleDiv")
+        showElement("courseNavBar");
+        showElement("navTabContent")
     }
 
     showElement("courseAccordion");
