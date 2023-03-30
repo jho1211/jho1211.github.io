@@ -9,7 +9,6 @@ TODO: Separate into admin and TA portal
     Admin portal can override their info
 
 TODO: Create tabs for "Event Calendar" "Individual TA Schedule" "Allocation of Hours"
-TODO: Add two fields for Events (Event Type and Event Length)
 */
 
 
@@ -28,6 +27,14 @@ class AllocHoursTable {
         this.table = document.getElementById("allocationHoursTable");
         this.tableArr = this.generateTotalTAHours();
         this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours"];
+
+        var btn = document.getElementById("allocExportCSVBtn")
+        var csv = this.exportAllocToCSV();
+        var blob = new Blob([csv], {"type": "text/csv;charset=utf-8;"})
+        var csvURL = window.URL.createObjectURL(blob);
+        btn.href = csvURL;
+        btn.download = "allocation_of_hours.csv";
+
 
         if (this.table !== null && this.table.innerHTML === ""){
             this.generateTHead();
@@ -122,7 +129,7 @@ class AllocHoursTable {
                 if (evt.type === "Lecture"){
                     obj["Assisting Instructors"] += hrs;
                 }
-                else if (evt.type === "Lab/Tutorial"){
+                else if (evt.type === "Lab" || evt.type === "Tutorial"){
                     obj["Teaching"] += hrs;
                 }
                 else if (evt.type === "Piazza" || evt.type === "Office Hours"){
@@ -152,8 +159,7 @@ class AllocHoursTable {
 
     // Use Papa.unparse to generate CSV file
     exportAllocToCSV(){
-        var arr = []
-        return arr;
+        return Papa.unparse(this.tableArr);
     }
 
     clearTable(){
@@ -751,7 +757,7 @@ class Course{
     }
 
     generateAllocTable(){
-        var allocTable = new AllocHoursTable();
+        this.allocTable = new AllocHoursTable();
 
         return;
     }
@@ -857,14 +863,15 @@ class Course{
         var arr = [];
 
         for (let i = 0; i < this.events.length; i++){
-            if (this.events[i].id != id){
+            if (this.events[i].id !== id){
                 arr.push(this.events[i]);
                 continue;
             }
             else{
                 // When deleting the event, also unassign the event from all the currently assigned TAs
-                for (let j = 0; j < Object.keys(this.events[j].assigned); i++){
-                    const ta = findTA(this.events[i].assigned[j])
+                for (let j = 0; j < Object.keys(this.events[i].assigned).length; j++){
+                    const ta = curCourse.findTA(this.events[i].assigned[j])
+                    console.log(ta);
 
                     if (ta !== null){
                         ta.unassignEvent(this.events[i])
@@ -2052,21 +2059,23 @@ function parseBulkEvents(arr){
     const valid_days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
     // Check if the header length matches
-    if (header.length == 7){
+    if (header.length == 9){
         for (let i = 0; i < data.length; i++){
             // skip any empty rows
-            if (data[i].length !== 7){
+            if (data[i].length !== 9){
                 continue;
             }
 
-            // Name, day, start, end, location, desc, needed, euuid
+            // Name, day, start, dur, location, desc, needed, euuid
             const name = data[i][0]
-            const day = data[i][1].charAt(0).toUpperCase() + data[i][1].slice(1).toLowerCase();
-            const start = strTimeToFloat(data[i][2])
-            const end = start + (parseInt(data[i][3]) / 60)
-            const loc = data[i][4]
-            const needed = parseInt(data[i][5])
-            const desc = data[i][6]
+            const type =data[i][1]
+            const day = data[i][2].charAt(0).toUpperCase() + data[i][2].slice(1).toLowerCase();
+            const start = strTimeToFloat(data[i][3])
+            const end = start + (parseInt(data[i][4]) / 60)
+            const numWeeks = parseInt(data[i][5])
+            const loc = data[i][6]
+            const needed = parseInt(data[i][7])
+            const desc = data[i][8]
 
             // Check that the data is valid before proceeding
             if (name === "" || !valid_days.includes(day) || start === null || isNaN(needed)){
@@ -2079,7 +2088,7 @@ function parseBulkEvents(arr){
                 return;
             }
 
-            events_arr.push({"name": name, "day": day, "start": start, "end": end, "loc": loc, "needed": needed, "desc": desc});
+            events_arr.push({"name": name, "type": type, "day": day, "start": start, "end": end, "numWeeks": numWeeks, "loc": loc, "needed": needed, "desc": desc});
         }
 
         let conf = confirm("The following events will be added:\n\n" + stringifyBulkEvents(events_arr) + "\nPress [OK] to confirm or [Cancel] if you would like to make changes. This action CANNOT be undone!")
@@ -2087,7 +2096,7 @@ function parseBulkEvents(arr){
         if (conf === true){
             for (let i = 0; i < events_arr.length; i++){
                 const curEvent = events_arr[i]
-                curCourse.addEvent(curEvent.name, curEvent.day, curEvent.start, curEvent.end, curEvent.loc, curEvent.needed, curEvent.desc);
+                curCourse.addEvent(curEvent.name, curEvent.day, curEvent.start, curEvent.end, curEvent.loc, curEvent.needed, curEvent.desc, curEvent.type, curEvent.numWeeks);
             }
 
             console.log("All events were added successfully!");
