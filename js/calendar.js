@@ -7,8 +7,6 @@ TODO: Add ical/google calendar export feature for TA independent cal viewer
 TODO: Separate into admin and TA portal
     TA portal will be for TAs to enter their info/availability
     Admin portal can override their info
-
-TODO: Create tabs for "Event Calendar" "Individual TA Schedule" "Allocation of Hours"
 */
 
 
@@ -133,6 +131,9 @@ class AllocHoursTable {
                 }
                 else if (evt.type === "Piazza" || evt.type === "Office Hours"){
                     obj["OHs/Piazza"] += hrs;
+                }
+                else if (evt.type === "Meeting"){
+                    obj["Meetings/Prep/Training"] += hrs;
                 }
                 else if (evt.type === "Curriculum Dev"){
                     obj["Curriculum Dev"] += hrs;
