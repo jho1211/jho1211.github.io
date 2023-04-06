@@ -537,7 +537,7 @@ class Interval{
             return;
         }
 
-        if (this.hasOverlap(i2) || this.isAdjacent(i2)){
+        if (this.hasSingleOverlap(i2) || this.isAdjacent(i2)){
             for (let i = 0; i < this.intervals.length; i++){
                 let s1 = this.intervals[i][0]
                 let e1 = this.intervals[i][1]
@@ -561,7 +561,7 @@ class Interval{
 
     // Checks if i1 overlaps with i2, assumes i2 is single interval
     // Assumes single overlap
-    hasOverlap(i2){
+    hasSingleOverlap(i2){
         const s2 = i2.interval[0]
         const e2 = i2.interval[1]
 
@@ -578,9 +578,9 @@ class Interval{
             let e1 = this.intervals[i][1]
 
             // check for left or right overlap
-            // s1 = 11, e2 = 11.5
-            // s2 = 10, e1 = 11
-            if ((s2 <= s1 && e2 > s1) || (s2 >= s1 && e2 >= e1 && s2 <= e1)){
+            // s1 = 10, e2 = 11
+            // s2 = 11, e1 = 11.5
+            if (((s2 <= s1 && e2 > s1) || (s2 >= s1 && e2 >= e1 && s2 <= e1)) && !this.isAdjacent(i2)){
                 console.log(`Found overlap with ${s1} - ${e1} and ${s2} - ${e2}.`);
                 return true;
             }
@@ -598,7 +598,7 @@ class Interval{
             let e1 = this.intervals[i][1]
 
             // either left adjacent or right adjacent
-            if ((s2 <= s1 && e2 == s1) || (s2 >= s1 && e2 >= e1 && s2 == e1)){
+            if ((s2 <= s1 && e2 === s1) || (s2 >= s1 && e2 >= e1 && s2 === e1)){
                 console.log(`Found adjacency with ${s1} - ${e1} and ${s2} - ${e2}.`);
                 return true;
             }
@@ -786,42 +786,72 @@ class Course{
             indivTASelect.addEventListener("change", (e) => showIndividualTASchedule(e));
         }
     }
-    
+    // {"courses": {"CPSC 213": ..., "CPSC 310": ...}}
     deleteCourseData(){
-        for (var i = 0; i < localStorage.length; i++){
-            const key = localStorage.key(i)
-            if (key == this.name){
-                localStorage.removeItem(key);
-                console.log(`Deleted ${this.name} from the system.`);
-                location.reload();
+        var newArr = [];
+        for (var i = 0; i < courses.length; i++){
+            if (courses[i] !== this.name){
+                newArr.push(courses[i]);
             }
         }
 
-        return false;
+        courses = newArr;
+
+        var dataObj = JSON.parse(localStorage.getItem("courses"));
+
+        if (dataObj !== null && dataObj.length > 0 && Object.keys(dataObj).includes(this.name)){
+            delete dataObj[this.name];
+        }
+
+        localStorage.setItem("courses", JSON.stringify(dataObj));
+
     }
 
+    // Look through the current courses in the course array and replace it with the new one
     overwriteCourseData(oldCourse){
         const newData = this.courseToJson();
+        var newArr = [];
 
-        for (var i = 0; i < localStorage.length; i++){
-            const key = localStorage.key(i)
-            if (key == oldCourse.name){
-                localStorage.removeItem(key);
-                localStorage.setItem(this.name, JSON.stringify(newData));
+        if (courses === null || courses === undefined || courses.length === 0){
+            return;
+        }
+
+        for (var i = 0; i < courses.length; i++){
+            const currentCourse = courses[i]
+            if (oldCourse.name !== currentCourse.name){
+                newArr.push(currentCourse);
             }
         }
+
+        newArr.push(newData);
+        courses = newArr;
+
+        var dataObj = JSON.parse(localStorage.getItem("courses"));
+
+        if (dataObj !== null && dataObj.length > 0 && Object.keys(dataObj).includes(oldCourse.name)){
+            delete dataObj[oldCourse.name];
+            dataObj[newData.name] = newData;
+        }
+
+        localStorage.setItem("courses", JSON.stringify(dataObj));
+
+        return;
     }
 
+    // TODO: Save it in the "courses" key
     saveCourseData(){
         if (typeof(Storage) == "undefined") {
             alert("Your web browser doesn't support web storage so data will not be saved.")
             return;
         }
 
-        const data = this.courseToJson();
-        console.log(data);
+        var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-        localStorage.setItem(this.name, JSON.stringify(data));
+        if (dataObj !== null && dataObj.length > 0 && !Object.keys(dataObj).includes(this.name)){
+            dataObj[this.name] = this.courseToJson();
+        }
+
+        localStorage.setItem("courses", JSON.stringify(dataObj));
 
         return;
     }
@@ -1091,7 +1121,7 @@ class TA {
         var ta_avail_day = this.avail[event.day];
         var ta_assigned_day = intervalize(curCourse.days, JSON.parse(JSON.stringify(this.assigned_avail)))[event.day] // create a copy of the interval
 
-        if (ta_avail_day.contains(e_interv) && !ta_assigned_day.hasOverlap(e_interv)){
+        if (ta_avail_day.contains(e_interv) && !ta_assigned_day.hasSingleOverlap(e_interv)){
             ta_assigned_day.union(e_interv)
 
             if (ta_assigned_day.checkMaxLen() <= this.consec){
@@ -1350,8 +1380,14 @@ function loadCourses(){
         return;
     }
 
-    for (var i = 0; i < localStorage.length; i++){
-        const data = JSON.parse(localStorage.getItem(localStorage.key(i)))
+    var courseStorage = JSON.parse(localStorage.getItem("courses"))
+
+    if (courseStorage === null || courseStorage.length === 0){
+        return;
+    }
+
+    for (var i = 0; i < Object.keys(courseStorage).length; i++){
+        const data = courseStorage[Object.keys(courseStorage)[i]]
         let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
         courses.push(course);
     }
@@ -2155,7 +2191,20 @@ Will also create a way to export the Allocation of Hours sheet
 Will need to override the events and TAs afterwards to save it
 
 */
-function autoSchedule(events, tas){
+function autoSchedule(){
+    var events = curCourse.events;
+    var tas = curCourse.tas;
+    var logger = [];
+
+    if (events === null || tas === null){
+        return;
+    }
+
+    // Add a confirm message to confirm the assignments
+    if (!confirm("Are you sure you want to automatically assign the events and TAs? This action CANNOT be undone!!!")){
+        return;
+    }
+
     // Sort events based on availability (least -> greatest)
     events.sort((e1, e2) => {
         return e1.getNumAvailableTAs() - e2.getNumAvailableTAs();
@@ -2172,16 +2221,17 @@ function autoSchedule(events, tas){
             return h2.totalHoursRemaining() - h1.totalHoursRemaining()
         })
 
-        // Iterate through TAs and find the TAs who are avialable and aren't already assigned
+        // Iterate through TAs and find the TAs who are available and aren't already assigned
         for (var j = 0; j < tas.length; j++){
-            if (numTAsNeededStill == 0){
+            if (numTAsNeededStill === 0){
                 break;
             }
 
             const curTA = tas[j];
+            console.log(curEvent, curTA);
 
             // TODO: Add a check to see if they are working overtime
-            if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent)){
+            if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent) && curTA.totalHoursRemaining() >= curEvent.getLength()){
                 curEvent.assignTA(curTA, availSlots.pop());
                 curTA.assignEvent(curEvent);
                 numTAsNeededStill--;
@@ -2190,20 +2240,26 @@ function autoSchedule(events, tas){
         }
 
         if (numTAsNeededStill > 0){
-            console.log(`Couldn't find enough TAs for ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}. There are ${numTAsNeededStill} TAs required still.`)
+            logger.push(`Couldn't find enough TAs for ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}. There are ${numTAsNeededStill} TAs required still.`)
         }
     }
 
-    console.log(events);
-    console.log(tas);
+    displayLog(logger);
+    console.log("Assigned the TAs and events successfully!");
+    return;
+}
 
-    // Add a confirm message to confirm the assignments
-    if (confirm("Are you sure you want to automatically assign the events and TAs? This action CANNOT be undone!!!")){
-        console.log("Assigned the TAs and events successfully!");
-    }
+function revertToManualSchedule(){
+    return;
 }
 
 /* Utility Functions */
+function displayLog(arr){
+    if (arr.length > 0){
+        alert(arr.join("\n"))
+    }
+}
+
 function createStrTimeRange(start, end){
     return floatToStrTime(start) + "-" + floatToStrTime(end);
 }

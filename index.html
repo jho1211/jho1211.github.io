@@ -258,9 +258,17 @@
             
             <div class="eventCalendarText mb-3">
                 <h1 class="text-white">Event Calendar</h1>
-                <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
-                    <img src="img/plus-circle.svg" width="26" height="26"> New Event
-                </button>
+                <div>
+                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event me-4" onclick="revertToManualSchedule()">
+                        <img src="img/arrow-counterclockwise.svg" width="26" height="26"> Revert to Manual Schedule
+                    </button>
+                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event me-4" onclick="autoSchedule()">
+                        <img src="img/android2.svg" width="26" height="26"> Auto Schedule TAs
+                    </button>
+                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
+                        <img src="img/plus-circle.svg" width="26" height="26"> New Event
+                    </button>
+                </div>
             </div>
             <div class="eventCalLegend">
                 <p>
