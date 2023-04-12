@@ -249,6 +249,7 @@
         <div class="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
           <button class="nav-link active" id="nav-event-tab" data-bs-toggle="tab" data-bs-target="#eventsDiv" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Event Calendar</button>
           <button class="nav-link" id="nav-schedule-tab" data-bs-toggle="tab" data-bs-target="#indivScheduleDiv" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">TA Schedules</button>
+          <button class="nav-link" id="nav-ots-tab" data-bs-toggle="tab" data-bs-target="#oneTimeScheduleDiv" type="button" role="tab" aria-controls="nav-ots" aria-selected="false">One-Time Scheduling</button>
           <button class="nav-link" id="nav-alloc-tab" data-bs-toggle="tab" data-bs-target="#allocationOfHoursDiv" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Allocation of Hours</button>
         </div>
     </nav>
@@ -317,6 +318,53 @@
             </table>
             <div class="col-3">
                 <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
+            </div>
+        </div>
+
+        <div class="container tab-pane fade" id="oneTimeScheduleDiv">
+            <div class="eventCalendarText row mb-3">
+                <div class="col-6">
+                    <h1 class="text-white">One-Time Scheduling</h1>
+                </div>
+            </div>
+            <div class="row mb-5">
+                <div class="col-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Event Day</span>
+                        <select class="form-select form-select-sm" id="otsDaySelect" onchange="oneTimeSchedule()">
+                            <option value="Mon">Monday</option>
+                            <option value="Tue">Tuesday</option>
+                            <option value="Wed">Wednesday</option>
+                            <option value="Thu">Thursday</option>
+                            <option value="Fri">Friday</option>
+                            <option value="Sat">Saturday</option>
+                            <option value="Sun">Sunday</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Event Time</span>
+                        <input type="time" class="form-control form-control-sm" aria-label="Start Time Input" id="otsStartTimeInput" onchange="oneTimeSchedule()">
+                    </div>
+                </div>
+                <div class="col-3">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Event Duration</span>
+                        <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="otsDurInput" min="1" onchange="oneTimeSchedule()">
+                        <span class="input-group-text">minutes</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <h3 class="text-white">Available TAs (no conflicts)</h3>
+                <ul class="text-white" id="availNoConflictUL">
+                </ul>
+            </div>
+            <div class="row">
+                <h3 class="text-muted">Available TAs (conflicts)</h3>
+                <ul class="text-muted" id="availConflictUL">
+                </ul>
             </div>
         </div>
 

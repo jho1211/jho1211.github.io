@@ -19,6 +19,71 @@ var curCourse;
 var curTASelected;
 var curEvent;
 
+/*
+One Time Scheduler Module
+User can input the day and time that they want their event to be scheduled and the duration (in mins)
+Site will return a list of TAs that are available and has no conflicts, and a list of TAs that are available but has a conflict (indicate event name that conflicts)
+*/
+
+class OneTimeScheduler {
+    constructor(){
+        return;
+    }
+
+    findAvailableNoConflictTAs(tas, day, start, end){
+        var availNoConflictArr = []
+
+        if (day !== null && start !== null && end !== null){
+            for (let i = 0; i < tas.length; i++){
+                var ta = tas[i]
+                var tempEvent = new CourseEvent("Temp Event", day, start, end, "", "", 1, -1, {}, "Other", 1)
+                console.log(tempEvent);
+    
+                if (ta.isAvailable(tempEvent)){
+                    availNoConflictArr.push(ta)
+                }
+            }
+        }
+
+        return availNoConflictArr;
+    }
+
+    findAvailableConflictTAs(tas, day, start, end){
+        var availConflictArr = []
+        const interv = new Interval(start, end);
+
+        if (day !== null && start !== null && end !== null){
+            for (let i = 0; i < tas.length; i++){
+                var ta = tas[i];
+    
+                if (ta.avail[day].contains(interv) && ta.assigned_avail[day].contains(interv)){
+                    availConflictArr.push(ta)
+                }
+            }
+        }
+
+        return availConflictArr;
+    }
+
+    generateULElements(tas){
+        const ul = document.createElement("UL");
+        if (tas.length === 0){
+            const li = document.createElement("LI");
+            li.innerHTML = "No TAs found"
+            ul.appendChild(li);
+        }
+        else{
+            for (var i = 0; i < tas.length; i++){
+                const li = document.createElement("LI");
+                li.innerHTML = `${tas[i].name} - ${curCourse.allocTable.getUnallocatedHours(tas[i].name)} hrs unallocated`
+                ul.appendChild(li)
+            }
+        }
+
+        return ul.innerHTML;
+    }
+}
+
 class AllocHoursTable {
     constructor(){
         this.table = document.getElementById("allocationHoursTable");
@@ -166,6 +231,19 @@ class AllocHoursTable {
         if (this.table !== null){
             this.table.innerHTML = "";
         }
+    }
+
+    // Assumes that the TA exists already
+    getUnallocatedHours(taName){
+        for (let i = 0; i < this.tableArr.length; i++){
+            const tr = this.tableArr[i];
+
+            if (tr["Name"] === taName){
+                return tr["Max Hours"] - tr["Total Hours"];
+            }
+        }
+
+        return -1;
     }
 }
 
@@ -402,7 +480,7 @@ class CourseEvent {
             // If TAs are already assigned, then set those TAs first
             for (var j = 0; j < avail_tas.length; j++){
                 var option = document.createElement("option");
-                option.text = avail_tas[j].name + ` (${avail_tas[j].totalHoursRemaining()} hrs available)`;
+                option.text = avail_tas[j].name + ` (${avail_tas[j].totalWeeklyHoursRemaining()} hrs available)`;
                 option.value = avail_tas[j].id;
                 select.add(option);
             }
@@ -727,6 +805,7 @@ class Course{
         showElement("bulkAddTAsDiv");
         this.generateIndividualCal();
         this.fillCourseForm();
+        this.initializeOTS();
         this.generateEvents();
         this.generateAllocTable();
     }
@@ -754,6 +833,10 @@ class Course{
         }
 
         return false;
+    }
+
+    initializeOTS(){
+        this.ots = new OneTimeScheduler();
     }
 
     generateAllocTable(){
@@ -828,9 +911,14 @@ class Course{
 
         var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-        if (dataObj !== null && dataObj.length > 0 && Object.keys(dataObj).includes(oldCourse.name)){
-            delete dataObj[oldCourse.name];
-            dataObj[newData.name] = newData;
+        if (dataObj === null){
+            return;
+        }
+
+        for (let i = 0; i < dataObj.length; i++){
+            if (dataObj[i].name === oldCourse.name){
+                dataObj[i] = newData;
+            }
         }
 
         localStorage.setItem("courses", JSON.stringify(dataObj));
@@ -838,7 +926,6 @@ class Course{
         return;
     }
 
-    // TODO: Save it in the "courses" key
     saveCourseData(){
         if (typeof(Storage) == "undefined") {
             alert("Your web browser doesn't support web storage so data will not be saved.")
@@ -847,12 +934,23 @@ class Course{
 
         var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-        if (dataObj !== null && dataObj.length > 0 && !Object.keys(dataObj).includes(this.name)){
-            dataObj[this.name] = this.courseToJson();
+        if (dataObj === null){
+            return;
+        }
+        
+        // If the course already exists, then we need to overwrite it
+        for (var i = 0; i < dataObj.length; i++){
+            if (dataObj[i].name === this.name){
+                dataObj[i] = this.courseToJson();
+                localStorage.setItem("courses", JSON.stringify(dataObj));
+                console.log("Overwrote the previous version of the course")
+                return;
+            }
         }
 
+        // Add the course to the array and save it in localStorage since it doesn't exist yet
+        dataObj.push(this.courseToJson())
         localStorage.setItem("courses", JSON.stringify(dataObj));
-
         return;
     }
 
@@ -993,6 +1091,8 @@ class Course{
         data["events"] = this.events;
         data["euuid"] = this.euuid;
         data["numTAs"] = this.numTAs;
+
+        console.log(data);
 
         return data;
     }
@@ -1174,7 +1274,7 @@ class TA {
     }
 
     // Returns the total amount of hrs assigned so far
-    totalHoursAssigned(){
+    totalWeeklyHoursAssigned(){
         var total = 0;
         for (let i = 0; i < this.assigned.length; i++){
             const event = curCourse.findEvent(this.assigned[i]);
@@ -1187,8 +1287,8 @@ class TA {
         return total;
     }
 
-    totalHoursRemaining(){
-        return (this.max_hrs / curCourse.clength) - this.totalHoursAssigned();
+    totalWeeklyHoursRemaining(){
+        return (this.max_hrs / curCourse.clength) - this.totalWeeklyHoursAssigned();
     }
 }
 
@@ -1388,6 +1488,7 @@ function loadCourses(){
 
     for (var i = 0; i < Object.keys(courseStorage).length; i++){
         const data = courseStorage[Object.keys(courseStorage)[i]]
+        console.log(data);
         let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
         courses.push(course);
     }
@@ -2218,7 +2319,7 @@ function autoSchedule(){
 
         // Sort TAs based on most hours still available (greatest -> least)
         tas.sort((h1, h2) => {
-            return h2.totalHoursRemaining() - h1.totalHoursRemaining()
+            return h2.totalWeeklyHoursRemaining() - h1.totalWeeklyHoursRemaining()
         })
 
         // Iterate through TAs and find the TAs who are available and aren't already assigned
@@ -2231,7 +2332,7 @@ function autoSchedule(){
             console.log(curEvent, curTA);
 
             // TODO: Add a check to see if they are working overtime
-            if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent) && curTA.totalHoursRemaining() >= curEvent.getLength()){
+            if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent) && curTA.totalWeeklyHoursRemaining() >= curEvent.getLength()){
                 curEvent.assignTA(curTA, availSlots.pop());
                 curTA.assignEvent(curEvent);
                 numTAsNeededStill--;
@@ -2251,6 +2352,33 @@ function autoSchedule(){
 
 function revertToManualSchedule(){
     return;
+}
+
+/*
+One Time Scheduling
+*/
+function oneTimeSchedule(){
+    const day = document.getElementById("otsDaySelect").value;
+    const start = strTimeToFloat(document.getElementById("otsStartTimeInput").value);
+    const end = Math.round(start + parseInt(document.getElementById("otsDurInput").value) / 60);
+
+    if (day === null || start === null || end === null){
+        return;
+    }
+
+    if (curCourse !== null || curCourse !== undefined){
+        const availTAs = curCourse.ots.findAvailableNoConflictTAs(curCourse.tas, day, start, end);
+        const availConflictTAs = curCourse.ots.findAvailableConflictTAs(curCourse.tas, day, start, end);        
+
+
+        var ancul = document.getElementById("availNoConflictUL");
+        var acul = document.getElementById("availConflictUL");
+
+        ancul.innerHTML = curCourse.ots.generateULElements(availTAs);
+        acul.innerHTML = curCourse.ots.generateULElements(availConflictTAs);
+
+        return;
+    }
 }
 
 /* Utility Functions */
@@ -2294,6 +2422,7 @@ function clearSelect(id, offset){
     return;
 }
 
+// Converts time in 24hr form to a float.
 function strTimeToFloat(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
     const timeSplit = s.split(":")
@@ -2303,15 +2432,16 @@ function strTimeToFloat(s){
         return null;
     }
 
-    if (t.mins < 15){
-        return t.hrs
-    }
-    else if (t.mins > 45){
-        return t.hrs + 1
-    }
-    else{
-        return t.hrs + 0.5
-    }
+    return t.hrs + (t.mins / 60);
+    // if (t.mins < 15){
+    //     return t.hrs
+    // }
+    // else if (t.mins > 45){
+    //     return t.hrs + 1
+    // }
+    // else{
+    //     return t.hrs + 0.5
+    // }
 }
 
 function floatToStrTime(x){
