@@ -935,6 +935,7 @@ class Course{
         var dataObj = JSON.parse(localStorage.getItem("courses"));
 
         if (dataObj === null){
+            localStorage.setItem("courses", JSON.stringify([this.courseToJson()]));
             return;
         }
         
