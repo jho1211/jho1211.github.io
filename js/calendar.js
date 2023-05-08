@@ -318,7 +318,7 @@ class CourseEvent {
     }
 
     editEvent(name, day, start, end, loc, needed, desc, assigned, etype, numWeeks){
-        const conf = "Are you sure you want to overwrite the current event?"
+        const conf = confirm("Are you sure you want to overwrite the current event?")
 
         if (conf === true){
             this.name = name;
@@ -327,8 +327,32 @@ class CourseEvent {
             this.end = end;
             this.loc = loc;
             this.description = desc;
-            this.tas_needed = needed;
-            this.assigned = assigned;
+
+            if (needed !== this.tas_needed){
+                // need to unassign all TAs from event
+                // need to unassign event from all TAs previously assigned
+                this.tas_needed = needed;
+
+                for (var i = 0; i < Object.keys(this.assigned).length; i++){
+                    if (this.assigned[i] !== ""){
+                        let curTA = curCourse.findTA(this.assigned[i])
+                        this.unassignTA(curTA, i);
+                        curTA.unassignEvent(this);
+                    }
+                }
+
+                this.assigned = {}
+
+                for (let j = 0; j < needed; j++){
+                    this.assigned[j] = "";
+                }
+            }
+            else{
+                this.tas_needed = needed;
+                this.assigned = assigned;
+            }
+
+            
             this.type = etype;
             this.numWeeks = numWeeks;
 
@@ -437,7 +461,7 @@ class CourseEvent {
         const cal = document.getElementById("modalEvents");
         cal.appendChild(modal);
 
-        const sels = cal.querySelectorAll(`[id*='${this.id}-SelectInput']`).forEach((sel) => { this.selectAssignedTA(sel) })
+        const sels = cal.querySelectorAll(`[id*='event-${this.id}-SelectInput']`).forEach((sel) => { this.selectAssignedTA(sel) })
 
         modal.querySelectorAll(".ta-modal-select").forEach((sel) => {
             sel.addEventListener("change", (evt) => { assignTAToEvent(evt) })
@@ -1812,7 +1836,7 @@ function editTA(){
     nameEle.classList.add("is-valid");
 
     const availStr = availJsonToString(avail);
-    const conf = confirm("Are yo sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
+    const conf = confirm("Are you sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
 
     if (conf === true){
         var newTA = new TA(name, hours, consec, avail, curTASelected.assigned, curTASelected.assigned_avail, curTASelected.id, curCourse.days, exp);
@@ -2005,9 +2029,7 @@ function openEditEvent(id){
 }
 
 function editEvent(evt){
-    const conf = confirm("Are you sure you want to overwrite this event?");
-
-    if (conf && (curCourse !== null || curCourse !== undefined)){
+    if (curCourse !== null || curCourse !== undefined){
         var form = document.getElementById("newEventForm");
 
         const ename = form.elements[0].value;
@@ -2127,7 +2149,7 @@ function parseAvailability(row, arr, days){
         avail_json[days[i]] = new Interval(null, null);
         // split based on comma and then based on dash to get the start and end time for each range
         // then convert it to interval and store it in a dict
-        if (arr[i] !== ""){
+        if (arr[i] !== "" && arr[i] !== "Not Available"){
             const day_avail = arr[i].split(",");
 
             for (var j = 0; j < day_avail.length; j++){
@@ -2508,6 +2530,7 @@ function clearSelect(id, offset){
 // Converts time in 24hr form to a float.
 function strTimeToFloat(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
+    console.log(s);
     const timeSplit = s.split(":")
     const t = {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
 
