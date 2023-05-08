@@ -375,8 +375,8 @@ class CourseEvent {
     getAvailSlots(){
         var availSlots = []
 
-        for (let i = 0; i < Object.keys(this.assigned).length; i++){
-            if (!this.isSlotTaken(this.assigned[i])){
+        for (var i = 0; i < Object.keys(this.assigned).length; i++){
+            if (this.assigned[i] !== undefined && !this.isSlotTaken(i)){
                 availSlots.push(i);
             }
         }
@@ -384,6 +384,7 @@ class CourseEvent {
         return availSlots;
     }
 
+    // Returns True if slot is taken, False otherwise
     isSlotTaken(slot){
         return this.assigned[slot] !== ""
     }
@@ -2316,7 +2317,6 @@ function autoSchedule(){
     for (var i = 0; i < events.length; i++){
         const curEvent = events[i]
         var availSlots = curEvent.getAvailSlots();
-        var numTAsNeededStill = curEvent.getNumTAsNeededStill();
 
         // Sort TAs based on most hours still available (greatest -> least)
         tas.sort((h1, h2) => {
@@ -2325,7 +2325,8 @@ function autoSchedule(){
 
         // Iterate through TAs and find the TAs who are available and aren't already assigned
         for (var j = 0; j < tas.length; j++){
-            if (numTAsNeededStill === 0){
+            console.log(availSlots.length);
+            if (availSlots.length === 0){
                 break;
             }
 
@@ -2336,22 +2337,58 @@ function autoSchedule(){
             if (curTA.isAvailable(curEvent) && !curTA.isAssigned(curEvent) && curTA.totalWeeklyHoursRemaining() >= curEvent.getLength()){
                 curEvent.assignTA(curTA, availSlots.pop());
                 curTA.assignEvent(curEvent);
-                numTAsNeededStill--;
                 console.log(`Assigned ${curTA.name} to ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}`)
             }
         }
 
-        if (numTAsNeededStill > 0){
-            logger.push(`Couldn't find enough TAs for ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}. There are ${numTAsNeededStill} TAs required still.`)
+        // If not enough TAs assigned, let the user know
+        if (availSlots.length > 0){
+            logger.push(`Couldn't find enough TAs for ${curEvent.name} on ${curEvent.day} from ${floatToStrTime(curEvent.start)} - ${floatToStrTime(curEvent.end)}. There are ${availSlots.length} TAs required still.`)
         }
     }
 
     displayLog(logger);
     console.log("Assigned the TAs and events successfully!");
+    curCourse.saveCourseData();
     return;
 }
 
-function revertToManualSchedule(){
+// Unassigns all TAs from the events
+function clearAssignments(){
+
+    if (!confirm("Are you sure you want to remove all TAs from their assigned events? This action CANNOT be undone!")){
+        return;
+    }
+
+    var events = curCourse.events;
+    var tas = curCourse.tas;
+
+    // Iterate through each event and find who is assigned. Unassign them from the event
+    for (var i = 0; i < events.length; i++){
+        var curEvent = events[i]
+        for (var j = 0; j < Object.keys(curEvent.assigned).length; j++){
+            let curTA = curCourse.findTA(curEvent.assigned[j])
+
+            if (curTA !== null){
+                curEvent.unassignTA(curTA, j);
+            }
+        }
+    }
+
+    // Iterate through all TAs and unassign all events from the TA.
+    for (var k = 0; k < tas.length; k++){
+        var curTA = tas[k]
+
+        for (var l = 0; l < curTA.assigned.length; l++){
+            console.log(curTA.assigned[l])
+            var event = curCourse.findEvent(curTA.assigned[l])
+            console.log(event)
+            curTA.unassignEvent(event);
+        }
+    }
+
+    curCourse.saveCourseData();
+
     return;
 }
 
