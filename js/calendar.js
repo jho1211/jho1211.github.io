@@ -2072,7 +2072,7 @@ function parseBulkTAs(arr){
     var tas_arr = [];
     const days_needed = curCourse.days;
 
-    if (header.length !== days_needed.length + 3){
+    if (header.length !== days_needed.length + 4){
         alert("Failed to parse uploaded CSV file, please ensure that you have the correct headers for the CSV file.");
         return;
     }
