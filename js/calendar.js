@@ -2419,6 +2419,50 @@ function oneTimeSchedule(){
     }
 }
 
+/* 
+Export All Data 
+Takes all localSession storage data and exports it to text file that the user can download/save
+*/
+
+function importAllData(){
+    const dataFile = document.getElementById("importDataFile").files[0]
+    var fr = new FileReader();
+
+    if (dataFile === undefined || dataFile === null){
+        console.log("Error reading text file.");
+        return;
+    }
+
+    fr.onload=function(){
+        console.log(fr.result);
+        const conf = confirm("Are you sure you want to overwrite the current data? This action CANNOT be undone.");
+
+        if (conf){
+            localStorage.setItem("courses", fr.result);
+            return;
+        }
+    }
+
+    const dataText = fr.readAsText(document.getElementById("importDataFile").files[0]);
+}
+
+function exportAllData(){
+    const data = localStorage.getItem("courses");
+
+    if (data === null){
+        console.log("No data could be found.")
+        return;
+    }
+
+    var btn = document.getElementById("exportDataBtn")
+    var blob = new Blob([data], {"type": "text/plain"})
+    var textURL = window.URL.createObjectURL(blob);
+    btn.href = textURL;
+    btn.download = "scheduler_data.txt";
+
+    console.log(data);
+}
+
 /* Utility Functions */
 function displayLog(arr){
     if (arr.length > 0){
