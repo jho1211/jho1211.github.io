@@ -975,7 +975,7 @@ class Course{
         // Set the start and end hour
         document.getElementById("startHour").value = floatToStrTime(this.start_t);
         document.getElementById("endHour").value = floatToStrTime(this.end_t);
-        document.getElementById("courseLengthInput").value = this.cLength;
+        document.getElementById("courseLengthInput").value = this.clength;
     }
 
     addEvent(ename, eday, estart, end, eloc, needed, edesc, etype, eNumWeeks){
