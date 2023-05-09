@@ -1,12 +1,14 @@
 /*
 TODO: Replace the reloading of webpage when overwriting course/TA data.
 TODO: Refresh the event calendar when a TA is added/modified/assigned
-TODO: For scheduling, allow there to be preset assignments and then build the schedule around it
 TODO: Change alerts to dismissible alerts
 TODO: Add ical/google calendar export feature for TA independent cal viewer
 TODO: Separate into admin and TA portal
     TA portal will be for TAs to enter their info/availability
     Admin portal can override their info
+TODO: Add persistent server-side storage
+TODO: Add clear events button
+TODO: Add clear TAs button
 */
 
 
@@ -411,6 +413,16 @@ class CourseEvent {
     // Returns True if slot is taken, False otherwise
     isSlotTaken(slot){
         return this.assigned[slot] !== ""
+    }
+
+    findTASlot(ta){
+        for (let i = 0; i < Object.keys(this.assigned).length; i++){
+            if (this.isSlotTaken(i) && this.assigned[i] === ta.id){
+                return i;
+            }
+        }
+        
+        return null;
     }
 
     // Creates new modal or updates existing modal
@@ -896,23 +908,24 @@ class Course{
     }
     // {"courses": {"CPSC 213": ..., "CPSC 310": ...}}
     deleteCourseData(){
-        var newArr = [];
-        for (var i = 0; i < courses.length; i++){
-            if (courses[i] !== this.name){
-                newArr.push(courses[i]);
-            }
-        }
-
-        courses = newArr;
-
         var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-        if (dataObj !== null && dataObj.length > 0 && Object.keys(dataObj).includes(this.name)){
-            delete dataObj[this.name];
+        if (dataObj !== null){
+            for (let j = 0; j < dataObj.length; j++){
+                if (dataObj[j].name === this.name){
+                    delete dataObj[j];
+
+                    if (dataObj.length > 0){
+                        localStorage.setItem("courses", JSON.stringify(dataObj));
+                    }
+                    else {
+                        localStorage.removeItem("courses");
+                    }
+                    
+                    location.reload();
+                }
+            }
         }
-
-        localStorage.setItem("courses", JSON.stringify(dataObj));
-
     }
 
     // Look through the current courses in the course array and replace it with the new one
@@ -1067,20 +1080,29 @@ class Course{
         return false;
     }
 
+    // Remove TA from the list of TAs and unassign them from the events they are currently assigned to
     deleteTA(ta){
         var new_arr = []
 
         for (let i = 0; i < this.tas.length; i++){
-            if (this.tas[i].name !== ta.name){
-                new_arr.push(this.tas[i]);
+            var curTA = this.tas[i]
+            if (curTA.name !== ta.name){
+                new_arr.push(curTA);
+            }
+            else {
+                for (let j = 0; j < curTA.assigned.length; j++){
+                    curEvent = curCourse.findEvent(curTA.assigned[j])
+
+                    if (curEvent !== null && curEvent.findTASlot(curTA) !== null){
+                        curEvent.unassignTA(curTA, curEvent.findTASlot(curTA));
+                    }
+                }
             }
         }
 
         this.tas = new_arr;
         this.saveCourseData();
         location.reload();
-
-        return new_arr;
     }
 
     populateTASelect(id, offset){
@@ -1679,9 +1701,11 @@ function editCourse(){
 
 function deleteCourse(){
     const conf = confirm(`Are you sure you want to delete ${curCourse.name}? This action CANNOT be undone!`);
+    console.log(conf)
 
     if (conf === true){
         curCourse.deleteCourseData();
+        console.log("Deleted course");
     }
     else{
         return false;
