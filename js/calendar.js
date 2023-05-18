@@ -913,7 +913,7 @@ class Course{
         if (dataObj !== null){
             for (let j = 0; j < dataObj.length; j++){
                 if (dataObj[j].name === this.name){
-                    delete dataObj[j];
+                    dataObj.splice(j, 1)
 
                     if (dataObj.length > 0){
                         localStorage.setItem("courses", JSON.stringify(dataObj));
@@ -2486,6 +2486,7 @@ function importAllData(){
 
         if (conf){
             localStorage.setItem("courses", fr.result);
+            location.reload();
             return;
         }
     }
