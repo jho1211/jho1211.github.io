@@ -249,7 +249,7 @@
         <div class="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
           <button class="nav-link active" id="nav-event-tab" data-bs-toggle="tab" data-bs-target="#eventsDiv" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Event Calendar</button>
           <button class="nav-link" id="nav-schedule-tab" data-bs-toggle="tab" data-bs-target="#indivScheduleDiv" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">TA Schedules</button>
-          <button class="nav-link" id="nav-ots-tab" data-bs-toggle="tab" data-bs-target="#oneTimeScheduleDiv" type="button" role="tab" aria-controls="nav-ots" aria-selected="false">One-Time Scheduling</button>
+          <button class="nav-link" id="nav-ots-tab" data-bs-toggle="tab" data-bs-target="#oneTimeScheduleDiv" type="button" role="tab" aria-controls="nav-ots" aria-selected="false">TA Availability Viewer</button>
           <button class="nav-link" id="nav-alloc-tab" data-bs-toggle="tab" data-bs-target="#allocationOfHoursDiv" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Allocation of Hours</button>
         </div>
     </nav>
@@ -324,10 +324,32 @@
         <div class="container tab-pane fade" id="oneTimeScheduleDiv">
             <div class="eventCalendarText row mb-3">
                 <div class="col-6">
-                    <h1 class="text-white">One-Time Scheduling</h1>
+                    <h1 class="text-white">TA Availability Viewer</h1>
                 </div>
             </div>
-            <div class="row mb-5">
+            <div class="mb-5">
+                <div class="row mb-5">
+                    <h3 class="text-primary">Please select times for a single day and the times must be consecutive (e.g. 10:00-12:00) to view the available TAs.</h2>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm text-white table-bordered" style="table-layout: fixed" id="availTACalendar">
+                        </table>
+                    </div>
+                    <div class="col">
+                        <div class="row">
+                            <h3 class="text-white">Available TAs (no conflicts)</h3>
+                            <ul class="text-white" id="availNoConflictUL">
+                            </ul>
+                        </div>
+                        <div class="row">
+                            <h3 class="text-muted">Available TAs (conflicts)</h3>
+                            <ul class="text-muted" id="availConflictUL">
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <!--
                 <div class="col-3">
                     <div class="input-group input-group-sm">
                         <span class="input-group-text">Event Day</span>
@@ -366,6 +388,7 @@
                 <ul class="text-muted" id="availConflictUL">
                 </ul>
             </div>
+            -->
         </div>
 
         <div id="modalEvents">
