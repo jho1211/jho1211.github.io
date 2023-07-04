@@ -10,8 +10,8 @@ TODO: Add persistent server-side storage
 TODO: Add clear events button
 TODO: Add clear TAs button
 
-
-TODO: Fix calendar duplicating for TA availability viewer when changing to another course
+TODO: Add events where all TAs are automatically scheduled regardless of availability
+TODO: Close the course accordion when you start editing TAs
 */
 
 
