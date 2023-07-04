@@ -9,6 +9,9 @@ TODO: Separate into admin and TA portal
 TODO: Add persistent server-side storage
 TODO: Add clear events button
 TODO: Add clear TAs button
+
+
+TODO: Fix calendar duplicating for TA availability viewer when changing to another course
 */
 
 
@@ -151,7 +154,7 @@ class AllocHoursTable {
     constructor(){
         this.table = document.getElementById("allocationHoursTable");
         this.tableArr = this.generateTotalTAHours();
-        this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours"];
+        this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours", "Utilization %"];
 
         var btn = document.getElementById("allocExportCSVBtn")
         var csv = this.exportAllocToCSV();
@@ -196,6 +199,7 @@ class AllocHoursTable {
             <th scope="col">Vacation</th>
             <th scope="col">Total Hours</th>
             <th scope="col">Max Hours</th>
+            <th scope="col">Utilization %</th>
             </thead>`
 
             return true;
@@ -278,6 +282,7 @@ class AllocHoursTable {
 
             obj["Other"] = Math.round(obj["Other"]);
             obj["Total Hours"] = Math.round(obj["Total Hours"]);
+            obj["Utilization %"] = Math.round(obj["Total Hours"] / obj["Max Hours"] * 100)
 
             arr.push(obj);
         }
@@ -937,6 +942,7 @@ class Course{
         this.ots = new OneTimeScheduler("availTACalendar");
         var availTACalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "availTACalendar")
 
+        availTACalendar.clearAll();
         availTACalendar.generateAvailRows();
     }
 
