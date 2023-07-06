@@ -156,7 +156,7 @@
                             <div class="accordion-body">
                                 <div class="row align-items-center">
                                     <div class="col">
-                                        <button class="btn btn-primary btn-events float-end">
+                                        <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#bulkEventModal">
                                             Bulk Events Upload (Recommended)
                                         </button>
                                     </div>
@@ -164,7 +164,7 @@
                                         <h3>OR</h1>
                                     </div>
                                     <div class="col">
-                                        <button class="btn btn-secondary btn-events">
+                                        <button class="btn btn-secondary btn-events" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
                                             Manually Add Events
                                         </button>
                                     </div>
@@ -201,6 +201,110 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bulkEventModal" tabindex="-1" aria-labelledby="bulkEventModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Bulk Events Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The uploaded file must be in CSV format wtih the following columns:<br><br>
+                    Event name, Event type, Event day (DDD), Start time (24 hour clock), Duration (min), Num weeks, Location, Number of TAs required, Description (optional)
+                </p>
+                <a href="example/testUploadEvents.csv">Download Example</a>
+                <input type="file" class="form-control mt-3" id="bulkAddEventsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readBulkEvents()">Confirm</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    <div class="modal fade" id="newEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="newEventForm" onsubmit="return false;">
+                    <div class="modal-header">
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <span class="input-group-text"><b>Event Name</b></span>
+                                    <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Type</span>
+                            <select class="form-select form-select-sm" id="newEventTypeSelect" required>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Tutorial">Tutorial</option>
+                                <option value="Office Hours">Office Hours</option>
+                                <option value="Piazza">Piazza</option>
+                                <option value="Lecture">Meeting</option>
+                                <option value="Curriciulum Dev">Development</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Day</span>
+                            <select class="form-select form-select-sm" id="newEventDaySelect" required>
+                                <option value="Mon">Monday</option>
+                                <option value="Tue">Tuesday</option>
+                                <option value="Wed">Wednesday</option>
+                                <option value="Thu">Thursday</option>
+                                <option value="Fri">Friday</option>
+                                <option value="Sat">Saturday</option>
+                                <option value="Sun">Sunday</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Start Time</span>
+                            <input type="time" class="form-control form-control-sm" aria-label="Start Time Input" id="newEventStartTimeInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Duration</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">minutes</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Length</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of weeks input" id="newEventLengthInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">weeks</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Location</span>
+                            <input type="text" class="form-control form-control-sm" aria-label="Location Input" id="newEventLocInput">
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">TAs Required</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of TAs Input" id="newEventTARequiredInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">TAs</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Description</span>
+                            <textarea class="form-control" id="newEventDescriptionInput" row="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <div>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
     </div>

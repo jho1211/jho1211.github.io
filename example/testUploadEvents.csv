@@ -1,0 +1,17 @@
+Event Name 	Event Type	Event Day (DDD)	Start Time (24hr time)	Duration (mins)	Num Weeks	Location	TAs Needed	Description
+Lecture 911 Tue	Lecture	Tue	17:00	60	6	FSC 1005	2	
+Lecture 911 Thu	Lecture	Thu	17:00	60	6	FSC 1005	2	
+Lecture 912 Wed	Lecture	Wed	17:00	60	6	DMP 110	2	
+Lecture 912 Fri	Lecture	Fri	17:00	60	6	DMP 110	2	
+T1B Tue	Tutorial	Tue	10:00	60	6	DMP 301	1	
+T1B Thu	Tutorial	Thu	10:00	60	6	DMP 301	1	
+T1C Tue	Tutorial	Tue	11:00	60	6	DMP 301	2	
+T1C Thu	Tutorial	Thu	11:00	60	6	DMP 301	2	
+T1D Tue	Tutorial	Tue	12:00	60	6	DMP 301	2	
+T1D Thu	Tutorial	Thu	12:00	60	6	DMP 301	2	
+T1F Wed	Tutorial	Wed	10:00	60	6	DMP 301	1	
+T1F Fri	Tutorial	Fri	10:00	60	6	DMP 301	1	
+T1G Wed	Tutorial	Wed	11:00	60	6	DMP 301	1	
+T1G Fri	Tutorial	Fri	11:00	60	6	DMP 301	1	
+T1H Wed	Tutorial	Wed	12:00	60	6	DMP 301	2	
+T1H Fri	Tutorial	Fri	12:00	60	6	DMP 301	2	
