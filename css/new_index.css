@@ -53,8 +53,8 @@ button.availEvent {
 }
 
 .eventCalLegend {
-    background-color: rgba(255, 255, 255, 0.4);
-    color: white;
+    background-color: gray;
+    color: black;
     border-radius: 5px;
 }
 
