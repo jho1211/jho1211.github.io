@@ -72,23 +72,6 @@ button.img-btn{
     color: black;
 }
 
-button.riley-submit-btn{
-    display: inline-flex;
-    height: 35px;
-    padding: 8px 12px;
-    justify-content: center;
-    align-items: center;
-    flex-shrink: 0;
-    background: var(--ubc-secondary, #335976);
-
-    color: var(--ubc-white, #FFF);
-    font-size: 16px;
-    font-family: "Ubuntu", sans-serif;
-    font-style: normal;
-    font-weight: 500;
-    line-height: normal;
-}
-
 .courseList{
     background-color: #DEE2E6;
     padding: 0%;
