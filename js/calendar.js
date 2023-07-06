@@ -9,6 +9,9 @@ TODO: Separate into admin and TA portal
 TODO: Add persistent server-side storage
 TODO: Add clear events button
 TODO: Add clear TAs button
+
+TODO: Add events where all TAs are automatically scheduled regardless of availability
+TODO: Close the course accordion when you start editing TAs
 */
 
 
@@ -23,21 +26,78 @@ var curEvent;
 
 /*
 One Time Scheduler Module
-User can input the day and time that they want their event to be scheduled and the duration (in mins)
-Site will return a list of TAs that are available and has no conflicts, and a list of TAs that are available but has a conflict (indicate event name that conflicts)
+
+User can hover over the calendar elements and select the day and times that they want and view which TAs are available (with or without conflict)
 */
 
 class OneTimeScheduler {
-    constructor(){
+    constructor(id){
+        this.id = id;
         return;
     }
 
-    findAvailableNoConflictTAs(tas, day, start, end){
+    parseAvailFromCalendar(){
+        var cells = document.getElementById(this.id).querySelectorAll(".avail");
+        var avail_json = {}
+        let days = []
+        avail_json["interv"] = new Interval(null, null);
+
+        var ancul = document.getElementById("availNoConflictUL");
+        var acul = document.getElementById("availConflictUL");
+    
+        // Determine what the start and end time is based on the cells that have been highlighted in green
+        for (var i = 0; i < cells.length; i++){
+            let id = cells[i].id;
+            let day = id.slice(0, 3);
+
+            // Keep track of what days have been selected (only one day should be selected)
+            if (!days.includes(day)){
+                days.push(day);
+            }
+
+            let start = strTimeToFloat(id.slice(3, ));
+            avail_json["interv"].union(new Interval(start, start + curCourse.interv));
+        }
+
+        // If there is only one day selected and a consecutive time is selected, then proceed
+        if (days.length === 1 && avail_json["interv"].intervals.length === 1){
+            this.selectedDay = days[0]
+            this.selectedStart = avail_json["interv"].intervals[0][0]
+            this.selectedEnd = avail_json["interv"].intervals[0][1]
+
+            console.log(avail_json["interv"])
+            console.log(this.selectedDay, this.selectedStart, this.selectedEnd);
+
+            let availNoConflictTAs = this.findAvailableNoConflictTAs();
+            let availConflictTAs = this.findAvailableConflictTAs();
+
+            ancul.innerHTML = this.generateULElements(availNoConflictTAs);
+            acul.innerHTML = this.generateULElements(availConflictTAs);
+        }
+        else if (days.length === 0) {
+            ancul.innerHTML = "No times have been selected.";
+            acul.innerHTML = "";
+            return;
+        }
+        else if (days.length > 1){
+            ancul.innerHTML = "Please select only one day.";
+            acul.innerHTML = "";
+        }
+        else if (avail_json["interv"].intervals.length > 1){
+            ancul.innerHTML = "Please select a consecutive stretch of time.";
+            acul.innerHTML = ""
+        }
+    }
+
+    findAvailableNoConflictTAs(){
         var availNoConflictArr = []
+        let day = this.selectedDay;
+        let start = this.selectedStart;
+        let end = this.selectedEnd;
 
         if (day !== null && start !== null && end !== null){
-            for (let i = 0; i < tas.length; i++){
-                var ta = tas[i]
+            for (let i = 0; i < curCourse.tas.length; i++){
+                var ta = curCourse.tas[i]
                 var tempEvent = new CourseEvent("Temp Event", day, start, end, "", "", 1, -1, {}, "Other", 1)
                 console.log(tempEvent);
     
@@ -50,13 +110,17 @@ class OneTimeScheduler {
         return availNoConflictArr;
     }
 
-    findAvailableConflictTAs(tas, day, start, end){
+    findAvailableConflictTAs(){
         var availConflictArr = []
+        let day = this.selectedDay;
+        let start = this.selectedStart;
+        let end = this.selectedEnd;
+
         const interv = new Interval(start, end);
 
         if (day !== null && start !== null && end !== null){
-            for (let i = 0; i < tas.length; i++){
-                var ta = tas[i];
+            for (let i = 0; i < curCourse.tas.length; i++){
+                var ta = curCourse.tas[i];
     
                 if (ta.avail[day].contains(interv) && ta.assigned_avail[day].contains(interv)){
                     availConflictArr.push(ta)
@@ -90,7 +154,7 @@ class AllocHoursTable {
     constructor(){
         this.table = document.getElementById("allocationHoursTable");
         this.tableArr = this.generateTotalTAHours();
-        this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours"];
+        this.headers = ["Name", "Union Orientation", "Safety", "Teaching", "Assisting Instructors", "Meetings/Prep/Training", "Grading", "Admin", "OHs/Piazza", "Curriculum Dev", "Other", "Invigilation", "Vacation", "Total Hours", "Max Hours", "Utilization %"];
 
         var btn = document.getElementById("allocExportCSVBtn")
         var csv = this.exportAllocToCSV();
@@ -135,6 +199,7 @@ class AllocHoursTable {
             <th scope="col">Vacation</th>
             <th scope="col">Total Hours</th>
             <th scope="col">Max Hours</th>
+            <th scope="col">Utilization %</th>
             </thead>`
 
             return true;
@@ -217,6 +282,7 @@ class AllocHoursTable {
 
             obj["Other"] = Math.round(obj["Other"]);
             obj["Total Hours"] = Math.round(obj["Total Hours"]);
+            obj["Utilization %"] = Math.round(obj["Total Hours"] / obj["Max Hours"] * 100)
 
             arr.push(obj);
         }
@@ -873,7 +939,11 @@ class Course{
     }
 
     initializeOTS(){
-        this.ots = new OneTimeScheduler();
+        this.ots = new OneTimeScheduler("availTACalendar");
+        var availTACalendar = new Calendar(this.days, this.start_t, this.end_t, this.interv, "availTACalendar")
+
+        availTACalendar.clearAll();
+        availTACalendar.generateAvailRows();
     }
 
     generateAllocTable(){
@@ -1393,6 +1463,39 @@ class Calendar {
         }
     }
 
+    generateAvailRows(){
+        var table = document.getElementById(this.id);
+        // Generate the table header with the days
+        var header = table.createTHead();
+        header.className += "table-primary border-dark"
+        var headerRow = header.insertRow(0)
+        headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
+        
+        for (let i = 0; i < this.days.length; i++){
+            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i] + "</th>";
+        }
+
+        // Generate the table rows with each time
+        var tableBody = table.createTBody();
+        tableBody.className += "table-secondary border-dark";
+        tableBody.addEventListener("click", (ele) => toggleAvailViewerCell(ele));
+
+        for (let i = 0; i < this.times.length; i++){
+            
+            var newRow = tableBody.insertRow();
+            // Add the XX:XX cell
+            var strTime = floatToStrTime(this.times[i])
+            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
+
+            // Add an empty cell for the rest of the cols for this ros
+            for (let j = 0; j < this.days.length; j++){
+                var newCell = newRow.insertCell();
+                newCell.id = this.days[j] + strTime;
+                newCell.classList.add("calCell");
+            }
+        }
+    }
+
     generateEventRows(){
         var table = document.getElementById(this.id);
         // Generate the table header with the days
@@ -1545,7 +1648,6 @@ function loadCourses(){
     populateCourseSelect();
 }
 
-// TODO: Change this to read/write to the Microsoft Azure NOSQL DB
 function loadCourseData(cname){
     var course;
 
@@ -1925,6 +2027,24 @@ function toggleAvailCell(e){
         else{
             target.classList.add("avail");
         }
+    }
+    else{
+        return;
+    }
+}
+
+function toggleAvailViewerCell(e){
+    var target = e.target;
+
+    if (target.nodeName == "TD"){
+        if (target.classList.contains("avail")){
+            target.classList.remove("avail");
+        }
+        else{
+            target.classList.add("avail");
+        }
+
+        curCourse.ots.parseAvailFromCalendar();
     }
     else{
         return;
@@ -2443,6 +2563,11 @@ function clearAssignments(){
 One Time Scheduling
 */
 function oneTimeSchedule(){
+    return;
+}
+
+/* OLD FUNCTION
+function oneTimeSchedule(){
     const day = document.getElementById("otsDaySelect").value;
     const start = strTimeToFloat(document.getElementById("otsStartTimeInput").value);
     const end = Math.round(start + parseInt(document.getElementById("otsDurInput").value) / 60);
@@ -2465,6 +2590,7 @@ function oneTimeSchedule(){
         return;
     }
 }
+*/
 
 /* 
 Export All Data 
