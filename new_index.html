@@ -184,7 +184,7 @@
                             <div class="accordion-body">
                                 <div class="row align-items-center">
                                     <div class="col">
-                                        <button class="btn btn-primary btn-events float-end">
+                                        <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#bulkTAModal">
                                             Bulk TAs Upload (Recommended)
                                         </button>
                                     </div>
@@ -192,7 +192,7 @@
                                         <h3>OR</h1>
                                     </div>
                                     <div class="col">
-                                        <button class="btn btn-secondary btn-events">
+                                        <button class="btn btn-secondary btn-events" data-bs-toggle="modal" data-bs-target="#newTAModal">
                                             Manually Add TAs
                                         </button>
                                     </div>
@@ -252,7 +252,31 @@
             </div>
           </div>
         </div>
-      </div>
+    </div>
+
+    <div class="modal fade" id="bulkTAModal" tabindex="-1" aria-labelledby="bulkTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Bulk Events Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The uploaded file must be in CSV format wtih the following columns:<br><br>
+                    TA Name, Experience (New/Returning), Contracted Hours, Max Consec Hours, Availability for Mon, Tue, Wed, ...
+                </p>
+                <a href="example/testUploadTAs.csv">Download Example</a>
+                <input type="file" class="form-control mt-3" id="bulkAddTAsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readBulkTAs()">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
 
     <div class="modal fade" id="newEventModal" tabindex="-1">
         <div class="modal-dialog">
@@ -261,15 +285,16 @@
                     <div class="modal-header">
                         <div class="row">
                             <div class="col-12">
-                                <div class="input-group">
-                                    <span class="input-group-text"><b>Event Name</b></span>
-                                    <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
-                                </div>
+                                <h1 class="modal-title fs-5">Create a New Event</h1>
                             </div>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Name</span>
+                            <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
+                        </div>
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Event Type</span>
                             <select class="form-select form-select-sm" id="newEventTypeSelect" required>
@@ -330,6 +355,66 @@
                         </div>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newTAModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Add a New TA</h1>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="newTAForm" onsubmit="return false;" novalidate>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">TA Name:</span>
+                            <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputName" required>
+                            <div class="invalid-feedback" id="taNameFeedback">
+                                A TA with that name already exists
+                            </div>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Max Hours:</span>
+                            <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Max Consecutive Hours?</span>
+                            <select class="form-select" id="consecSelect">
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">First Time TAing?</span>
+                                <select class="form-select" id="taExpSelect">
+                                    <option value="New">Yes</option>
+                                    <option value="Returning">No</option>
+                                </select>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="container">
+                                Select your availability here:
+                                <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="taAvailCalendar" oncontextmenu="return false;"><thead class="table-primary border-dark"><tr><th scope="col">   </th><th scope="col">Mon</th><th scope="col">Tue</th><th scope="col">Wed</th><th scope="col">Thu</th><th scope="col">Fri</th><th scope="col">Sat</th><th scope="col">Sun</th></tr></thead><tbody class="table-secondary border-dark"><tr><th> 09:00</th><td id="Mon09:00" class="calCell"></td><td id="Tue09:00" class="calCell"></td><td id="Wed09:00" class="calCell"></td><td id="Thu09:00" class="calCell"></td><td id="Fri09:00" class="calCell"></td><td id="Sat09:00" class="calCell"></td><td id="Sun09:00" class="calCell"></td></tr><tr><th> 09:30</th><td id="Mon09:30" class="calCell"></td><td id="Tue09:30" class="calCell"></td><td id="Wed09:30" class="calCell"></td><td id="Thu09:30" class="calCell"></td><td id="Fri09:30" class="calCell"></td><td id="Sat09:30" class="calCell"></td><td id="Sun09:30" class="calCell"></td></tr><tr><th> 10:00</th><td id="Mon10:00" class="calCell"></td><td id="Tue10:00" class="calCell"></td><td id="Wed10:00" class="calCell"></td><td id="Thu10:00" class="calCell"></td><td id="Fri10:00" class="calCell"></td><td id="Sat10:00" class="calCell"></td><td id="Sun10:00" class="calCell"></td></tr><tr><th> 10:30</th><td id="Mon10:30" class="calCell"></td><td id="Tue10:30" class="calCell"></td><td id="Wed10:30" class="calCell"></td><td id="Thu10:30" class="calCell"></td><td id="Fri10:30" class="calCell"></td><td id="Sat10:30" class="calCell"></td><td id="Sun10:30" class="calCell"></td></tr><tr><th> 11:00</th><td id="Mon11:00" class="calCell"></td><td id="Tue11:00" class="calCell"></td><td id="Wed11:00" class="calCell"></td><td id="Thu11:00" class="calCell"></td><td id="Fri11:00" class="calCell"></td><td id="Sat11:00" class="calCell"></td><td id="Sun11:00" class="calCell"></td></tr><tr><th> 11:30</th><td id="Mon11:30" class="calCell"></td><td id="Tue11:30" class="calCell"></td><td id="Wed11:30" class="calCell"></td><td id="Thu11:30" class="calCell"></td><td id="Fri11:30" class="calCell"></td><td id="Sat11:30" class="calCell"></td><td id="Sun11:30" class="calCell"></td></tr><tr><th> 12:00</th><td id="Mon12:00" class="calCell"></td><td id="Tue12:00" class="calCell"></td><td id="Wed12:00" class="calCell"></td><td id="Thu12:00" class="calCell"></td><td id="Fri12:00" class="calCell"></td><td id="Sat12:00" class="calCell"></td><td id="Sun12:00" class="calCell"></td></tr><tr><th> 12:30</th><td id="Mon12:30" class="calCell"></td><td id="Tue12:30" class="calCell"></td><td id="Wed12:30" class="calCell"></td><td id="Thu12:30" class="calCell"></td><td id="Fri12:30" class="calCell"></td><td id="Sat12:30" class="calCell"></td><td id="Sun12:30" class="calCell"></td></tr><tr><th> 13:00</th><td id="Mon13:00" class="calCell"></td><td id="Tue13:00" class="calCell"></td><td id="Wed13:00" class="calCell"></td><td id="Thu13:00" class="calCell"></td><td id="Fri13:00" class="calCell"></td><td id="Sat13:00" class="calCell"></td><td id="Sun13:00" class="calCell"></td></tr><tr><th> 13:30</th><td id="Mon13:30" class="calCell"></td><td id="Tue13:30" class="calCell"></td><td id="Wed13:30" class="calCell"></td><td id="Thu13:30" class="calCell"></td><td id="Fri13:30" class="calCell"></td><td id="Sat13:30" class="calCell"></td><td id="Sun13:30" class="calCell"></td></tr><tr><th> 14:00</th><td id="Mon14:00" class="calCell"></td><td id="Tue14:00" class="calCell"></td><td id="Wed14:00" class="calCell"></td><td id="Thu14:00" class="calCell"></td><td id="Fri14:00" class="calCell"></td><td id="Sat14:00" class="calCell"></td><td id="Sun14:00" class="calCell"></td></tr><tr><th> 14:30</th><td id="Mon14:30" class="calCell"></td><td id="Tue14:30" class="calCell"></td><td id="Wed14:30" class="calCell"></td><td id="Thu14:30" class="calCell"></td><td id="Fri14:30" class="calCell"></td><td id="Sat14:30" class="calCell"></td><td id="Sun14:30" class="calCell"></td></tr><tr><th> 15:00</th><td id="Mon15:00" class="calCell"></td><td id="Tue15:00" class="calCell"></td><td id="Wed15:00" class="calCell"></td><td id="Thu15:00" class="calCell"></td><td id="Fri15:00" class="calCell"></td><td id="Sat15:00" class="calCell"></td><td id="Sun15:00" class="calCell"></td></tr><tr><th> 15:30</th><td id="Mon15:30" class="calCell"></td><td id="Tue15:30" class="calCell"></td><td id="Wed15:30" class="calCell"></td><td id="Thu15:30" class="calCell"></td><td id="Fri15:30" class="calCell"></td><td id="Sat15:30" class="calCell"></td><td id="Sun15:30" class="calCell"></td></tr><tr><th> 16:00</th><td id="Mon16:00" class="calCell"></td><td id="Tue16:00" class="calCell"></td><td id="Wed16:00" class="calCell"></td><td id="Thu16:00" class="calCell"></td><td id="Fri16:00" class="calCell"></td><td id="Sat16:00" class="calCell"></td><td id="Sun16:00" class="calCell"></td></tr><tr><th> 16:30</th><td id="Mon16:30" class="calCell"></td><td id="Tue16:30" class="calCell"></td><td id="Wed16:30" class="calCell"></td><td id="Thu16:30" class="calCell"></td><td id="Fri16:30" class="calCell"></td><td id="Sat16:30" class="calCell"></td><td id="Sun16:30" class="calCell"></td></tr><tr><th> 17:00</th><td id="Mon17:00" class="calCell"></td><td id="Tue17:00" class="calCell"></td><td id="Wed17:00" class="calCell"></td><td id="Thu17:00" class="calCell"></td><td id="Fri17:00" class="calCell"></td><td id="Sat17:00" class="calCell"></td><td id="Sun17:00" class="calCell"></td></tr><tr><th> 17:30</th><td id="Mon17:30" class="calCell"></td><td id="Tue17:30" class="calCell"></td><td id="Wed17:30" class="calCell"></td><td id="Thu17:30" class="calCell"></td><td id="Fri17:30" class="calCell"></td><td id="Sat17:30" class="calCell"></td><td id="Sun17:30" class="calCell"></td></tr><tr><th> 18:00</th><td id="Mon18:00" class="calCell"></td><td id="Tue18:00" class="calCell"></td><td id="Wed18:00" class="calCell"></td><td id="Thu18:00" class="calCell"></td><td id="Fri18:00" class="calCell"></td><td id="Sat18:00" class="calCell"></td><td id="Sun18:00" class="calCell"></td></tr><tr><th> 18:30</th><td id="Mon18:30" class="calCell"></td><td id="Tue18:30" class="calCell"></td><td id="Wed18:30" class="calCell"></td><td id="Thu18:30" class="calCell"></td><td id="Fri18:30" class="calCell"></td><td id="Sat18:30" class="calCell"></td><td id="Sun18:30" class="calCell"></td></tr><tr><th> 19:00</th><td id="Mon19:00" class="calCell"></td><td id="Tue19:00" class="calCell"></td><td id="Wed19:00" class="calCell"></td><td id="Thu19:00" class="calCell"></td><td id="Fri19:00" class="calCell"></td><td id="Sat19:00" class="calCell"></td><td id="Sun19:00" class="calCell"></td></tr><tr><th> 19:30</th><td id="Mon19:30" class="calCell"></td><td id="Tue19:30" class="calCell"></td><td id="Wed19:30" class="calCell"></td><td id="Thu19:30" class="calCell"></td><td id="Fri19:30" class="calCell"></td><td id="Sat19:30" class="calCell"></td><td id="Sun19:30" class="calCell"></td></tr></tbody></table>
+                            </div>
+                        </div>
+                        <!-- <hr /> -->
+                        <!-- <div class="row">
+                            <div class="col-3">
+                                <button type="submit" id="taFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
+                            </div>
+                            <div class="col-3">
+                                <button type="button" id="taDeleteBtn" class="btn btn-lg btn-danger" hidden onclick="deleteTA()">Delete TA</button>
+                            </div>
+                        </div> -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

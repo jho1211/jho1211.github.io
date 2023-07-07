@@ -1318,10 +1318,10 @@ class TA {
         hours.value = this.max_hrs;
         
         if (this.consec == 2){
-            canConsec.options.selectedIndex = 1;
+            canConsec.options.selectedIndex = 0;
         }
         else{
-            canConsec.options.selectedIndex = 0;
+            canConsec.options.selectedIndex = 1;
         }
 
         if (this.exp === "New"){
@@ -1892,7 +1892,7 @@ function createNewTA(){
     var select = document.getElementById("selectTAInput");
     var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
 
-    if (canConsec == "yes"){
+    if (canConsec == "4"){
         var consec = 4;
     }
     else{
