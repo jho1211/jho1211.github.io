@@ -56,7 +56,7 @@ button.availEvent {
     border-radius: 5px;
 }
 
-td.indivAssigned{
+td.taCalCell.avail.indivAssigned{
     background: lightgreen;
     border-color: green;
 }
@@ -70,4 +70,8 @@ button.img-btn{
 .hoverTable tr:hover td{
     background-color: lightgreen;
     color: black;
+}
+
+td.taCalCell.avail {
+    background-color: green;
 }

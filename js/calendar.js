@@ -1533,7 +1533,7 @@ class Calendar {
     }
 
     resetAvail(){
-        var cells = document.querySelectorAll(".calCell");
+        var cells = document.getElementById(this.id).querySelectorAll(".calCell");
 
         for (let i = 0; i < cells.length; i++){
             if (cells[i].classList.contains("avail")){
@@ -1567,11 +1567,15 @@ class Calendar {
     // Highlight the availability for a given day and a list of times
     highlightAvail(day, times){
         for (let i = 0; i < times.length; i++){
-            const id = day + times[i];
-            const ele = document.getElementById(id);
+            const selector = "#" + day + times[i].slice(0, 2) + "\\:" + times[i].slice(3);
+            const ele = document.getElementById(this.id).querySelector(selector);
 
             if (!ele.classList.contains("avail")){
                 ele.classList.add("avail");
+            }
+
+            if (!ele.classList.contains("calCell")){
+                ele.classList.add("taCalCell");
             }
         }
 
@@ -1585,21 +1589,24 @@ class Calendar {
 
         let ta = curCourse.findTA(taID);
         var indivCalEle = document.getElementById(this.id);
+        console.log(indivCalEle);
 
         if (ta === null){
             console.log("Couldn't find the specified TA.");
             return;
         }
 
+        // Highlight the calendar with the times that a TA is available at
+        console.log(this);
+        this.loadAvail(ta.avail);
+
+        // Highlight the calendar with the events that a TA is assigned to
         for (let i = 0; i < ta.assigned.length; i++){
             var evt = curCourse.findEvent(ta.assigned[i]);
 
             if (evt !== null){
                 const selector = "#" + evt.day + floatToEscStrTime(evt.start)
                 var cell = indivCalEle.querySelector(selector);
-
-                console.log(selector);
-                console.log(cell);
 
                 if (cell !== null || cell !== undefined){
                     cell.classList.add("indivAssigned")
