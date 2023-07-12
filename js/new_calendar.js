@@ -1678,6 +1678,10 @@ function loadCourseData(e){
     showElement("courseInfoDiv");
     hideElement("courseHelpDiv");
 
+    showElement("eventsAccordion")
+    showElement("tasAccordion");
+    showElement("eventsDiv");
+
     for (var i in courses){
         if (courses[i].name == cname){
             const course = courses[i]
@@ -1691,6 +1695,10 @@ function loadCourseData(e){
 }
 
 function loadNewCourse(){
+    hideElement("eventsAccordion")
+    hideElement("tasAccordion")
+    hideElement("eventsDiv")
+
     let courseForm = document.getElementById("courseForm");
     showElement("courseInfoDiv");
     hideElement("courseHelpDiv");
@@ -1707,9 +1715,17 @@ function loadNewCourse(){
 
 function initializeCourse(){
     // Create a new TA calendar
-    newTACalendar.clearAll();
+    if (newTACalendar === undefined){
+        newTACalendar.clearAll();
+    }
+
     newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
     newTACalendar.generateRows();
+
+    // Show the course events and TA availability schedule accordions
+    showElement("eventsAccordion")
+    showElement("tasAccordion");
+    showElement("eventsDiv");
 
     // // If Add New TA option is selected
     // if (courseSelect.selectedIndex == 1){
