@@ -1690,6 +1690,21 @@ function loadCourseData(e){
     console.log("The specified course could not be found.");
 }
 
+function loadNewCourse(){
+    let courseForm = document.getElementById("courseForm");
+    showElement("courseInfoDiv");
+    hideElement("courseHelpDiv");
+    courseForm.reset();
+    courseForm.addEventListener("submit", createNewCourse);
+    courseForm.removeEventListener("submit", editCourse);
+
+    if (eventCalendar !== undefined){
+        eventCalendar.clearAll();
+    }
+
+    curCourse = null;
+}
+
 function initializeCourse(){
     // Create a new TA calendar
     newTACalendar.clearAll();
@@ -1731,13 +1746,13 @@ function initializeCourse(){
 }
 
 function createNewCourse(){
+    let courseForm = document.getElementById("courseForm");
     var nameEle = document.getElementById("inputCourseName");
     var nameFeedback = document.getElementById("courseNameFeedback")
     var name = nameEle.value;
-    var courseSelect = document.getElementById("selectCourseInput");
 
     var days = [];
-    document.querySelectorAll(".form-check-input").forEach((ele) => {
+    courseForm.querySelectorAll(".form-check-input").forEach((ele) => {
         if (ele.checked){
             days.push(ele.value);
         }

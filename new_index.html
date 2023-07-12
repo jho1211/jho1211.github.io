@@ -22,7 +22,7 @@
             <div class="col-2 courseList border">
                 <h2 class="courseListTitle">My Courses</h2>
                 <div class="courseListBody" id="courseListBody">
-                    <button type="button" class="courseListNewBtn">+ Add New Course</button>
+                    <button type="button" class="courseListNewBtn" onclick="loadNewCourse()">+ Add New Course</button>
                 </div>
             </div>
             <div class="col-9 border">
@@ -32,7 +32,7 @@
                         <h2>Select or add a course on the lefthand column to get started</h2>
                     </div>
                 </div>
-                <div id="courseInfoDiv" hidden>
+                <div id="courseInfoDiv" class="p-3" hidden>
                     <div class="accordion mb-2" id="courseAccordion">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
@@ -204,7 +204,7 @@
                         </div>
                     </div>
                     <div id="eventsDiv">
-                        <div class="eventCalendarText mb-3">
+                        <div class="eventCalendarText mb-3 mt-3">
                             <h1>Event Calendar</h1>
                             <div>
                                 <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event me-4" onclick="clearAssignments()">
@@ -218,13 +218,13 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="eventCalLegend">
+                        <!-- <div class="eventCalLegend">
                             <p>
                                 <img src="img/person-fill-check.svg" width="60px" height="30px"> All TAs Filled
                                 <img src="img/person-fill-add.svg" width="60px" height="30px"> More TAs Required
                                 <img src="img/person-fill-dash.svg" width="60px" height="30px"> No TAs Available
                             </p>
-                        </div>
+                        </div> -->
                         <table class="table text-white table-bordered" style="table-layout: fixed" id="eventCalendar">
                         </table>
                     </div>
