@@ -903,14 +903,14 @@ class Course{
     }
 
     initialize(){
-        this.populateTASelect("selectTAInput", 3);
-        this.populateTASelect("indivTAScheduleSelect", 1);
-        showElement("bulkAddTAsDiv");
-        this.generateIndividualCal();
+        // this.populateTASelect("selectTAInput", 3);
+        // this.populateTASelect("indivTAScheduleSelect", 1);
+        // showElement("bulkAddTAsDiv");
+        // this.generateIndividualCal();
         this.fillCourseForm();
-        this.initializeOTS();
+        // this.initializeOTS();
         this.generateEvents();
-        this.generateAllocTable();
+        // this.generateAllocTable();
     }
 
     getEvent(id){
@@ -1626,11 +1626,12 @@ function populateCourseList(){
     clearCourseList();
     showElement("courseListBody");
     
-    for (var i in courses){
+    for (var i = 0; i < courses.length; i++){
         var newBtn = document.createElement("button");
+        console.log(courses[i])
         newBtn.innerText = courses[i].name;
-        newBtn.classList.add("courseListCourseBtn")
-        newBtn.onclick = function() { loadCourseData(courses[i].name) }
+        newBtn.classList.add("courseListCourseBtn");
+        newBtn.onclick = loadCourseData;
         courseListDiv.insertBefore(newBtn, courseListDiv.firstChild);
     }
 }
@@ -1657,7 +1658,8 @@ function loadCourses(){
     populateCourseList();
 }
 
-function loadCourseData(cname){
+function loadCourseData(e){
+    let cname = e.target.innerText;
     var course;
 
     for (var i in courses){
@@ -1673,9 +1675,9 @@ function loadCourseData(cname){
 }
 
 function initializeCourse(){
-    var courseSelect = document.getElementById("selectCourseInput");
-    var courseForm = document.getElementById("courseForm");
-    var submitBtn = document.getElementById("courseFormSubmitBtn");
+    // var courseSelect = document.getElementById("selectCourseInput");
+    // var courseForm = document.getElementById("courseForm");
+    // var submitBtn = document.getElementById("courseFormSubmitBtn");
 
     /*
     if (newTACalendar !== undefined){
@@ -1683,36 +1685,36 @@ function initializeCourse(){
     }
     */
 
-    // If Add New TA option is selected
-    if (courseSelect.selectedIndex == 1){
-        // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
-        courseForm.reset();
-        courseForm.addEventListener("submit", createNewCourse);
-        courseForm.removeEventListener("submit", editCourse);
-        submitBtn.innerHTML = "Submit";
+    // // If Add New TA option is selected
+    // if (courseSelect.selectedIndex == 1){
+    //     // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
+    //     courseForm.reset();
+    //     courseForm.addEventListener("submit", createNewCourse);
+    //     courseForm.removeEventListener("submit", editCourse);
+    //     submitBtn.innerHTML = "Submit";
 
-        // Hide the TA select and TA form if it is not hidden already
-        var taSelect = document.getElementById("selectTAInput");
-        taSelect.options.selectedIndex = 0;
+    //     // Hide the TA select and TA form if it is not hidden already
+    //     var taSelect = document.getElementById("selectTAInput");
+    //     taSelect.options.selectedIndex = 0;
 
-        hideElement("selectTAInput");
-        hideElement("taAccordion");
-        hideElement("courseDeleteBtn");
-        hideElement("courseNavBar");
-        hideElement("navTabContent")
-        hideElement("bulkAddTAsDiv")
-    }
-    else if (courseSelect.selectedIndex >= 1){
-        submitBtn.innerHTML = "Confirm Changes";
-        loadCourseData(courseSelect.value);
-        courseForm.removeEventListener("submit", createNewCourse);
-        courseForm.addEventListener("submit", editCourse);
-        showElement("courseDeleteBtn");
-        showElement("courseNavBar");
-        showElement("navTabContent")
-    }
+    //     hideElement("selectTAInput");
+    //     hideElement("taAccordion");
+    //     hideElement("courseDeleteBtn");
+    //     hideElement("courseNavBar");
+    //     hideElement("navTabContent")
+    //     hideElement("bulkAddTAsDiv")
+    // }
+    // else if (courseSelect.selectedIndex >= 1){
+    //     submitBtn.innerHTML = "Confirm Changes";
+    //     loadCourseData(courseSelect.value);
+    //     courseForm.removeEventListener("submit", createNewCourse);
+    //     courseForm.addEventListener("submit", editCourse);
+    //     showElement("courseDeleteBtn");
+    //     showElement("courseNavBar");
+    //     showElement("navTabContent")
+    // }
 
-    showElement("courseAccordion");
+    // showElement("courseAccordion");
 
     return;
 }
