@@ -907,10 +907,23 @@ class Course{
         // this.populateTASelect("indivTAScheduleSelect", 1);
         // showElement("bulkAddTAsDiv");
         // this.generateIndividualCal();
+        this.initializeTAAvailCal();
         this.fillCourseForm();
         // this.initializeOTS();
         this.generateEvents();
         // this.generateAllocTable();
+    }
+
+    initializeTAAvailCal(){
+        if (newTACalendar !== undefined){
+            newTACalendar.clearAll();
+            newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+            newTACalendar.generateRows();
+        }
+        else {
+            newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+            newTACalendar.generateRows();
+        }
     }
 
     getEvent(id){
@@ -1309,7 +1322,7 @@ class TA {
     }
 
     fillTAForm(){
-        var nameEle = document.getElementById("inputName");
+        var nameEle = document.getElementById("inputTAName");
         var hours = document.getElementById("taMaxHoursInput");
         var canConsec = document.getElementById("consecSelect");
         var exp = document.getElementById("taExpSelect");
@@ -1675,15 +1688,10 @@ function loadCourseData(e){
 }
 
 function initializeCourse(){
-    // var courseSelect = document.getElementById("selectCourseInput");
-    // var courseForm = document.getElementById("courseForm");
-    // var submitBtn = document.getElementById("courseFormSubmitBtn");
-
-    /*
-    if (newTACalendar !== undefined){
-        newTACalendar.clearAll();
-    }
-    */
+    // Create a new TA calendar
+    newTACalendar.clearAll();
+    newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+    newTACalendar.generateRows();
 
     // // If Add New TA option is selected
     // if (courseSelect.selectedIndex == 1){
@@ -1757,7 +1765,6 @@ function createNewCourse(){
     courses.push(newCourse);
     newCourse.saveCourseData();
     populateCourseList();
-    courseSelect.selectedIndex = courseSelect.options.length - 1;
     initializeCourse();
     curCourse = newCourse;
 
@@ -1841,16 +1848,9 @@ function updateTAForm(){
     var taForm = document.getElementById("newTAForm");
     var submitBtn = document.getElementById("taFormSubmitBtn");
 
-    // Show Calendar
-    if (newTACalendar === undefined){
-        newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
-        newTACalendar.generateRows();
-    }
-    else{
-        newTACalendar.clearAll();
-        newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
-        newTACalendar.generateRows();
-    }
+    newTACalendar.clearAll();
+    newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
+    newTACalendar.generateRows();
 
     // If Add New TA option is selected
     if (select.selectedIndex == 1){
@@ -1887,7 +1887,7 @@ function updateTAForm(){
 
 // TODO: After creating new TA, the available TAs should also update for the event modals
 function createNewTA(){
-    var nameEle = document.getElementById("inputName");
+    var nameEle = document.getElementById("inputTAName");
     var nameFeedback = document.getElementById("taNameFeedback")
     var name = nameEle.value;
     var hours = parseInt(document.getElementById("taMaxHoursInput").value);
@@ -1896,7 +1896,7 @@ function createNewTA(){
     var select = document.getElementById("selectTAInput");
     var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
 
-    if (canConsec == "yes"){
+    if (canConsec == "4"){
         var consec = 4;
     }
     else{
@@ -1940,7 +1940,7 @@ function createNewTA(){
 }
 
 function editTA(){
-    var nameEle = document.getElementById("inputName");
+    var nameEle = document.getElementById("inputTAName");
     var nameFeedback = document.getElementById("taNameFeedback")
     var name = nameEle.value;
     var hours = parseInt(document.getElementById("taMaxHoursInput").value);
