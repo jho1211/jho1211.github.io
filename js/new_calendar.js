@@ -1675,6 +1675,9 @@ function loadCourseData(e){
     let cname = e.target.innerText;
     var course;
 
+    showElement("courseInfoDiv");
+    hideElement("courseHelpDiv");
+
     for (var i in courses){
         if (courses[i].name == cname){
             const course = courses[i]
@@ -2662,6 +2665,11 @@ function createStrTimeRange(start, end){
 function showElement(id){
     var ele = document.getElementById(id);
 
+    if (ele === null){
+        console.log("Couldn't unhide element, element not found.")
+        return;
+    }
+
     if (ele.hidden){
         ele.hidden = false;
     }
@@ -2669,6 +2677,11 @@ function showElement(id){
 
 function hideElement(id){
     var ele = document.getElementById(id);
+
+    if (ele === null){
+        console.log("Couldn't hide element, element not found.")
+        return;
+    }
 
     if (ele.hidden == false){
         ele.hidden = true;

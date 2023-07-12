@@ -26,11 +26,13 @@
                 </div>
             </div>
             <div class="col-9 border">
-                <div class="courseHelpText">
-                    <h1>No course selected</h1>
-                    <h2>Select or add a course on the lefthand column to get started</h2>
+                <div class="vh-center w-100 h-100" id="courseHelpDiv">
+                    <div style="text-align: center;">
+                        <h1>No course selected</h1>
+                        <h2>Select or add a course on the lefthand column to get started</h2>
+                    </div>
                 </div>
-                <div id="courseInfoDiv">
+                <div id="courseInfoDiv" hidden>
                     <div class="accordion mb-2" id="courseAccordion">
                         <div class="accordion-item">
                             <h2 class="accordion-header">
@@ -391,7 +393,7 @@
                             </select>
                         </div>
                         <div class="mt-3">
-                            <h2>Availability Calendar</h1>
+                            <b>Availability Calendar</b>
                             <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="taAvailCalendar" oncontextmenu="return false;"></table>
                         </div>
                     </form>

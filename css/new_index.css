@@ -118,10 +118,9 @@ html, body{
     width: 100%;
 }
 
-.courseHelpText{
+.vh-center{
     display: flex;
     align-items: center;
-    flex-direction: column;
     justify-content: center;
 }
 
