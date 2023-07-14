@@ -642,19 +642,22 @@ class CourseEvent {
         eventBtn.dataset.bsTarget = `#event${this.id}modal`;
 
         if (this.isFullyAssigned()){
-            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-check.svg" width="60px" height="30px"></h5>
+            eventBtn.innerHTML = `<div class="eventBtnHeaderFull"><h5>${this.name}</h5></div>
+        <div class="eventBtnBody">
         ${this.loc} <br>
-        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
+        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}</div>`
         }
         else if (this.hasNoAvailableTAs()){
-            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-dash.svg" width="60px" height="30px"></h5>
+            eventBtn.innerHTML = `<div class="eventBtnHeaderInvalid"><h5>${this.name}</h5></div>
+        <div class="eventBtnBody">
         ${this.loc} <br>
-        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
+        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}</div>`
         }
         else{
-            eventBtn.innerHTML = `<h5>${this.name} <br/><img src="img/person-fill-add.svg" width="60px" height="30px"></h5>
-        ${this.loc} <br>
-        ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}`
+            eventBtn.innerHTML = `<div class="eventBtnHeaderPending"><h5>${this.name}</h5></div>
+            <div class="eventBtnBody">
+            ${this.loc} <br>
+            ${this.day} ${floatToStrTime(this.start)}-${floatToStrTime(this.end)}</div>`
         }
 
         const ecal = document.getElementById("eventCalendar")

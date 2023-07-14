@@ -21,10 +21,6 @@
     cursor: pointer;
 }
 
-button.event:hover{
-    background: lightgreen;
-}
-
 button.availEvent {
     background: lightgreen;
     border-color: green;
@@ -136,4 +132,27 @@ html, body{
 button.btn-events{
     width: 100%;
     height: 70px;
+}
+
+.eventBtnHeaderFull{
+    background: #80e55040;
+    padding: 8px;
+}
+
+.eventBtnHeaderPending{
+    background: #ffc10740;
+    padding: 8px;
+}
+
+.eventBtnHeaderInvalid{
+    background: #ec262640;
+    padding: 8px;
+}
+
+button.event{
+    padding: 0px;
+}
+
+.eventBtnBody{
+    padding: 0px 3px;
 }
