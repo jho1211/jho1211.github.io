@@ -113,20 +113,14 @@ html, body{
     width: 100%;
 }
 
-.fill-height{
-    height: 100%;
-    width: 100%;
-}
-
 .courseListContainer{
     margin: 25px 10px;
     width: 100%;
 }
 
-.courseHelpText{
+.vh-center{
     display: flex;
     align-items: center;
-    flex-direction: column;
     justify-content: center;
 }
 
