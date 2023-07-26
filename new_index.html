@@ -9,12 +9,25 @@
     <link href="css/new_index.css" rel="stylesheet"></script>
 </head>
 <body class="bg-light full-height">
-    <nav class="navbar bg-secondary">
+    <nav class="navbar navbar-expand-lg bg-primary">
         <div class="container-fluid text-primary">
           <a class="navbar-brand text-white fs-3" href="#">
             <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top">
             UBC CS TA Scheduler
           </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                    <a class="nav-link text-white active" href="#course">Manage Course</a>
+                    <a class="nav-link text-white" href="#tas">Manage TAs</a>
+                    <a class="nav-link text-white" href="#avail">Availability Calendar</a>
+                    <a class="nav-link text-white" href="#tasched">TA Schedule</a>
+                    <a class="nav-link text-white" href="#alloc">Allocation of Hours</a>
+                </div>
+            </div>
         </div>
     </nav>
     <div class="container mh-100 courseListContainer mw-100">
@@ -229,6 +242,12 @@
                         </table>
                     </div>
                 </div>
+                <div id="taListDiv" class="p-3" hidden>
+                    <select class="form-select" id="taSelect">
+                        <option selected>Choose a TA</option>
+                        <option value="1">Jeff</option>
+                    </select>
+                </div>
             </div>
         </div>
     </div>
@@ -390,7 +409,7 @@
                             </select>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-text">Max Hours</span>
+                            <span class="input-group-text">Have you TA'd before?</span>
                             <select class="form-select" id="taExpSelect">
                                 <option value="New">Yes</option>
                                 <option value="Returning">No</option>
@@ -405,7 +424,7 @@
                 <div class="modal-footer">
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary" onclick="createNewTA()">Save Changes</button>
                     </div>
                 </div>
             </div>
