@@ -21,11 +21,11 @@
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
                 <div class="navbar-nav">
-                    <a class="nav-link text-white active" href="#course">Manage Course</a>
-                    <a class="nav-link text-white" href="#tas">Manage TAs</a>
-                    <a class="nav-link text-white" href="#avail">Availability Calendar</a>
-                    <a class="nav-link text-white" href="#tasched">TA Schedule</a>
-                    <a class="nav-link text-white" href="#alloc">Allocation of Hours</a>
+                    <a class="nav-link text-white active" href="#course" onclick="mainSpotlight(this)" data-target="courseInfoDiv">Manage Course</a>
+                    <a class="nav-link text-white" href="#tas" onclick="mainSpotlight(this)" data-target="taListDiv">Manage TAs</a>
+                    <a class="nav-link text-white" href="#avail" onclick="mainSpotlight(this)" data-target="availCalDiv">Availability Calendar</a>
+                    <a class="nav-link text-white" href="#tasched" onclick="mainSpotlight(this)" data-target="taSchedDiv">TA Schedule</a>
+                    <a class="nav-link text-white" href="#alloc" onclick="mainSpotlight(this)" data-target="allocDiv">Allocation of Hours</a>
                 </div>
             </div>
         </div>
@@ -38,7 +38,7 @@
                     <button type="button" class="courseListNewBtn" onclick="loadNewCourse()">+ Add New Course</button>
                 </div>
             </div>
-            <div class="col-9 border">
+            <div class="col-9 border" id="mainContentDiv">
                 <div class="vh-center w-100 h-100" id="courseHelpDiv">
                     <div style="text-align: center;">
                         <h1>No course selected</h1>
@@ -243,10 +243,13 @@
                     </div>
                 </div>
                 <div id="taListDiv" class="p-3" hidden>
-                    <select class="form-select" id="taSelect">
-                        <option selected>Choose a TA</option>
-                        <option value="1">Jeff</option>
+                    <label for="manageTASelect">Choose a TA to Manage:</label>
+                    <select class="form-select" id="manageTASelect" onchange="openTAForm()">
+                        <option selected value="-1"></option>
                     </select>
+                    <div class="mt-3" id="manageTAInfoDiv">
+                        <h1>TA Name</h1>
+                    </div>
                 </div>
             </div>
         </div>
@@ -424,7 +427,57 @@
                 <div class="modal-footer">
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary" onclick="createNewTA()">Save Changes</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="updateTAModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Update TA</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="updateTAForm" onsubmit="editTA(); return false;" novalidate>
+                        <div class="input-group">
+                            <span class="input-group-text">TA Name</span>
+                            <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputTAName" required>
+                            <div class="invalid-feedback" id="taNameFeedback">
+                                A TA with that name already exists
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Hours</span>
+                            <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Consecutive Hours</span>
+                            <select class="form-select" id="consecSelect">
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Have you TA'd before?</span>
+                            <select class="form-select" id="taExpSelect">
+                                <option value="New">Yes</option>
+                                <option value="Returning">No</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <b>Availability Calendar</b>
+                            <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="updateTAAvailCalendar" oncontextmenu="return false;"></table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </div>
             </div>

@@ -16,6 +16,7 @@ TODO: Close the course accordion when you start editing TAs
 
 
 var newTACalendar;
+var updateTACalendar;
 var eventCalendar;
 var courses = [];
 
@@ -906,8 +907,7 @@ class Course{
     }
 
     initialize(){
-        // this.populateTASelect("selectTAInput", 3);
-        // this.populateTASelect("indivTAScheduleSelect", 1);
+        this.populateTASelect("manageTASelect");
         // showElement("bulkAddTAsDiv");
         // this.generateIndividualCal();
         this.initializeTAAvailCal();
@@ -1191,10 +1191,9 @@ class Course{
         location.reload();
     }
 
-    populateTASelect(id, offset){
+    populateTASelect(id){
         var select = document.getElementById(id);
-        clearSelect(id, offset);
-        showElement(id);
+        clearSelect(id, 1);
         
         for (var i in this.tas){
             var option = document.createElement("option");
@@ -1325,10 +1324,11 @@ class TA {
     }
 
     fillTAForm(){
-        var nameEle = document.getElementById("inputTAName");
-        var hours = document.getElementById("taMaxHoursInput");
-        var canConsec = document.getElementById("consecSelect");
-        var exp = document.getElementById("taExpSelect");
+        const form = document.getElementById("updateTAForm");
+        var nameEle = form.querySelector("#inputTAName");
+        var hours = form.querySelector("#taMaxHoursInput");
+        var canConsec = form.querySelector("#consecSelect");
+        var exp = form.querySelector("#taExpSelect");
 
         nameEle.value = this.name;
         hours.value = this.max_hrs;
@@ -1347,7 +1347,7 @@ class TA {
             exp.options.selectedIndex = 1;
         }
 
-        newTACalendar.loadAvail(this.avail);
+        updateTACalendar.loadAvail(this.avail);
     }
 
     // Make sure that they are available for the event and that their current assigned avail doesn't have overlap and they aren't working more than consec hours
@@ -1583,11 +1583,15 @@ class Calendar {
     // Highlight the availability for a given day and a list of times
     highlightAvail(day, times){
         for (let i = 0; i < times.length; i++){
-            const id = day + times[i];
-            const ele = document.getElementById(id);
+            const selector = "#" + day + times[i].slice(0, 2) + "\\:" + times[i].slice(3);
+            const ele = document.getElementById(this.id).querySelector(selector);
 
             if (!ele.classList.contains("avail")){
                 ele.classList.add("avail");
+            }
+
+            if (!ele.classList.contains("calCell")){
+                ele.classList.add("taCalCell");
             }
         }
 
@@ -1601,21 +1605,24 @@ class Calendar {
 
         let ta = curCourse.findTA(taID);
         var indivCalEle = document.getElementById(this.id);
+        console.log(indivCalEle);
 
         if (ta === null){
             console.log("Couldn't find the specified TA.");
             return;
         }
 
+        // Highlight the calendar with the times that a TA is available at
+        console.log(this);
+        this.loadAvail(ta.avail);
+
+        // Highlight the calendar with the events that a TA is assigned to
         for (let i = 0; i < ta.assigned.length; i++){
             var evt = curCourse.findEvent(ta.assigned[i]);
 
             if (evt !== null){
                 const selector = "#" + evt.day + floatToEscStrTime(evt.start)
                 var cell = indivCalEle.querySelector(selector);
-
-                console.log(selector);
-                console.log(cell);
 
                 if (cell !== null || cell !== undefined){
                     cell.classList.add("indivAssigned")
@@ -1647,6 +1654,7 @@ function populateCourseList(){
         console.log(courses[i])
         newBtn.innerText = courses[i].name;
         newBtn.classList.add("courseListCourseBtn");
+        newBtn.dataset.target = "courseInfoDiv";
         newBtn.onclick = loadCourseData;
         courseListDiv.insertBefore(newBtn, courseListDiv.firstChild);
     }
@@ -1676,10 +1684,14 @@ function loadCourses(){
 
 function loadCourseData(e){
     let cname = e.target.innerText;
-    var course;
 
-    showElement("courseInfoDiv");
+    if (curCourse !== undefined && curCourse.name === cname){
+        return;
+    }
+
     hideElement("courseHelpDiv");
+    showElement("courseInfoDiv");
+    mainSpotlight("courseInfoDiv");
 
     showElement("eventsAccordion")
     showElement("tasAccordion");
@@ -1880,32 +1892,21 @@ function isExistingCourse(cname){
     return false;
 }
 
-function updateTAForm(){
-    var select = document.getElementById("selectTAInput");
-    var taForm = document.getElementById("newTAForm");
-    var submitBtn = document.getElementById("taFormSubmitBtn");
+function openTAForm(){
+    var select = document.getElementById("manageTASelect");
+    var taModal = document.getElementById("updateTAModal");
 
-    newTACalendar.clearAll();
-    newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
-    newTACalendar.generateRows();
+    if (updateTACalendar !== undefined){
+        updateTACalendar.clearAll();
+    }
+    updateTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "updateTAAvailCalendar");
+    updateTACalendar.generateRows();
 
     // If Add New TA option is selected
-    if (select.selectedIndex == 1){
-        // Change the select button so that it says "Confirm Changes" instead and remove the old EventListener for the form
-        taForm.reset();
-        taForm.addEventListener("submit", createNewTA);
-        taForm.removeEventListener("submit", editTA);
-        submitBtn.innerHTML = "Submit";
-        hideElement("taDeleteBtn");
-
+    if (select.selectedIndex == 0){
+        return;
     }
-    else if (select.selectedIndex >= 1){
-        submitBtn.innerHTML = "Confirm Changes";
-        taForm.removeEventListener("submit", createNewTA);
-        taForm.addEventListener("submit", editTA);
-
-        showElement("taDeleteBtn");
-
+    else {
         const ta = curCourse.findTA(select.value);
 
         if (ta){
@@ -1917,7 +1918,9 @@ function updateTAForm(){
         }
     }
 
-    showElement("taAccordion");
+    if (taModal !== null){
+        $("#updateTAModal").modal("show");
+    }
 
     return;
 }
@@ -1930,7 +1933,6 @@ function createNewTA(){
     var hours = parseInt(document.getElementById("taMaxHoursInput").value);
     var canConsec = document.getElementById("consecSelect").value;
     var avail = parseAvailabilityFromCalendar();
-    var select = document.getElementById("selectTAInput");
     var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
 
     if (canConsec == "4"){
@@ -1964,12 +1966,7 @@ function createNewTA(){
          // TODO: Change this so that you can calculate based on contract weeks instead of constant
         var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days, exp);
         curCourse.addTA(newTA);
-        curCourse.populateTASelect("selectTAInput", 3);
-        curCourse.populateTASelect("indivTAScheduleSelect", 1)
-        showElement("bulkAddTAsDiv");
-        curTASelected = newTA;
-        select.options.selectedIndex = select.options.length - 1;
-
+        curCourse.populateTASelect("manageTASelect");
         return true;
     }
 
@@ -2607,38 +2604,39 @@ function clearAssignments(){
     return;
 }
 
-/*
-One Time Scheduling
-*/
-function oneTimeSchedule(){
-    return;
-}
+// Reveals the selected div element and hides all the others in the mainContentDiv
+// if a string is provided, then find the element first
+function mainSpotlight(e){
 
-/* OLD FUNCTION
-function oneTimeSchedule(){
-    const day = document.getElementById("otsDaySelect").value;
-    const start = strTimeToFloat(document.getElementById("otsStartTimeInput").value);
-    const end = Math.round(start + parseInt(document.getElementById("otsDurInput").value) / 60);
-
-    if (day === null || start === null || end === null){
+    // if no course is selected yet, the divs won't be revealed
+    if (curCourse === undefined || curCourse === null){
         return;
     }
 
-    if (curCourse !== null || curCourse !== undefined){
-        const availTAs = curCourse.ots.findAvailableNoConflictTAs(curCourse.tas, day, start, end);
-        const availConflictTAs = curCourse.ots.findAvailableConflictTAs(curCourse.tas, day, start, end);        
+    let main = document.getElementById("mainContentDiv");
+    let children = main.children;
 
-
-        var ancul = document.getElementById("availNoConflictUL");
-        var acul = document.getElementById("availConflictUL");
-
-        ancul.innerHTML = curCourse.ots.generateULElements(availTAs);
-        acul.innerHTML = curCourse.ots.generateULElements(availConflictTAs);
-
-        return;
+    if (typeof(e) === "string"){
+        for (const child of children){
+            if (child.id !== e){
+                child.hidden = true;
+            }
+            else {
+                child.hidden = false;
+            }
+        }
+    }
+    else {
+        for (const child of children){
+            if (child.id !== e.dataset.target){
+                child.hidden = true;
+            }
+            else {
+                child.hidden = false;
+            }
+        }
     }
 }
-*/
 
 /* 
 Export All Data 
