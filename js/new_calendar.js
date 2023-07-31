@@ -1425,6 +1425,16 @@ class TA {
     totalWeeklyHoursRemaining(){
         return (this.max_hrs / curCourse.clength) - this.totalWeeklyHoursAssigned();
     }
+
+    getUtilization(){
+        return Math.round(this.totalWeeklyHoursAssigned() * curCourse.clength / this.max_hrs * 100);
+    }
+
+    fillTAStats(){
+        document.getElementById("taWeeklyHours").innerHTML = "Total Weekly Hours: " + this.totalWeeklyHoursAssigned() + " hrs";
+        document.getElementById("taTotalHours").innerHTML = "Total Hours Assigned: " + this.totalWeeklyHoursAssigned() * curCourse.clength + " hrs";
+        document.getElementById("taCurrentUtil").innerHTML = "Current Utilization: " + this.getUtilization() + "%";
+    }
 }
 
 class Calendar {
@@ -1689,19 +1699,19 @@ function loadCourseData(e){
         return;
     }
 
-    hideElement("courseHelpDiv");
-    showElement("courseInfoDiv");
-    mainSpotlight("courseInfoDiv");
-
-    showElement("eventsAccordion")
-    showElement("tasAccordion");
-    showElement("eventsDiv");
-
     for (var i in courses){
         if (courses[i].name == cname){
             const course = courses[i]
             curCourse = course;
             course.initialize();
+
+            mainSpotlight("courseInfoDiv");
+
+            showElement("eventsAccordion")
+            showElement("tasAccordion");
+            showElement("eventsDiv");
+
+            highlightActiveCourse(cname);
             return;
         }
     }
@@ -1709,13 +1719,26 @@ function loadCourseData(e){
     console.log("The specified course could not be found.");
 }
 
+function highlightActiveCourse(cname){
+    let divs = document.querySelectorAll(".courseListCourseBtn");
+    for (var i = 0; i < divs.length; i++){
+        if (divs[i].innerText === cname){
+            divs[i].classList.add("active-course")
+        }
+        else {
+            divs[i].classList.remove("active-course")
+        }
+    }
+}
+
 function loadNewCourse(){
     hideElement("eventsAccordion")
     hideElement("tasAccordion")
     hideElement("eventsDiv")
+    mainSpotlight("courseInfoDiv")
+    highlightActiveCourse("")
 
     let courseForm = document.getElementById("courseForm");
-    mainSpotlight("courseInfoDiv")
     courseForm.reset();
     courseForm.addEventListener("submit", createNewCourse);
     courseForm.removeEventListener("submit", editCourse);
@@ -1910,6 +1933,7 @@ function openTAForm(){
 
         if (ta){
             ta.fillTAForm();
+            ta.fillTAStats();
             curTASelected = ta;
         }
         else{
@@ -1973,13 +1997,14 @@ function createNewTA(){
 }
 
 function editTA(){
-    var nameEle = document.getElementById("inputTAName");
-    var nameFeedback = document.getElementById("taNameFeedback")
+    let updateForm = document.getElementById("updateTAForm")
+    var nameEle = updateForm.querySelector("#inputTAName");
+    var nameFeedback = updateForm.querySelector("#taNameFeedback")
     var name = nameEle.value;
-    var hours = parseInt(document.getElementById("taMaxHoursInput").value);
-    var canConsec = document.getElementById("consecSelect").value;
+    var hours = parseInt(updateForm.querySelector("#taMaxHoursInput").value);
+    var canConsec = updateForm.querySelector("#consecSelect").value;
     var avail = parseAvailabilityFromCalendar();
-    var exp = document.getElementById("taExpSelect").value; // either "New" or "Returning"
+    var exp = updateForm.querySelector("#taExpSelect").value; // either "New" or "Returning"
 
     if (canConsec == "yes"){
         var consec = 4;

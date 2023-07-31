@@ -157,7 +157,7 @@ button.event{
     padding: 0px 3px;
 }
 
-button.activeCourse {
+button.active-course {
     color: yellow;
     font-weight: bold;
 }
