@@ -161,3 +161,12 @@ button.active-course {
     color: yellow;
     font-weight: bold;
 }
+
+div.nav-style{
+    display: flex;
+    flex-direction: row;
+}
+
+a.secondary-bar-item{
+    padding: 8px;
+}

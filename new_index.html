@@ -11,25 +11,34 @@
 <body class="bg-light full-height">
     <nav class="navbar navbar-expand-lg bg-primary">
         <div class="container-fluid text-primary">
-          <a class="navbar-brand text-white fs-3" href="#">
-            <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top">
-            UBC CS TA Scheduler
-          </a>
-          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-          </button>
-          <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                <div class="navbar-nav">
-                    <a class="nav-link text-white active" href="#course" onclick="mainSpotlight(this)" data-target="courseInfoDiv">Manage Course</a>
-                    <a class="nav-link text-white" href="#tas" onclick="mainSpotlight(this)" data-target="taListDiv">Manage TAs</a>
-                    <a class="nav-link text-white" href="#avail" onclick="mainSpotlight(this)" data-target="availCalDiv">Availability Calendar</a>
-                    <a class="nav-link text-white" href="#tasched" onclick="mainSpotlight(this)" data-target="taSchedDiv">TA Schedule</a>
-                    <a class="nav-link text-white" href="#alloc" onclick="mainSpotlight(this)" data-target="allocDiv">Allocation of Hours</a>
+            <a class="navbar-brand text-white fs-3" href="#">
+                <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top">
+                UBC CS TA Scheduler
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <!-- <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                    <div class="navbar-nav">
+                        <a class="nav-link text-white active" href="#course" onclick="mainSpotlight(this)" data-target="courseInfoDiv">Manage Course</a>
+                        <a class="nav-link text-white" href="#tas" onclick="mainSpotlight(this)" data-target="taListDiv">Manage TAs</a>
+                        <a class="nav-link text-white" href="#avail" onclick="mainSpotlight(this)" data-target="availCalDiv">Availability Calendar</a>
+                        <a class="nav-link text-white" href="#tasched" onclick="mainSpotlight(this)" data-target="taSchedDiv">TA Schedule</a>
+                        <a class="nav-link text-white" href="#alloc" onclick="mainSpotlight(this)" data-target="allocDiv">Allocation of Hours</a>
+                    </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </nav>
+    <div class="bg-primary nav-style">
+        <a class="navbar-brand fs-3" style="padding-right: 16px; padding-left: 80px; color: yellow;">CPSC 213</h1>
+        <a class="nav-link text-white secondary-bar-item" href="#course" onclick="mainSpotlight(this)" data-target="courseInfoDiv">Manage Course</a>
+        <a class="nav-link text-white secondary-bar-item" href="#tas" onclick="mainSpotlight(this)" data-target="taListDiv">Manage TAs</a>
+        <a class="nav-link text-white secondary-bar-item" href="#avail" onclick="mainSpotlight(this)" data-target="availCalDiv">Availability Calendar</a>
+        <a class="nav-link text-white secondary-bar-item" href="#tasched" onclick="mainSpotlight(this)" data-target="taSchedDiv">TA Schedule</a>
+        <a class="nav-link text-white secondary-bar-item" href="#alloc" onclick="mainSpotlight(this)" data-target="allocDiv">Allocation of Hours</a>
+    </div>
     <div class="container mh-100 courseListContainer mw-100">
         <div class="row mh-100">
             <div class="col-2 courseList border">
