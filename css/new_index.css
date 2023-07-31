@@ -156,3 +156,8 @@ button.event{
 .eventBtnBody{
     padding: 0px 3px;
 }
+
+button.activeCourse {
+    color: yellow;
+    font-weight: bold;
+}

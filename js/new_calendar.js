@@ -1715,8 +1715,7 @@ function loadNewCourse(){
     hideElement("eventsDiv")
 
     let courseForm = document.getElementById("courseForm");
-    showElement("courseInfoDiv");
-    hideElement("courseHelpDiv");
+    mainSpotlight("courseInfoDiv")
     courseForm.reset();
     courseForm.addEventListener("submit", createNewCourse);
     courseForm.removeEventListener("submit", editCourse);
@@ -1725,7 +1724,7 @@ function loadNewCourse(){
         eventCalendar.clearAll();
     }
 
-    curCourse = null;
+    curCourse = undefined;
 }
 
 function initializeCourse(){
