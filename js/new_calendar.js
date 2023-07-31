@@ -190,7 +190,7 @@ class AllocHoursTable {
             <th scope="col">Safety</th>
             <th scope="col">Teaching</th>
             <th scope="col">Assisting Instructors</th>
-            <th scope="col">Meetings/Prep/Training</th>
+            <th scope="col">Meetings / Prep / Training</th>
             <th scope="col">Grading</th>
             <th scope="col">Admin</th>
             <th scope="col">OHs/Piazza</th>
@@ -908,13 +908,12 @@ class Course{
 
     initialize(){
         this.populateTASelect("manageTASelect");
-        // showElement("bulkAddTAsDiv");
         // this.generateIndividualCal();
         this.initializeTAAvailCal();
         this.fillCourseForm();
-        // this.initializeOTS();
+        this.initializeOTS();
         this.generateEvents();
-        // this.generateAllocTable();
+        this.generateAllocTable();
     }
 
     initializeTAAvailCal(){

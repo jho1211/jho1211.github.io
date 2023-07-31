@@ -257,6 +257,50 @@
                         <option selected value="-1"></option>
                     </select>
                 </div>
+
+                <div id="availCalDiv" class="p-3" hidden>
+                    <div class="eventCalendarText row mb-3">
+                        <div class="col-6">
+                            <h1>TA Availability Viewer</h1>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <div class="row mb-5">
+                            <h3 class="text-primary">Please select a consecutive stretch of time for a single day (e.g. 10:00-12:00) to view the available TAs for that period.</h2>
+                        </div>
+                        <div class="row">
+                            <div class="col">
+                                <table class="table table-sm text-white table-bordered" style="table-layout: fixed" id="availTACalendar">
+                                </table>
+                            </div>
+                            <div class="col">
+                                <div class="row">
+                                    <h3>Available TAs (no conflicts)</h3>
+                                    <ul id="availNoConflictUL">
+                                    </ul>
+                                </div>
+                                <div class="row">
+                                    <h3 style="color: red;">Available TAs (conflicts)</h3>
+                                    <ul style="color: red;" id="availConflictUL">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-3" id="allocDiv" hidden>
+                    <div class="eventCalendarText row mb-3">
+                        <div class="col-6">
+                            <h1>Allocation of Hours</h1>
+                        </div>
+                    </div>
+                    <table class="table text-white table-bordered hoverTable" id="allocationHoursTable" style="table-layout: auto;">
+                    </table>
+                    <div class="col-3">
+                        <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
