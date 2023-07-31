@@ -908,7 +908,7 @@ class Course{
 
     initialize(){
         this.populateTASelect("manageTASelect");
-        // this.generateIndividualCal();
+        this.generateIndividualCal();
         this.initializeTAAvailCal();
         this.fillCourseForm();
         this.initializeOTS();
@@ -985,6 +985,7 @@ class Course{
         this.indivCalendar.generateEventRows(null);
 
         let indivTASelect = document.getElementById("indivTAScheduleSelect")
+        this.populateTASelect("indivTAScheduleSelect")
         
         if (indivTASelect !== null || indivTASelect !== undefined){
             indivTASelect.removeEventListener("change", (e) => showIndividualTASchedule(e));

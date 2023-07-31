@@ -301,6 +301,22 @@
                         <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
                     </div>
                 </div>
+
+                <div class="p-3" id="taSchedDiv" hidden>
+                    <div class="eventCalendarText mb-3 row">
+                        <div class="col-6">
+                            <h1>Individual TA Schedule</h1>
+                        </div>
+                        <div class="col-3">
+                            <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
+                                <option selected>Select a TA to View</option>
+                            </select>
+                        </div>
+                    </div>
+        
+                    <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
+                    </table>
+                </div>
             </div>
         </div>
     </div>
