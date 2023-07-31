@@ -1710,6 +1710,7 @@ function loadCourseData(e){
             showElement("eventsAccordion")
             showElement("tasAccordion");
             showElement("eventsDiv");
+            showElement("secondaryBar");
 
             highlightActiveCourse(cname);
             return;
@@ -1724,6 +1725,7 @@ function highlightActiveCourse(cname){
     for (var i = 0; i < divs.length; i++){
         if (divs[i].innerText === cname){
             divs[i].classList.add("active-course")
+            document.getElementById("curCourseSelected").innerHTML = cname;
         }
         else {
             divs[i].classList.remove("active-course")
@@ -1735,6 +1737,7 @@ function loadNewCourse(){
     hideElement("eventsAccordion")
     hideElement("tasAccordion")
     hideElement("eventsDiv")
+    hideElement("secondaryBar");
     mainSpotlight("courseInfoDiv")
     highlightActiveCourse("")
 
