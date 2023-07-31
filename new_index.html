@@ -160,7 +160,7 @@
                                         </div>
                                         <div class="row mt-3">
                                             <div class="col">
-                                                <button type="button" id="courseDeleteBtn" class="btn btn-danger float-end" hidden onclick="deleteCourse()">Delete Course</button>
+                                                <button type="button" id="courseDeleteBtn" class="btn btn-danger float-end" style="margin-left: 8px;" hidden onclick="deleteCourse()">Delete Course</button>
                                                 <button type="submit" id="courseFormSubmitBtn" class="btn btn-primary float-end">Save Course</button>
                                             </div>
                                         </div>
@@ -489,7 +489,7 @@
                 <div class="modal-footer">
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                        <button type="submit" class="btn btn-primary" onclick="createNewTA()">Save Changes</button>
                     </div>
                 </div>
             </div>
@@ -547,6 +547,7 @@
                 <div class="modal-footer">
                     <div>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteTA()">Delete TA</button>
                         <button type="submit" class="btn btn-primary" onclick="editTA()">Save Changes</button>
                     </div>
                 </div>
