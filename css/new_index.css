@@ -9,13 +9,12 @@
 }
 
 .calCell.avail{
-    border-color: gold;
-    border-width: 2px;
+    background: lightgreen;
 }
 
-/* .calCell.avail:hover{
-    background: lightgreen;
-} */
+.calCell.avail:hover{
+    background: gold;
+}
 
 .calCell:hover{
     background: gold;
@@ -40,12 +39,7 @@ button.availEvent {
     justify-content: space-between;
 }
 
-.btn-new-event {
-    background-color: white;
-}
-
 .btn-new-event:hover {
-    background-color: white;
     transform: scale(1.05);
 }
 
@@ -83,6 +77,7 @@ button.img-btn{
     margin: 0px;
     border: none;
     height: 30px;
+    text-align: left;
 }
 
 .courseListNewBtn{
@@ -90,6 +85,7 @@ button.img-btn{
     background-color: white;
     border: none;
     height: 30px;
+    text-align: left;
 }
 
 h2.courseListTitle{
@@ -172,50 +168,76 @@ a.secondary-bar-item{
     padding: 8px;
 }
 
-.calCell.heat0{
+.availCalCell.heat0{
     background: hsl(208, 100%, 100%)
 }
 
-.calCell.heat1{
+.availCalCell.heat1{
     background: hsl(208, 100%, 91%)
 }
 
-.calCell.heat2{
+.availCalCell.heat2{
     background: hsl(208, 100%, 82%)
 }
 
-.calCell.heat3{
+.availCalCell.heat3{
     background: hsl(208, 100%, 73%)
 }
 
-.calCell.heat4{
+.availCalCell.heat4{
     background: hsl(208, 100%, 64%)
 }
 
-.calCell.heat5{
+.availCalCell.heat5{
     background: hsl(208, 100%, 58%)
 }
 
-.calCell.heat6{
+.availCalCell.heat6{
     background: hsl(208, 100%, 49%)
 }
 
-.calCell.heat7{
+.availCalCell.heat7{
     background: hsl(208, 100%, 40%)
 }
 
-.calCell.heat8{
+.availCalCell.heat8{
     background: hsl(208, 100%, 31%)
 }
 
-.calCell.heat9{
+.availCalCell.heat9{
     background: hsl(208, 100%, 22%)
 }
 
-.calCell.heat10{
+.availCalCell.heat10{
     background: hsl(208, 100%, 11%)
 }
 
-.calCell.heat11{
+.availCalCell.heat11{
     background: hsl(208, 100%, 0%)
+}
+
+th.cal-header-cell{
+    background: #e9ecef;
+    border: #ADB5BD;
+
+    color: var(--gray-600, #6C757D);
+    font-family: sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: bold;
+    line-height: normal;
+}
+
+thead.cal-header-cell{
+    background: #e9ecef;
+    border-bottom: #6c757d;
+    border-width: 1px;
+    border-radius: 12px 12px 0px 0px;
+
+    color: var(--gray-600, #6C757D);
+    font-family: sans-serif;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: bold;
+    line-height: normal;
 }

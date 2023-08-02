@@ -1515,9 +1515,10 @@ class Calendar {
         header.className += "table-primary border-dark"
         var headerRow = header.insertRow(0)
         headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
+        // headerRow.classList.add("cal-header-cell")
         
         for (let i = 0; i < this.days.length; i++){
-            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i] + "</th>";
+            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i].toUpperCase() + "</th>";
         }
 
         // Generate the table rows with each time
@@ -1530,7 +1531,9 @@ class Calendar {
             var newRow = tableBody.insertRow();
             // Add the XX:XX cell
             var strTime = floatToStrTime(this.times[i])
-            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
+            let firstCell = newRow.insertCell()
+            firstCell.outerHTML = "<th> " + strTime + "</th>";
+            // firstCell.classList.add("cal-header-cell")
 
             // Add an empty cell for the rest of the cols for this ros
             for (let j = 0; j < this.days.length; j++){
@@ -1569,7 +1572,7 @@ class Calendar {
             for (let j = 0; j < this.days.length; j++){
                 var newCell = newRow.insertCell();
                 newCell.id = this.days[j] + strTime;
-                newCell.classList.add("calCell");
+                newCell.classList.add("availCalCell");
                 curCourse.ots.cellToHeatcell(newCell);
             }
         }
@@ -1579,24 +1582,25 @@ class Calendar {
         var table = document.getElementById(this.id);
         // Generate the table header with the days
         var header = table.createTHead();
-        header.className += "table-primary border-dark"
+        header.className += "cal-header-cell"
         var headerRow = header.insertRow(0)
         headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
         
         for (let i = 0; i < this.days.length; i++){
-            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i] + "</th>";
+            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i].toUpperCase() + "</th>";
         }
 
         // Generate the table rows with each time
         var tableBody = table.createTBody();
-        tableBody.className += "table-secondary border-dark";
+        // tableBody.className += "table-secondary border-dark";
 
         for (let i = 0; i < this.times.length; i++){
             
             var newRow = tableBody.insertRow();
             // Add the XX:XX cell
             var strTime = floatToStrTime(this.times[i])
-            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
+            let firstCell = newRow.insertCell();
+            firstCell.outerHTML = '<th class="cal-header-cell">' + floatToTwelveHourTime(this.times[i]) + '</th>';
 
             // Add an empty cell for the rest of the cols for this ros
             for (let j = 0; j < this.days.length; j++){
@@ -2808,7 +2812,7 @@ function strTimeToFloat(s){
 function floatToStrTime(x){
     // convert float to str time by flooring the number and then taking the decimal remainder and converting to minutes
     var hr = Math.floor(x);
-    var mins = ((x - hr) * 60);
+    var mins = Math.round(((x - hr) * 60));
 
     if (hr < 10){
         hr = "0" + hr.toString();
@@ -2825,6 +2829,33 @@ function floatToStrTime(x){
     }
 
     return hr + ":" + mins;
+}
+
+function floatToTwelveHourTime(x){
+    let hr = Math.floor(x);
+    let mins = Math.round((x - hr) * 60).toString();
+    let timeOfDay = " AM";
+
+    if (hr > 12){
+        hr = hr - 12;
+        timeOfDay = " PM"
+    }
+
+    if (hr < 10){
+        hr = "0" + hr.toString();
+    }
+    else {
+        hr = hr.toString()
+    }
+
+    if (mins < 10){
+        mins = "0" + mins.toString();
+    }
+    else{
+        mins = mins.toString();
+    }
+
+    return hr + ":" + mins + timeOfDay;
 }
 
 function floatToEscStrTime(x){
