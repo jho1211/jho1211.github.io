@@ -256,6 +256,20 @@
                     <select class="form-select" id="manageTASelect" onchange="openTAForm()">
                         <option selected value="-1"></option>
                     </select>
+                    <hr />
+                    <div class="eventCalendarText mt-3 mb-3 row">
+                        <div class="col-6">
+                            <h2>Individual TA Schedule</h2>
+                        </div>
+                        <div class="col-3">
+                            <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
+                                <option selected>Select a TA to View</option>
+                            </select>
+                        </div>
+                    </div>
+        
+                    <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
+                    </table>
                 </div>
 
                 <div id="availCalDiv" class="p-3" hidden>
@@ -300,22 +314,6 @@
                     <div class="col-3">
                         <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
                     </div>
-                </div>
-
-                <div class="p-3" id="taSchedDiv" hidden>
-                    <div class="eventCalendarText mb-3 row">
-                        <div class="col-6">
-                            <h1>Individual TA Schedule</h1>
-                        </div>
-                        <div class="col-3">
-                            <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
-                                <option selected>Select a TA to View</option>
-                            </select>
-                        </div>
-                    </div>
-        
-                    <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
-                    </table>
                 </div>
             </div>
         </div>

@@ -37,6 +37,58 @@ class OneTimeScheduler {
         return;
     }
 
+    // Heatmap Feature: The cells are filled wtih a color based on the number of available TAs. There are 10 bins from 0, <10%, <20%, <30%, <40%, <50%, ... <100%, 100%
+    // cell is the id which is in DDDHH:MM format
+    cellToHeatcell(cell){
+        let day = cell.id.slice(0, 3);
+        let start = strTimeToFloat(cell.id.slice(3,))
+        let end = start + curCourse.interv;
+        let dummyEvent = new CourseEvent("Temp Event", day, start, end, "", "", 1, -1, {}, "Other", 1)
+
+        // Get the total number of available TAs with conflict or no conflict
+        let numAvail = dummyEvent.getNumAvailableTAs() / curCourse.tas.length * 100;
+        cell.classList.add(this.getHeatLevel(numAvail))
+    }
+
+    getHeatLevel(numAvail){
+        if (numAvail === 0){
+            return "heat0"
+        }
+        else if (numAvail < 10){
+            return "heat1"
+        }
+        else if (numAvail < 20){
+            return "heat2"
+        }
+        else if (numAvail < 30){
+            return "heat3"
+        }
+        else if (numAvail < 40){
+            return "heat4"
+        }
+        else if (numAvail < 50){
+            return "heat5"
+        }
+        else if (numAvail < 60){
+            return "heat6"
+        }
+        else if (numAvail < 70){
+            return "heat7"
+        }
+        else if (numAvail < 80){
+            return "heat8"
+        }
+        else if (numAvail < 90){
+            return "heat9"
+        }
+        else if (numAvail < 100){
+            return "heat10"
+        }
+        else {
+            return "heat11"
+        }
+    }
+
     parseAvailFromCalendar(){
         var cells = document.getElementById(this.id).querySelectorAll(".avail");
         var avail_json = {}
@@ -1518,6 +1570,7 @@ class Calendar {
                 var newCell = newRow.insertCell();
                 newCell.id = this.days[j] + strTime;
                 newCell.classList.add("calCell");
+                curCourse.ots.cellToHeatcell(newCell);
             }
         }
     }

@@ -9,12 +9,13 @@
 }
 
 .calCell.avail{
-    background: lightgreen;
+    border-color: gold;
+    border-width: 2px;
 }
 
-.calCell.avail:hover{
+/* .calCell.avail:hover{
     background: lightgreen;
-}
+} */
 
 .calCell:hover{
     background: gold;
@@ -169,4 +170,52 @@ div.nav-style{
 
 a.secondary-bar-item{
     padding: 8px;
+}
+
+.calCell.heat0{
+    background: hsl(208, 100%, 100%)
+}
+
+.calCell.heat1{
+    background: hsl(208, 100%, 91%)
+}
+
+.calCell.heat2{
+    background: hsl(208, 100%, 82%)
+}
+
+.calCell.heat3{
+    background: hsl(208, 100%, 73%)
+}
+
+.calCell.heat4{
+    background: hsl(208, 100%, 64%)
+}
+
+.calCell.heat5{
+    background: hsl(208, 100%, 58%)
+}
+
+.calCell.heat6{
+    background: hsl(208, 100%, 49%)
+}
+
+.calCell.heat7{
+    background: hsl(208, 100%, 40%)
+}
+
+.calCell.heat8{
+    background: hsl(208, 100%, 31%)
+}
+
+.calCell.heat9{
+    background: hsl(208, 100%, 22%)
+}
+
+.calCell.heat10{
+    background: hsl(208, 100%, 11%)
+}
+
+.calCell.heat11{
+    background: hsl(208, 100%, 0%)
 }
