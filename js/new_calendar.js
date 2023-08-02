@@ -51,7 +51,7 @@ class OneTimeScheduler {
     }
 
     getHeatLevel(numAvail){
-        if (numAvail === 0){
+        if (numAvail === 0 || isNaN(numAvail)){
             return "heat0"
         }
         else if (numAvail < 10){
