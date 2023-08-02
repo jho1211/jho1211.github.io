@@ -443,6 +443,83 @@
         </div>
     </div>
 
+    <div class="modal fade" id="editEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Edit Event</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEventForm" onsubmit="return false;">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Name</span>
+                            <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Type</span>
+                            <select class="form-select form-select-sm" id="newEventTypeSelect" required>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Tutorial">Tutorial</option>
+                                <option value="Office Hours">Office Hours</option>
+                                <option value="Piazza">Piazza</option>
+                                <option value="Lecture">Meeting</option>
+                                <option value="Curriciulum Dev">Development</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Day</span>
+                            <select class="form-select form-select-sm" id="newEventDaySelect" required>
+                                <option value="Mon">Monday</option>
+                                <option value="Tue">Tuesday</option>
+                                <option value="Wed">Wednesday</option>
+                                <option value="Thu">Thursday</option>
+                                <option value="Fri">Friday</option>
+                                <option value="Sat">Saturday</option>
+                                <option value="Sun">Sunday</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Start Time</span>
+                            <input type="time" class="form-control form-control-sm" aria-label="Start Time Input" id="newEventStartTimeInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Duration</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">minutes</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Length</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of weeks input" id="newEventLengthInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">weeks</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Location</span>
+                            <input type="text" class="form-control form-control-sm" aria-label="Location Input" id="newEventLocInput">
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">TAs Required</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of TAs Input" id="newEventTARequiredInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">TAs</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Description</span>
+                            <textarea class="form-control" id="newEventDescriptionInput" row="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="editEventBtn">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="newTAModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

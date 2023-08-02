@@ -714,9 +714,9 @@ class CourseEvent {
         }
 
         const ecal = document.getElementById("eventCalendar")
-        const td = ecal.querySelector("#" + this.day + floatToEscStrTime(this.start))
+        const selector = "#" + this.day + floatToEscStrTime(this.start)
+        const td = ecal.querySelector(selector)
         td.appendChild(eventBtn);
-        console.log(td);
 
         return;
     }
@@ -2226,36 +2226,35 @@ function deleteEvent(id){
 }
 
 function openNewEvent(){
-    var form = document.getElementById("newEventForm")
-    form.addEventListener("submit", newEvent);
-    form.removeEventListener("submit", editEvent)
+    var form = document.getElementById("newEventForm");
     form.reset();
 }
 
 function openEditEvent(id){
     if (curCourse !== null || curCourse !== undefined){
 
-        var form = document.getElementById("newEventForm");
-
-        form.removeEventListener("submit", newEvent);
-        form.addEventListener("submit", editEvent, false);
-        form.targetID = id;
+        var form = document.getElementById("editEventForm");
+        let btn = document.getElementById("editEventBtn")
+        btn.targetID = id;
+        btn.onclick = editEvent;
 
         var e = curCourse.getEvent(id);
 
+        console.log(form.elements);
+
         if (e !== null){
             form.elements[0].value = e.name; // Event Name
-            form.elements[2].value = e.type; // Event Type
-            form.elements[3].value = e.day;
-            form.elements[4].value = floatToStrTime(e.start); // Start Time
-            form.elements[5].value = (e.end - e.start) * 60; // Duration
-            form.elements[6].value = e.numWeeks
-            form.elements[7].value = e.loc; // Location
-            form.elements[8].value = e.tas_needed; // TAs needed
-            form.elements[9].value = e.description; // Description
+            form.elements[1].value = e.type; // Event Type
+            form.elements[2].value = e.day;
+            form.elements[3].value = floatToStrTime(e.start); // Start Time
+            form.elements[4].value = (e.end - e.start) * 60; // Duration
+            form.elements[5].value = e.numWeeks
+            form.elements[6].value = e.loc; // Location
+            form.elements[7].value = e.tas_needed; // TAs needed
+            form.elements[8].value = e.description; // Description
 
             $("#event" + id + "modal").modal("hide");
-            $("#newEventModal").modal("show");
+            $("#editEventModal").modal("show");
 
             return true;
         }
@@ -2269,17 +2268,17 @@ function openEditEvent(id){
 
 function editEvent(evt){
     if (curCourse !== null || curCourse !== undefined){
-        var form = document.getElementById("newEventForm");
+        var form = document.getElementById("editEventForm");
 
         const ename = form.elements[0].value;
-        const etype = form.elements[2].value;
-        const eday = form.elements[3].value;
-        const estart = strTimeToFloat(form.elements[4].value);
-        const edur = parseInt(form.elements[5].value) / 60; // converted to hours
-        const numWeeks = parseInt(form.elements[6].value);
-        const eloc = form.elements[7].value;
-        const tas_needed = parseInt(form.elements[8].value);
-        const edesc = form.elements[9].value;
+        const etype = form.elements[1].value;
+        const eday = form.elements[2].value;
+        const estart = strTimeToFloat(form.elements[3].value);
+        const edur = parseInt(form.elements[4].value) / 60; // converted to hours
+        const numWeeks = parseInt(form.elements[5].value);
+        const eloc = form.elements[6].value;
+        const tas_needed = parseInt(form.elements[7].value);
+        const edesc = form.elements[8].value;
 
         // Check if estart is out of range
         if (estart + edur > curCourse.end_t){
@@ -2290,7 +2289,7 @@ function editEvent(evt){
         var res = curCourse.editEvent(evt.currentTarget.targetID, ename, eday, estart, estart + edur, eloc, tas_needed, edesc, etype, numWeeks);
 
         if (res){
-            $("#newEventModal").modal("hide");
+            $("#editEventModal").modal("hide");
             return true;
         }
     }
@@ -2787,7 +2786,6 @@ function clearSelect(id, offset){
 // Converts time in 24hr form to a float.
 function strTimeToFloat(s){
     // HH:MM -> {"hrs": ..., "mins": ...}
-    console.log(s);
     const timeSplit = s.split(":")
     const t = {"hrs": parseInt(timeSplit[0]), "mins": parseInt(timeSplit[1])}
 
