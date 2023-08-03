@@ -21,6 +21,11 @@
     cursor: pointer;
 }
 
+.availCalCell.avail{
+    border-color: gold;
+    border-width: 2px;
+}
+
 button.availEvent {
     background: lightgreen;
     border-color: green;
@@ -169,51 +174,31 @@ a.secondary-bar-item{
 }
 
 .availCalCell.heat0{
-    background: hsl(208, 100%, 100%)
+    background: #FDFBFF;
 }
 
 .availCalCell.heat1{
-    background: hsl(208, 100%, 91%)
+    background: #A6C8FF;
 }
 
 .availCalCell.heat2{
-    background: hsl(208, 100%, 82%)
+    background: #74ADFF;
 }
 
 .availCalCell.heat3{
-    background: hsl(208, 100%, 73%)
+    background: #4A92EE;
 }
 
 .availCalCell.heat4{
-    background: hsl(208, 100%, 64%)
+    background: #2678D2;
 }
 
 .availCalCell.heat5{
-    background: hsl(208, 100%, 58%)
+    background: #005EB1;
 }
 
 .availCalCell.heat6{
-    background: hsl(208, 100%, 49%)
-}
-
-.availCalCell.heat7{
-    background: hsl(208, 100%, 40%)
-}
-
-.availCalCell.heat8{
-    background: hsl(208, 100%, 31%)
-}
-
-.availCalCell.heat9{
-    background: hsl(208, 100%, 22%)
-}
-
-.availCalCell.heat10{
-    background: hsl(208, 100%, 11%)
-}
-
-.availCalCell.heat11{
-    background: hsl(208, 100%, 0%)
+    background: #004787;
 }
 
 th.cal-header-cell{

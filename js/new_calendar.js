@@ -47,45 +47,23 @@ class OneTimeScheduler {
 
         // Get the total number of available TAs with conflict or no conflict
         let numAvail = dummyEvent.getNumAvailableTAs() / curCourse.tas.length * 100;
-        cell.classList.add(this.getHeatLevel(numAvail))
+        cell.classList.add(this.getHeatLevel(numAvail, 7))
     }
 
-    getHeatLevel(numAvail){
-        if (numAvail === 0 || isNaN(numAvail)){
+    getHeatLevel(numAvail, bins){
+        if (numAvail == 0){
             return "heat0"
         }
-        else if (numAvail < 10){
-            return "heat1"
+        else if (numAvail == 100){
+            return "heat" + (bins - 1).toString();
         }
-        else if (numAvail < 20){
-            return "heat2"
-        }
-        else if (numAvail < 30){
-            return "heat3"
-        }
-        else if (numAvail < 40){
-            return "heat4"
-        }
-        else if (numAvail < 50){
-            return "heat5"
-        }
-        else if (numAvail < 60){
-            return "heat6"
-        }
-        else if (numAvail < 70){
-            return "heat7"
-        }
-        else if (numAvail < 80){
-            return "heat8"
-        }
-        else if (numAvail < 90){
-            return "heat9"
-        }
-        else if (numAvail < 100){
-            return "heat10"
-        }
-        else {
-            return "heat11"
+
+        const increment = 100 / (bins - 2)
+
+        for (var i = 1; i < bins - 1; i++){
+            if (numAvail < i * increment){
+                return "heat" + i
+            }
         }
     }
 
