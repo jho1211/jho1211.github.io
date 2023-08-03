@@ -78,6 +78,7 @@ button.img-btn{
 }
 
 .courseListCourseBtn{
+    background-color: #F8F9FA;
     color: #343A40;
     margin: 0px;
     padding: 12px 16px;
@@ -85,6 +86,7 @@ button.img-btn{
     border: none;
     width: 240px;
     text-align: left;
+    border-bottom: 1px solid #E9ECEF;
 
     font-size: 16px;
     font-style: normal;
@@ -94,9 +96,12 @@ button.img-btn{
 
 .courseListNewBtn{
     color: #343A40;
-    background-color: white;
+    background-color: #F8F9FA;
+    margin: 0px;
+    padding: 12px 16px;
+    display: flex;
     border: none;
-    height: 30px;
+    width: 240px;
     text-align: left;
 }
 

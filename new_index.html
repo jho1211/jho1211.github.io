@@ -9,11 +9,11 @@
     <link href="css/new_index.css" rel="stylesheet"></script>
 </head>
 <body class="bg-light full-height">
-    <nav class="navbar navbar-expand-lg bg-white">
+    <nav class="navbar navbar-expand-lg bg-primary">
         <div class="container-fluid text-primary">
-            <a class="navbar-brand fs-3" href="#" style="display: flex; align-items: row;">
+            <a class="navbar-brand fs-3 text-white" href="#" style="display: flex; align-items: row;">
                 <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top" >
-                <h2 style="color: #212529;">UBC CS TA Scheduler</h2>
+                UBC CS TA Scheduler
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -44,7 +44,7 @@
                 <div class="courseListTitle">
                     <h6>COURSES</h6>
                 </div>
-                <div class="courseListBody" id="courseListBody">
+                <div class="courseListBody accordion" id="courseListBody">
                     <button type="button" class="courseListNewBtn" onclick="loadNewCourse()">+ Add New Course</button>
                 </div>
             </div>
