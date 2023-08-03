@@ -71,18 +71,25 @@ button.img-btn{
 }
 
 .courseList{
-    background-color: #DEE2E6;
+    background-color: #F8F9FA;
     padding: 0%;
     margin: 0px 25px 0px 0px;
+    width: 240px;
 }
 
 .courseListCourseBtn{
-    background-color: #0d6efd;
-    color: white;
+    color: #343A40;
     margin: 0px;
+    padding: 12px 16px;
+    display: flex;
     border: none;
-    height: 30px;
+    width: 240px;
     text-align: left;
+
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 28px; /* 175% */
 }
 
 .courseListNewBtn{
@@ -93,17 +100,22 @@ button.img-btn{
     text-align: left;
 }
 
-h2.courseListTitle{
-    text-align: center;
+.courseListTitle{
+    display: flex;
+    padding: 16px 16px 8px 16px;
+    align-self: stretch;
+    border-bottom: 1px solid rgba(48, 48, 48, 0.60);
+
+    color: #303030;
+    font-size: 16px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
 }
 
 .courseListBody{
     display: flex;
     flex-direction: column;
-}
-
-.courseListTitle{
-    margin: 25px 20px;
 }
 
 html, body{
@@ -160,7 +172,7 @@ button.event{
 }
 
 button.active-course {
-    color: yellow;
+    color: #005EB1;
     font-weight: bold;
 }
 

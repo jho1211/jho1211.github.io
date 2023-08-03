@@ -2170,14 +2170,14 @@ function availJsonToString(aj){
 function newEvent(){
     var form = document.getElementById("newEventForm");
     const ename = form.elements[0].value;
-    const etype = form.elements[2].value;
-    const eday = form.elements[3].value;
-    const estart = strTimeToFloat(form.elements[4].value);
-    const edur = parseInt(form.elements[5].value) / 60;
-    const eNumWeeks = parseInt(form.elements[6].value);
-    const eloc = form.elements[7].value;
-    const tas_needed = parseInt(form.elements[8].value);
-    const edesc = form.elements[9].value;
+    const etype = form.elements[1].value;
+    const eday = form.elements[2].value;
+    const estart = strTimeToFloat(form.elements[3].value);
+    const edur = parseInt(form.elements[4].value) / 60;
+    const eNumWeeks = parseInt(form.elements[5].value);
+    const eloc = form.elements[6].value;
+    const tas_needed = parseInt(form.elements[7].value);
+    const edesc = form.elements[8].value;
 
     // Check if estart is out of range
     if (estart + edur > curCourse.end_t){
@@ -2193,7 +2193,7 @@ function newEvent(){
     $("#newEventModal").modal("hide");
     
     // TODO: Create a popup to inform user that the event was successfully created or not
-    console.log("Event has been created.");
+    alert("Event has been created.");
 
     return true;
 }
