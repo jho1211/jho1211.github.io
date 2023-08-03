@@ -1653,6 +1653,11 @@ class Calendar {
             const selector = "#" + day + times[i].slice(0, 2) + "\\:" + times[i].slice(3);
             const ele = document.getElementById(this.id).querySelector(selector);
 
+            // If the time available is outside of the scope of the course, then ignore
+            if (ele === null){
+                continue;
+            }
+
             if (!ele.classList.contains("avail")){
                 ele.classList.add("avail");
             }
@@ -2381,6 +2386,99 @@ function parseBulkTAs(arr){
     }
 
     return;
+}
+
+function readQualtricsCSV(){
+    const file = document.getElementById("qualtricsFileInput").files[0]
+
+    if (file === undefined){
+        return;
+    }
+
+    Papa.parse(file, {
+        complete: function(results){
+            parseQualtricsTAs(results.data);
+        }
+    })
+}
+
+// We need the TA name, experience, contracted hours, max consec hours, and avail for each day (in the order listed)
+function parseQualtricsTAs(arr){
+    const header = arr[0]
+    const data = arr.slice(1);
+    var tas_arr = [];
+    const days_needed = curCourse.days;
+
+    console.log(header);
+    console.log(data);
+    console.log(days_needed)
+    console.log(days_needed.length + 5)
+
+    if (header.length !== days_needed.length + 5){
+        alert("Failed to parse uploaded CSV file, please ensure that you have removed the necessary columns from the CSV file. There must be the same number of days as the one selected during course creation.");
+        return;
+    }
+
+    for (let i = 0; i < data.length; i++){
+        if (data[i].length !== header.length){
+            continue;
+        }
+
+        const name = data[i][0];
+        let exp = parseExp(data[i][1])
+        const hrs = parseInt(data[i][2])
+        const max_consec = parseMaxConsec(data[i][3]);
+        const avail = parseAvailability(i + 2, data[i].slice(4, header.length - 1), days_needed);
+
+        console.log(hrs, max_consec);
+
+        // TODO: Overwrite the TAs instead of ignoring them
+        // TODO: Create a list of TAs that are being overwritten and display it rather than having an alert for each TA
+        // TODO: Create a list of TAs that were not added due to errors and display it as one alert
+        if (curCourse.isExistingTA(name)){
+            alert(`The TA, ${name}, couldn't be added because a TA with that name already exists.`);
+            continue;
+        }
+
+        if (isNaN(hrs) || isNaN(max_consec)){
+            alert(`The contracted hours and/or consec hours couldn't be parsed for row ${i + 2}. This TA will not be added at this time.`);
+            continue;
+        }
+
+        var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
+        tas_arr.push(ta);
+    }
+
+    const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr, days_needed))
+
+    if (conf){
+        for (let i = 0; i < tas_arr.length; i++){
+            curCourse.addTA(tas_arr[i]);
+        }
+        alert("The TAs were added successfully!")
+
+        return;
+    }
+
+    return;
+}
+
+function parseExp(resp){
+    if (resp === "Yes"){
+        return "New"
+    }
+    else {
+        return "Returning"
+    }
+}
+
+function parseMaxConsec(resp){
+    if (resp === "Yes"){
+        return 4
+    }
+    else {
+        return 2
+    }
 }
 
 function parseAvailability(row, arr, days){

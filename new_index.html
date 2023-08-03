@@ -179,16 +179,8 @@
                                 <div class="accordion-body">
                                     <div class="row align-items-center">
                                         <div class="col">
-                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#bulkEventModal">
-                                                Bulk Events Upload (Recommended)
-                                            </button>
-                                        </div>
-                                        <div class="col-auto">
-                                            <h3>OR</h1>
-                                        </div>
-                                        <div class="col">
-                                            <button class="btn btn-secondary btn-events" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
-                                                Manually Add Events
+                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#uploadEventModal">
+                                                Upload Events
                                             </button>
                                         </div>
                                     </div>
@@ -207,16 +199,8 @@
                                 <div class="accordion-body">
                                     <div class="row align-items-center">
                                         <div class="col">
-                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#bulkTAModal">
-                                                Bulk TAs Upload (Recommended)
-                                            </button>
-                                        </div>
-                                        <div class="col-auto">
-                                            <h3>OR</h1>
-                                        </div>
-                                        <div class="col">
-                                            <button class="btn btn-secondary btn-events" data-bs-toggle="modal" data-bs-target="#newTAModal">
-                                                Manually Add TAs
+                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#uploadTAModal">
+                                                Upload TAs
                                             </button>
                                         </div>
                                     </div>
@@ -318,6 +302,49 @@
         </div>
     </div>
 
+    <div class="modal fade" id="uploadEventModal" tabindex="-1" aria-labelledby="uploadEventModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Course Events Upload</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Please choose to either upload events in bulk (recommended) or manually add them individually.
+                </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">Manual Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkEventModal">Bulk Upload</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="uploadTAModal" tabindex="-1" aria-labelledby="uploadTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Course TAs Upload</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Please choose to either upload TAs in bulk, using Qualtrics (recommended), or adding them individually manually.
+                </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTAModal">Manual Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkTAModal">Bulk Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qualtricsTAModal">Qualtrics CSV</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="bulkEventModal" tabindex="-1" aria-labelledby="bulkEventModal" aria-hidden="true">
         <div class="modal-dialog">
           <div class="modal-content">
@@ -361,6 +388,31 @@
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
               <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
               <button type="button" class="btn btn-primary" onclick="readBulkTAs()">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="qualtricsTAModal" tabindex="-1" aria-labelledby="qualtricsTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Qualtrics TAs Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Export the Qualtrics responses by going to 'Data & Analysis' > Export & Import > Export Data... > CSV <br><br>
+                    Make sure to remove <b>ALL</b> the non-question columns before uploading the Qualtrics CSV!
+                </p>
+                <a href="https://ubc.ca1.qualtrics.com/jfe/form/SV_9n6CaYLbGEWSske" target="_blank">Example Survey</a><br>
+                <a href="example/testQualtricsTAs.csv">Download Example CSV</a>
+                <input type="file" class="form-control mt-3" id="qualtricsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readQualtricsCSV()">Confirm</button>
             </div>
           </div>
         </div>
