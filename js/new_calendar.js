@@ -507,6 +507,15 @@ class CourseEvent {
         return availSlots;
     }
 
+    getAssignedTANames(){
+        let arr = []
+        for (let i = 0; i < Object.keys(this.assigned).length; i ++){
+            arr.push(curCourse.findTA(this.assigned[i]).name)
+        }
+
+        return arr;
+    }
+
     // Returns True if slot is taken, False otherwise
     isSlotTaken(slot){
         return this.assigned[slot] !== ""
@@ -956,6 +965,18 @@ class Course{
             newTACalendar = new Calendar(curCourse.days, curCourse.start_t, curCourse.end_t, curCourse.interv, "taAvailCalendar");
             newTACalendar.generateRows();
         }
+    }
+
+    getMaxAssignedTAs(){
+        let max = 0;
+
+        for (var i = 0; i < this.events.length; i++){
+            if (Object.keys(this.events[i].assigned).length > max){
+                max = Object.keys(this.events[i].assigned).length;
+            }
+        }
+
+        return max;
     }
 
     getEvent(id){
@@ -1747,8 +1768,6 @@ function loadCourseData(e){
 
             mainSpotlight("courseInfoDiv");
 
-            showElement("eventsAccordion")
-            showElement("tasAccordion");
             showElement("eventsDiv");
             showElement("secondaryBar");
 
@@ -1775,8 +1794,6 @@ function highlightActiveCourse(cname){
 }
 
 function loadNewCourse(){
-    hideElement("eventsAccordion")
-    hideElement("tasAccordion")
     hideElement("eventsDiv")
     hideElement("secondaryBar");
     mainSpotlight("courseInfoDiv")
@@ -1798,8 +1815,6 @@ function loadNewCourse(){
 
 function updateCourseForm(){
     // Show the course events and TA availability schedule accordions
-    showElement("eventsAccordion")
-    showElement("tasAccordion");
     showElement("eventsDiv");
 
     let courseForm = document.getElementById("courseForm");
@@ -2765,6 +2780,62 @@ function mainSpotlight(e){
             }
         }
     }
+}
+
+/* Export TA Schedule */
+function exportSchedule(){
+    // Iterate through all events and produce a CSV with the following headers:
+    // Session Name, Date, Hours, Assigned TA #1, ..., Assigned TA #...
+    var data = []
+    var headers = ["Session Name", "Date", "Hours"]
+
+    if (curCourse === undefined || curCourse === null){
+        return;
+    }
+    
+    // Determine what the number of assigned TAs have to be for the header
+    for (let i = 1; i < curCourse.getMaxAssignedTAs() + 1; i++){
+        headers.push("Assigned TA #" + i.toString());
+    }
+
+    // Iterate through all events and get the Session Name, Date, Hours, Assigned TA #1, ..., Assigned TA #...
+    for (let i = 0; i < curCourse.events.length; i++){
+        /*
+        this.name = name;
+        this.day = day;
+        this.start = start; // float
+        this.end = end; // float
+        this.loc = loc;
+        this.description = desc;
+        this.tas_needed = needed;
+        this.assigned = assigned;
+        this.id = id;
+        this.type = type;
+        this.numWeeks = numWeeks;
+        */
+       const evt = curCourse.events[i];
+       const name = evt.name;
+       const date = `${evt.day}, ${floatToStrTime(evt.start)}-${floatToStrTime(evt.end)} in ${evt.loc}`
+       const dur = evt.getLength();
+       const tas = evt.getAssignedTANames();
+       const arr = [name, date, dur].concat(tas);
+       data.push(arr);
+    }
+
+    var csv = Papa.unparse({
+        "fields": headers,
+        "data": data
+    });
+
+    const csvData = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+    const csvURL = window.URL.createObjectURL(csvData);
+    let tempEle = document.createElement("a");
+    tempEle.href = csvURL;
+    console.log(csvURL);
+    tempEle.download = `${curCourse.name.replaceAll(" ", "")}_schedule`;
+    document.body.appendChild(tempEle);
+    tempEle.click();
+    document.body.removeChild(tempEle);
 }
 
 /* 

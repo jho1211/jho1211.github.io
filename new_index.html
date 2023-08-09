@@ -170,46 +170,6 @@
                             </div>
                         </div>
                     </div>
-                    <div class="accordion mb-2" id="eventsAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#eventsCollapse" aria-expanded="true" aria-controls="eventsCollapse">
-                                    <strong>Course Events</strong>
-                                </button>
-                            </h2>
-                            <div id="eventsCollapse" class="accordion-collapse collapse show" aria-labelledby="eventsCollapse">
-                                <div class="accordion-body">
-                                    <div class="row align-items-center">
-                                        <div class="col">
-                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#uploadEventModal">
-                                                Upload Events
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="accordion mb-2" id="tasAccordion">
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#tasCollapse" aria-expanded="true" aria-controls="tasCollapse">
-                                    <strong>TA Availability Schedules</strong>
-                                </button>
-                            </h2>
-                            <div id="tasCollapse" class="accordion-collapse collapse show" aria-labelledby="tasCollapse">
-                                <div class="accordion-body">
-                                    <div class="row align-items-center">
-                                        <div class="col">
-                                            <button class="btn btn-primary btn-events float-end" data-bs-toggle="modal" data-bs-target="#uploadTAModal">
-                                                Upload TAs
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                     <div id="eventsDiv">
                         <div class="eventCalendarText mb-3 mt-3">
                             <h3>Event Calendar</h3>
@@ -222,6 +182,12 @@
                                         <a class="dropdown-item dropdown-align dropdown-item-add" href="#" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
                                             <img class="me-1" src="img/plus.svg" width="21" height="21">
                                             New Event
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item dropdown-align" href="#" onclick="exportSchedule()">
+                                            <img class="me-1" src="img/folder-symlink-fill.svg" width="21" height="21">
+                                            Export Schedule
                                         </a>
                                     </li>
                                     <li>
@@ -252,10 +218,18 @@
                 </div>
                 <div id="taListDiv" class="p-3" hidden>
                     <h1 class="mb-3">Manage TAs</h1>
-                    <label for="manageTASelect">Choose a TA to Manage:</label>
-                    <select class="form-select" id="manageTASelect" onchange="openTAForm()">
-                        <option selected value="-1"></option>
-                    </select>
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadTAModal">
+                            Upload TAs
+                        </button>
+                    </div>
+                    <hr />
+                    <div>
+                        <label for="manageTASelect">Choose a TA to Manage:</label>
+                        <select class="form-select" id="manageTASelect" onchange="openTAForm()">
+                            <option selected value="-1"></option>
+                        </select>
+                    </div>
                     <hr />
                     <div class="eventCalendarText mt-3 mb-3 row">
                         <div class="col-6">
