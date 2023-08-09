@@ -1531,7 +1531,7 @@ class Calendar {
         headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
         
         for (let i = 0; i < this.days.length; i++){
-            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i] + "</th>";
+            headerRow.insertCell().outerHTML = "<th scope='col'>" + this.days[i].toUpperCase() + "</th>";
         }
 
         // Generate the table rows with each time
