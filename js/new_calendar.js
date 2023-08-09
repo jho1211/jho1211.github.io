@@ -2893,6 +2893,15 @@ function exportAllData(){
     a.click();
 }
 
+function clearAllData(){
+    const conf = confirm("You are clearing the scheduler of all data. This will wipe all courses, events, and TAs. This action CANNOT be undone!")
+
+    if (conf){
+        localStorage.removeItem("courses");
+        location.reload();
+    }
+}
+
 /* Utility Functions */
 function displayLog(arr){
     if (arr.length > 0){
