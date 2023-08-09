@@ -243,3 +243,22 @@ thead.cal-header-cell{
     font-weight: bold;
     line-height: normal;
 }
+
+button.cal-actions-btn{
+    border-radius: 6px;
+    color: white;
+    background: var(--material-theme-core-primary-primary-40, #005EB1);
+}
+
+a.dropdown-align{
+    display: flex;
+    align-items: center;
+}
+
+a.dropdown-item-add{
+    color: green;
+}
+
+a.dropdown-item-warning{
+    color: red;
+}
