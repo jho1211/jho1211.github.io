@@ -181,7 +181,7 @@
                                 </button>
                                 <ul class="dropdown-menu">
                                     <li>
-                                        <a class="dropdown-item dropdown-align dropdown-item-add" href="#" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
+                                        <a class="dropdown-item dropdown-align dropdown-item-add" href="#" data-bs-toggle="modal" data-bs-target="#uploadEventModal">
                                             <img class="me-1" src="img/plus.svg" width="21" height="21">
                                             New Event
                                         </a>
@@ -308,7 +308,10 @@
             </div>
             <div class="modal-body">
                 <p>
-                    Please choose to either upload events in bulk (recommended) or manually add them individually.
+                    <b>Bulk Upload</b><br>
+                    Recommended for initial upload of main course events.<br><br>
+                    <b>Manual Upload</b><br>
+                    Recommended for one-time events.
                 </p>
             </div>
             <div class="modal-footer">
@@ -329,7 +332,12 @@
             </div>
             <div class="modal-body">
                 <p>
-                    Please choose to either upload TAs in bulk, using Qualtrics (recommended), or adding them individually manually.
+                    <b>Qualtrics CSV Upload</b><br>
+                    Recommended for initial upload of course TAs. Overrides all current TAs.<br><br>
+                    <b>Legacy CSV Upload</b><br>
+                    Works similar to Qualtrics CSV upload but requires more work on staff end.<br><br>
+                    <b>Manual Upload</b><br>
+                    Add TAs individually by filling out a form.
                 </p>
             </div>
             <div class="modal-footer">
@@ -394,7 +402,7 @@
         <div class="modal-dialog">
           <div class="modal-content">
             <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">Qualtrics TAs Upload (Recommended)</h1>
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Qualtrics CSV Upload (Recommended)</h1>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
