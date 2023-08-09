@@ -2844,10 +2844,21 @@ Takes all localSession storage data and exports it to text file that the user ca
 */
 
 function importAllData(){
-    const dataFile = document.getElementById("importDataFile").files[0]
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.accept = ".txt";
+
+    input.onchange = e => {
+        readAllData(e.target.files[0])
+    }
+
+    input.click();
+}
+
+function readAllData(file){
     var fr = new FileReader();
 
-    if (dataFile === undefined || dataFile === null){
+    if (file === undefined || file === null){
         console.log("Error reading text file.");
         return;
     }
@@ -2863,7 +2874,7 @@ function importAllData(){
         }
     }
 
-    const dataText = fr.readAsText(document.getElementById("importDataFile").files[0]);
+    const dataText = fr.readAsText(file);
 }
 
 function exportAllData(){
@@ -2874,13 +2885,12 @@ function exportAllData(){
         return;
     }
 
-    var btn = document.getElementById("exportDataBtn")
+    var a = document.createElement("a")
     var blob = new Blob([data], {"type": "text/plain"})
     var textURL = window.URL.createObjectURL(blob);
-    btn.href = textURL;
-    btn.download = "scheduler_data.txt";
-
-    console.log(data);
+    a.href = textURL;
+    a.download = "scheduler_data.txt";
+    a.click();
 }
 
 /* Utility Functions */
