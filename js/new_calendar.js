@@ -1526,7 +1526,7 @@ class Calendar {
         var table = document.getElementById(this.id);
         // Generate the table header with the days
         var header = table.createTHead();
-        header.className += "table-primary border-dark"
+        header.className += "cal-header-cell"
         var headerRow = header.insertRow(0)
         headerRow.insertCell().outerHTML = "<th scope='col'>   </th>"
         
@@ -1544,7 +1544,7 @@ class Calendar {
             var newRow = tableBody.insertRow();
             // Add the XX:XX cell
             var strTime = floatToStrTime(this.times[i])
-            newRow.insertCell().outerHTML = "<th> " + strTime + "</th>";
+            newRow.insertCell().outerHTML = '<th class="cal-header-cell">' + floatToTwelveHourTime(this.times[i]) + "</th>";
 
             // Add an empty cell for the rest of the cols for this ros
             for (let j = 0; j < this.days.length; j++){
