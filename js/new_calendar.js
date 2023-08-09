@@ -509,8 +509,15 @@ class CourseEvent {
 
     getAssignedTANames(){
         let arr = []
-        for (let i = 0; i < Object.keys(this.assigned).length; i ++){
-            arr.push(curCourse.findTA(this.assigned[i]).name)
+        for (let i = 0; i < Object.keys(this.assigned).length; i++){
+            const ta = curCourse.findTA(this.assigned[i])
+
+            if (ta === null){
+                arr.push("")
+            }
+            else {
+                arr.push(ta.name)
+            }
         }
 
         return arr;
@@ -1283,7 +1290,7 @@ class Course{
     }
     
     findTA(id){
-        if (id === null || id === "-1"){
+        if (id === null || id === "-1" || id === ""){
             return null;
         }
 
