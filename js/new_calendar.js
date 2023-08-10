@@ -2506,6 +2506,7 @@ function parseQualtricsTAs(arr){
             curCourse.addTA(tas_arr[i]);
         }
         alert("The TAs were added successfully!")
+        curCourse.initialize();
 
         return;
     }
