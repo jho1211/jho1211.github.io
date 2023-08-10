@@ -1307,6 +1307,16 @@ class Course{
         return null;
     }
 
+    findTAByName(name){
+        for (var i = 0; i < this.tas.length; i++){
+            if (this.tas[i].name === name){
+                return this.tas[i]
+            }
+        }
+        
+        return null;
+    }
+
     findEvent(id){
         for (var i in this.events){
             if (id == this.events[i].id){
@@ -2473,6 +2483,10 @@ function parseBulkTAs(arr){
         alert("The following TAs couldn't be added because their contracted hours and/or consec hours couldn't be parsed:\n" + tas_err_hours_arr.join("\n"))
     }
 
+    if (tas_arr.length === 0){
+        return;
+    }
+
     const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr, days_needed))
 
     if (conf){
@@ -2508,12 +2522,10 @@ function parseQualtricsTAs(arr){
     const header = arr[0]
     const data = arr.slice(1);
     var tas_arr = [];
+    var tas_exist_arr = [];
+    var tas_overwrite_arr = [];
+    var tas_err_hours_arr = [];
     const days_needed = curCourse.days;
-
-    console.log(header);
-    console.log(data);
-    console.log(days_needed)
-    console.log(days_needed.length + 5)
 
     if (header.length !== days_needed.length + 5){
         alert("Failed to parse uploaded CSV file, please ensure that you have removed the necessary columns from the CSV file. There must be the same number of days as the one selected during course creation.");
@@ -2531,23 +2543,51 @@ function parseQualtricsTAs(arr){
         const max_consec = parseMaxConsec(data[i][3]);
         const avail = parseAvailability(i + 2, data[i].slice(4, header.length - 1), days_needed);
 
-        console.log(hrs, max_consec);
+        if (name === ""){
+            continue;
+        }
 
         // TODO: Overwrite the TAs instead of ignoring them
-        // TODO: Create a list of TAs that are being overwritten and display it rather than having an alert for each TA
-        // TODO: Create a list of TAs that were not added due to errors and display it as one alert
         if (curCourse.isExistingTA(name)){
-            alert(`The TA, ${name}, couldn't be added because a TA with that name already exists.`);
+            const overwriteConf = confirm(`The TA ${name} already exists, do you want to overwrite them? This action CANNOT be undone.`);
+
+            if (overwriteConf){
+                const oldTA = curCourse.findTAByName(name);
+                const newTA = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
+                curCourse.overwriteTA(oldTA, newTA)
+                tas_overwrite_arr.push(newTA)
+            }
+            else {
+                tas_exist_arr.push(name);
+            }
+            
             continue;
         }
 
         if (isNaN(hrs) || isNaN(max_consec)){
-            alert(`The contracted hours and/or consec hours couldn't be parsed for row ${i + 2}. This TA will not be added at this time.`);
+            tas_err_hours_arr.push(name);
             continue;
         }
 
         var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
         tas_arr.push(ta);
+    }
+
+    // Alert user if there are TAs that couldn't be added
+    if (tas_exist_arr.length > 0){
+        alert("The following TAs couldn't be added because a TA with their name already exists:\n" + tas_exist_arr.join("\n"))
+    }
+    
+    if (tas_err_hours_arr.length > 0){
+        alert("The following TAs couldn't be added because their contracted hours and/or consec hours couldn't be parsed:\n" + tas_err_hours_arr.join("\n"))
+    }
+
+    if (tas_arr.length === 0){
+        if (tas_overwrite_arr.length > 0){
+            alert("The TAs were overriden successfully!")
+            curCourse.initialize();
+        }
+        return;
     }
 
     const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr, days_needed))
@@ -2556,6 +2596,7 @@ function parseQualtricsTAs(arr){
         for (let i = 0; i < tas_arr.length; i++){
             curCourse.addTA(tas_arr[i]);
         }
+
         alert("The TAs were added successfully!")
         curCourse.initialize();
 
