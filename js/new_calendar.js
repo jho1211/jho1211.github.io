@@ -1214,6 +1214,9 @@ class Course{
     overwriteTA(oldTA, newTA){
         for (let i = 0; i < this.tas.length; i++){
             if (this.tas[i].name == oldTA.name){
+                // Unassign all the events that the old TA was assigned to
+                this.tas[i].unassignAllEvents();
+
                 this.tas[i] = newTA;
                 this.saveCourseData();
                 this.initialize();
@@ -1470,6 +1473,14 @@ class TA {
         }
         
         return false;
+    }
+
+    unassignAllEvents(){
+        for (var i = 0; i < this.assigned.length; i++){
+            const evt = curCourse.findEvent(this.assigned[i])
+            this.unassignEvent(this.assigned[i]);
+            evt.unassignTA(this, evt.findTASlot(this))
+        }
     }
 
     // Returns the total amount of hrs assigned so far
@@ -2110,7 +2121,7 @@ function editTA(){
     nameEle.classList.add("is-valid");
 
     const availStr = availJsonToString(avail);
-    const conf = confirm("Are you sure you want to overwrite the current TA. You have selected the following availability:\n\n" + availStr);
+    const conf = confirm("Are you sure you want to overwrite the current TA? This will unassign the TA from all currently assigned events. You have selected the following availability:\n\n" + availStr);
 
     if (conf === true){
         var newTA = new TA(name, hours, consec, avail, curTASelected.assigned, curTASelected.assigned_avail, curTASelected.id, curCourse.days, exp);
@@ -2404,6 +2415,8 @@ function parseBulkTAs(arr){
     const header = arr[0]
     const data = arr.slice(1);
     var tas_arr = [];
+    var tas_exist_arr = [];
+    var tas_err_hours_arr = [];
     const days_needed = curCourse.days;
 
     if (header.length !== days_needed.length + 4){
@@ -2422,21 +2435,42 @@ function parseBulkTAs(arr){
         const max_consec = parseInt(data[i][3]);
         const avail = parseAvailability(i + 2, data[i].slice(4), days_needed);
 
+        if (name === ""){
+            continue;
+        }
+
         // TODO: Overwrite the TAs instead of ignoring them
-        // TODO: Create a list of TAs that are being overwritten and display it rather than having an alert for each TA
-        // TODO: Create a list of TAs that were not added due to errors and display it as one alert
         if (curCourse.isExistingTA(name)){
-            alert(`The TA, ${name}, couldn't be added because a TA with that name already exists.`);
+            const overwriteConf = confirm(`The TA ${name} already exists, do you want to overwrite them? This action CANNOT be undone.`);
+
+            if (overwriteConf){
+                const oldTA = curCourse.findTAByName(name);
+                const newTA = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
+                curCourse.overwriteTA(oldTA, newTA)
+            }
+            else {
+                tas_exist_arr.push(name);
+            }
+            
             continue;
         }
 
         if (isNaN(hrs) || isNaN(max_consec)){
-            alert(`The contracted hours and/or consec hours couldn't be parsed for row ${i + 2}. This TA will not be added at this time.`);
+            tas_err_hours_arr.push(name);
             continue;
         }
 
         var ta = new TA(name, hrs, max_consec, avail, [], {}, curCourse.numTAs + i, days_needed, exp);
         tas_arr.push(ta);
+    }
+
+    // Alert user if there are TAs that couldn't be added
+    if (tas_exist_arr.length > 0){
+        alert("The following TAs couldn't be added because a TA with their name already exists:\n" + tas_exist_arr.join("\n"))
+    }
+    
+    if (tas_err_hours_arr.length > 0){
+        alert("The following TAs couldn't be added because their contracted hours and/or consec hours couldn't be parsed:\n" + tas_err_hours_arr.join("\n"))
     }
 
     const conf = confirm("Please confirm that you would like to add the following TAs:\n\n" + stringifyBulkTAs(tas_arr, days_needed))
