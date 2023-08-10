@@ -1766,31 +1766,59 @@ function loadCourses(){
     populateCourseList();
 }
 
+function loadLastCourse(){
+    const lastCourse = localStorage.getItem("lastCourse");
+
+    if (lastCourse !== null){
+        loadCourseData(lastCourse);
+    }
+}
+
+function findCourse(cname){
+    for (var i in courses){
+        if (courses[i].name == cname){
+            const course = courses[i]
+            curCourse = course;
+            
+            return course;
+        }
+    }
+
+    return null;
+}
+
+
 function loadCourseData(e){
-    let cname = e.target.innerText;
+    if (typeof(e) === "string"){
+        var cname = e;
+    }
+    else {
+        var cname = e.target.innerText;
+    }
 
     if (curCourse !== undefined && curCourse.name === cname){
         return;
     }
 
-    for (var i in courses){
-        if (courses[i].name == cname){
-            const course = courses[i]
-            curCourse = course;
-            course.initialize();
+    const course = findCourse(cname);
 
-            mainSpotlight("courseInfoDiv");
+    if (course !== null){
+        localStorage.setItem("lastCourse", cname);
 
-            showElement("eventsDiv");
-            showElement("secondaryBar");
+        course.initialize();
 
-            highlightActiveCourse(cname);
-            updateCourseForm();
-            return;
-        }
+        mainSpotlight("courseInfoDiv");
+
+        showElement("eventsDiv");
+        showElement("secondaryBar");
+
+        highlightActiveCourse(cname);
+        updateCourseForm();
+        return;
     }
-
-    console.log("The specified course could not be found.");
+    else {
+        console.log("ERROR: The specified course could not be found.");
+    }
 }
 
 function highlightActiveCourse(cname){
@@ -3074,46 +3102,8 @@ function floatToEscStrTime(x){
 }
 
 loadCourses();
+loadLastCourse();
 
 // Activate tooltip for bootstrap
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
-
-// Testing for Intervals
-/*
-i1 = new Interval(12, 15)
-i2 = new Interval(11, 14)
-i3 = new Interval(13, 14)
-i4 = new Interval(14, 17)
-i5 = new Interval(20, 23)
-i6 = new Interval(null, null)
-
-console.log("Test for left overlap");
-console.log(i1.hasOverlap(i2))
-console.log(i1.contains(i2))
-
-console.log("Test for middle overlap");
-console.log(i1.hasOverlap(i3))
-console.log(i1.contains(i2))
-
-console.log("Test for right overlap");
-console.log(i1.hasOverlap(i4))
-console.log(i1.contains(i4));
-
-console.log("Test for no overlap");
-console.log(i1.hasOverlap(i5));
-console.log(i1.contains(i5));
-
-console.log("Test for union");
-i1 = new Interval(12, 15)
-i1.union(i6)
-
-i1 = new Interval(12, 15)
-i1.union(i3)
-
-i1 = new Interval(12, 15)
-i1.union(i5)
-i1.union(i2)
-console.log(i1.intervals);
-console.log(i1.toTimeString());
-*/
