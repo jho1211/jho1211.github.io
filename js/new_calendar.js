@@ -1216,7 +1216,7 @@ class Course{
             if (this.tas[i].name == oldTA.name){
                 this.tas[i] = newTA;
                 this.saveCourseData();
-                location.reload();
+                this.initialize();
                 return true;
             }
         }
@@ -1246,7 +1246,7 @@ class Course{
 
         this.tas = new_arr;
         this.saveCourseData();
-        location.reload();
+        this.initialize();
     }
 
     populateTASelect(id){
@@ -1325,6 +1325,8 @@ class Course{
             e.unassignTA(oldTA, slot);
             oldTA.unassignEvent(e);
             console.log("Unassigned " + oldTA.name);
+            curCourse.saveCourseData();
+            return true;
         }
         else {
             // If slot is already filled with TA, then unassign old TA and then assign new TA
@@ -1337,11 +1339,14 @@ class Course{
                     e.assignTA(ta, slot)
                     oldTA.unassignEvent(e);
                     ta.assignEvent(e)
+
+                    curCourse.saveCourseData();
+                    return true;
                 }
                 else {
                     // TODO: Prevent the select from changing to the new option if this happens!
                     alert("The specified TA is already assigned to this event.")
-                    return;
+                    return false;
                 }
             }
 
@@ -1351,11 +1356,12 @@ class Course{
                 if (!e.isTAAssigned(ta)){
                     e.assignTA(ta, slot);
                     ta.assignEvent(e);
+
+                    curCourse.saveCourseData();
+                    return true;
                 }
             }
         }
-
-        curCourse.saveCourseData();
     }
 }
 
@@ -2025,6 +2031,8 @@ function createNewTA(){
         var newTA = new TA(name, hours, consec, avail, [], {}, curCourse.numTAs, curCourse.days, exp);
         curCourse.addTA(newTA);
         curCourse.populateTASelect("manageTASelect");
+        // Recreate the event buttons and allocation of hours and TA availability viewer and individual TA schedule
+        curCourse.initialize();
         return true;
     }
 
@@ -2313,7 +2321,19 @@ function assignTAToEvent(evt){
     const slot = parseInt(split_str[3]);
     const ta = evt.target.value;
 
-    curCourse.assignTAEvent(ta, eventID, slot);
+    const res = curCourse.assignTAEvent(ta, eventID, slot);
+    console.log(res);
+
+    if (res){
+        const modalSelector = "#" + split_str[0] + split_str[1] + "modal";
+        const courseEvent = curCourse.getEvent(eventID);
+
+        // Recreate the modal and event calendar button and regenerate the individual calendar
+        courseEvent.newModal();
+        courseEvent.newEventButton();
+        $(modalSelector).modal("show");
+        curCourse.generateIndividualCal();
+    }
 }
 
 /* Upload Bulk TAs System
