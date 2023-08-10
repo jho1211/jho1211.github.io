@@ -1913,7 +1913,8 @@ function createNewCourse(){
     showElement("eventsDiv");
     showElement("secondaryBar");
 
-    highlightActiveCourse();
+    highlightActiveCourse(nameEle.value.toUpperCase());
+    curCourse.initialize();
 
     alert(`The new course ${newCourse.name} has been created successfully!`)
 
@@ -2234,6 +2235,15 @@ function availJsonToString(aj){
 
 function newEvent(){
     var form = document.getElementById("newEventForm");
+
+    // Check that all elements except for description are present before continuing
+    for (var i = 0; i < form.elements.length - 1; i++){
+        if (form.elements[i].value === ""){
+            form.reportValidity();
+            return;
+        }
+    }
+
     const ename = form.elements[0].value;
     const etype = form.elements[1].value;
     const eday = form.elements[2].value;
