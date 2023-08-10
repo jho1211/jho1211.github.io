@@ -1908,6 +1908,13 @@ function createNewCourse(){
     updateCourseForm();
     curCourse = newCourse;
 
+    mainSpotlight("courseInfoDiv");
+
+    showElement("eventsDiv");
+    showElement("secondaryBar");
+
+    highlightActiveCourse();
+
     alert(`The new course ${newCourse.name} has been created successfully!`)
 
     return true;
