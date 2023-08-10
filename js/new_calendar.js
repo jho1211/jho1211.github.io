@@ -2428,7 +2428,9 @@ function parseBulkTAs(arr){
         for (let i = 0; i < tas_arr.length; i++){
             curCourse.addTA(tas_arr[i]);
         }
+
         alert("The TAs were added successfully!")
+        curCourse.initialize();
 
         return;
     }
