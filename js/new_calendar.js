@@ -2953,6 +2953,7 @@ function clearAllData(){
 
     if (conf){
         localStorage.removeItem("courses");
+        localStorage.removeItem("lastCourse");
         location.reload();
     }
 }
