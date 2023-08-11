@@ -1835,6 +1835,7 @@ function loadCourseData(e){
 
         highlightActiveCourse(cname);
         updateCourseForm();
+        $("#courseCollapse").collapse("hide");
         return;
     }
     else {
@@ -1859,6 +1860,7 @@ function loadNewCourse(){
     hideElement("eventsDiv")
     hideElement("secondaryBar");
     mainSpotlight("courseInfoDiv")
+    $("#courseCollapse").collapse("show");
     highlightActiveCourse("")
 
     let courseForm = document.getElementById("courseForm");

@@ -1,3 +1,7 @@
+:root {
+    --default-blue: #005EB1;
+}
+
 .noselect {
     cursor: default;
     -webkit-touch-callout: none;
@@ -62,7 +66,7 @@ td.indivAssigned{
 button.img-btn{
     border-width: 0px;
     background: none;
-    color: blue;
+    color: var(--default-blue);
 }
 
 .hoverTable tr:hover td{
@@ -261,4 +265,12 @@ a.dropdown-item-add{
 
 a.dropdown-item-warning{
     color: red;
+}
+
+.bg-index-primary{
+    background-color: var(--default-blue);
+}
+
+button.btn-primary{
+    background-color: var(--default-blue);
 }
