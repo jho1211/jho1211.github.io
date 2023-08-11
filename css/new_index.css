@@ -34,7 +34,7 @@ button.availEvent {
 .accordion {
     --bs-accordion-bg: white;
     --bs-accordion-btn-bg: #e7f1ff;
-    --bs-accordion-border-color: black;
+    --bs-accordion-border-color: #dee2e6;
     --bs-accordion-active-bg: white;
     --bs-accordion-active-color: black;
 }
