@@ -2905,9 +2905,9 @@ function clearAssignments(){
 function mainSpotlight(e){
 
     // if no course is selected yet, the divs won't be revealed
-    if (curCourse === undefined || curCourse === null){
-        return;
-    }
+    // if (curCourse === undefined || curCourse === null){
+    //     return;
+    // }
 
     let main = document.getElementById("mainContentDiv");
     let children = main.children;
