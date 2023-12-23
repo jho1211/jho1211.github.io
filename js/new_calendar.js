@@ -1765,25 +1765,31 @@ function populateCourseList(){
     }
 }
 
-function loadCourses(){
-    if (typeof(Storage) == "undefined") {
-        alert("Your web browser doesn't support web storage so data could not be loaded.")
+function fetchCourses() {
+    const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev";
+    const requestOptions = {
+        method: 'GET',
+        headers: {"Content-Type": "application/json"}
+    }
+
+    fetch(BASE_API, requestOptions)
+    .then(response => response.text())
+    .then(result => loadCourses(JSON.parse(result).body))
+    .catch(err => console.log("error: ", err));
+}
+
+function loadCourses(courseData) {
+    courseData = JSON.parse(courseData);
+    if (courseData === null || courseData.length === 0){
         return;
     }
 
-    var courseStorage = JSON.parse(localStorage.getItem("courses"))
-
-    if (courseStorage === null || courseStorage.length === 0){
-        return;
-    }
-
-    for (var i = 0; i < Object.keys(courseStorage).length; i++){
-        const data = courseStorage[Object.keys(courseStorage)[i]]
-        console.log(data);
+    for (var i = 0; i < Object.keys(courseData).length; i++){
+        const data = courseData[Object.keys(courseData)[i]]
         let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
         courses.push(course);
     }
-
+    
     populateCourseList();
 }
 
@@ -3199,7 +3205,7 @@ function floatToEscStrTime(x){
     return hr + "\\:" + mins;
 }
 
-loadCourses();
+fetchCourses();
 loadLastCourse();
 
 // Activate tooltip for bootstrap
