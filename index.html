@@ -6,371 +6,513 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.6.3.slim.min.js" integrity="sha256-ZwqZIVdD3iXNyGHbSYdsmWP//UBokj2FHAxKuSBKDSo=" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/papaparse@5.4.0/papaparse.min.js" crossorigin="anonymous"></script>
-    <link href="css/index.css" rel="stylesheet"></script>
+    <link href="css/new_index.css" rel="stylesheet">
 </head>
-<body class="bg-dark">
-    <nav class="navbar bg-secondary">
+<body class="bg-light full-height">
+    <nav class="navbar navbar-expand-lg bg-index-primary">
         <div class="container-fluid text-primary">
-          <a class="navbar-brand text-white fs-3" href="#">
-            <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top">
-            UBC CS
-          </a>
+            <a class="navbar-brand fs-3 text-white" href="#" style="display: flex; align-items: row;">
+                <!-- <img src="img/pc-display-horizontal.svg" alt="Logo" width="60" height="40" class="d-inline-block align-text-top" > -->
+                UBC CS TA Scheduler
+            </a>
+            <div class="dropdown dropstart float-end">
+                <button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <img src="img/gear-fill.svg" width="32" height="32">
+                </button>
+                <ul class="dropdown-menu">
+                    <li>
+                        <a class="dropdown-item" onclick="importAllData()" href="#">Import Data</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" onclick="exportAllData()" href="#">Export Data</a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" onclick="clearAllData()" href="#" style="color:red;">Clear Data</a>
+                    </li>
+                </ul>
+              </div>
         </div>
     </nav>
-    <div class="vr"></div>
-    <div class="container bg-dark text-white mb-3">
-        <h1>UBC CS TA Scheduler</h1>
+    <div class="bg-index-primary nav-style" id="secondaryBar" hidden>
+        <a class="navbar-brand fs-3" style="padding-right: 16px; padding-left: 12px; color: yellow;" id="curCourseSelected">CPSC 213</h1>
+        <a class="nav-link text-white secondary-bar-item" href="#course" onclick="mainSpotlight(this)" data-target="courseInfoDiv">Manage Course</a>
+        <a class="nav-link text-white secondary-bar-item" href="#tas" onclick="mainSpotlight(this)" data-target="taListDiv">Manage TAs</a>
+        <a class="nav-link text-white secondary-bar-item" href="#avail" onclick="mainSpotlight(this)" data-target="availCalDiv">Availability Calendar</a>
+        <a class="nav-link text-white secondary-bar-item" href="#alloc" onclick="mainSpotlight(this)" data-target="allocDiv">Allocation of Hours</a>
     </div>
-
-    <div class="container">
-        <div class="row mb-3">
-            <div class="col-3">
-                <div class="form-floating mb-3">
-                    <select class="form-select" aria-label="Select a Course:" id="selectCourseInput" onchange="initializeCourse();">
-                        <option selected disabled></option>
-                        <option>Add New Course</option>
-                        <option disabled>----------</option>
-                    </select>
-                    <label for="selectTAInput" class="form-label">Select a Course:</label>
+    <div class="container mh-100 courseListContainer mw-100">
+        <div class="row mh-100">
+            <div class="col-2 courseList border">
+                <div class="courseListTitle">
+                    <h6>COURSES</h6>
+                </div>
+                <div class="courseListBody accordion" id="courseListBody">
+                    <button type="button" class="courseListNewBtn" onclick="loadNewCourse()">+ Add New Course</button>
                 </div>
             </div>
-            <div class="col-3">
-                <div class="form-floating mb-3">
-                    <select class="form-select" aria-label="Select a TA to schedule:" id="selectTAInput" hidden onchange="updateTAForm();">
-                        <option selected disabled></option>
-                        <option>Add New TA</option>
-                        <option disabled>----------</option>
-                    </select>
-                    <label for="selectTAInput" class="form-label">Select a TA to schedule:</label>
-                </div>
-            </div>
-            <div class="col" hidden id="bulkAddTAsDiv">
-                <label for="bulkAddTAsFileInput" class="form-label text-white">Bulk Add TAs</label>
-                <div class="input-group mb-3">
-                    <input type="file" class="form-control" id="bulkAddTAsFileInput" accept=".csv" onchange="readBulkTAs()">
-                    <label class="input-group-text" for="inputGroupFile02">Upload</label>
-                    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" 
-                    data-bs-title="The uploaded file must be in CSV format with the following columns: TA Name, Contracted Hours, Max Consec Hours, Availability for Mon, Tue, Wed, ..."
-                    style="border-width: 0px;">
-                        <img src="img/question-circle-fill.svg">
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <div class="accordion accordion-flush mb-2" id="courseAccordion" hidden>
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#courseCollapse" aria-expanded="true" aria-controls="courseCollapse">
-                        <strong>Edit Course</strong>
-                    </button>
-                </h2>
-                <div id="courseCollapse" class="accordion-collapse collapse show" aria-labelledby="courseCollapse">
-                    <div class="accordion-body">
-                        <form class="needs-validation mb-3" id="courseForm" onsubmit="return false;" novalidate>
-                            <div class="row mb-3">
-                                <div class="col-3">
-                                    <label for="inputCourseName" class="form-label text-white">Course Name:</label>
-                                    <input type="text" class="form-control" placeholder="CPSC XXX" aria-label="Course Name" id="inputCourseName" required>
-                                    <div class="invalid-feedback" id="courseNameFeedback">
-                                        A course with that name already exists
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <label class="form-label text-white">Days for TAs:</label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Mon">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Monday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Tue">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Tuesday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Wed">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Wednesday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Thu">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Thursday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Fri">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Friday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Sat">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Saturday
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" value="Sun">
-                                        <label class="form-check-label text-light" for="flexCheckDefault">
-                                            Sunday
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <div>
-                                        <label for="startHour" class="form-label text-light">Start Hour:</label>
-                                        <input type="time" list="startHours" id="startHour" required>
-                                        <datalist id="startHours">
-                                            <option value="08:00"></option>
-                                            <option value="08:30"></option>
-                                            <option value="09:00"></option>
-                                            <option value="09:30"></option>
-                                            <option value="10:00"></option>
-                                        </datalist>
-
-                                        <label for="endHour" class="form-label text-light">End Hour:&nbsp;</label>
-                                        <input type="time" list="endHours" id="endHour" required>
-                                        <datalist id="endHours">
-                                            <option value="17:00"></option>
-                                            <option value="17:30"></option>
-                                            <option value="18:00"></option>
-                                            <option value="18:30"></option>
-                                            <option value="19:00"></option>
-                                            <option value="19:30"></option>
-                                            <option value="20:00"></option>
-                                            <option value="20:30"></option>
-                                            <option value="21:00"></option>
-                                            <option value="21:30"></option>
-                                            <option value="22:00"></option>
-                                        </datalist>
-                                    </div>
-
-                                    <p class="form-label text-light">Course Term Length: 
-                                        <button type="button" class="img-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Winter Term: 16 weeks, Summer Term: 8 weeks">
-                                            <img src="img/question-circle-fill.svg">
-                                        </button>
-                                    </p>
-                                    <div class="input-group">
-                                        <input type="number" class="form-control" aria-label="Course Term Length" id="courseLengthInput" value="16">
-                                        <span class="input-group-text">weeks</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row">
-                                <div class="col-3">
-                                    <button type="submit" id="courseFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
-                                </div>
-                                <div class="col-3">
-                                    <button type="button" id="courseDeleteBtn" class="btn btn-lg btn-danger" hidden onclick="deleteCourse()">Delete Course</button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
+            <div class="col-9 border" id="mainContentDiv">
+                <div class="vh-center w-100 h-100" id="courseHelpDiv">
+                    <div style="text-align: center;">
+                        <h1>No course selected</h1>
+                        <h2>Select or add a course on the lefthand column to get started</h2>
                     </div>
                 </div>
-            </div>
-
-            <div class="accordion accordion-flush" id="taAccordion" hidden>
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#taCollapse" aria-expanded="true" aria-controls="taCollapse">
-                            <strong>Edit TA</strong>
-                        </button>
-                    </h2>
-                    <div id="taCollapse" class="accordion-collapse collapse show" aria-labelledby="taCollapse">
-                        <div class="accordion-body">
-                            <form class="needs-validation" id="newTAForm" onsubmit="return false;" novalidate>
-                                <div class="row">
-                                    <div class="col-3">
+                <div id="courseInfoDiv" class="p-3" hidden>
+                    <div class="accordion mb-2" id="courseAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#courseCollapse" aria-expanded="true" aria-controls="courseCollapse">
+                                    <strong>Course Info</strong>
+                                </button>
+                            </h2>
+                            <div id="courseCollapse" class="accordion-collapse collapse show" aria-labelledby="courseCollapse">
+                                <div class="accordion-body">
+                                    <form class="needs-validation mb-3" id="courseForm" onsubmit="return false;" novalidate>
                                         <div>
-                                            <label for="inputName" class="form-label text-white">TA Name:</label>
-                                            <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputName" required>
-                                            <div class="invalid-feedback" id="taNameFeedback">
-                                                A TA with that name already exists
+                                                <label for="inputCourseName" class="form-label">Course Name:</label>
+                                                <input type="text" class="form-control" placeholder="CPSC XXX" aria-label="Course Name" id="inputCourseName" required>
+                                                <div class="invalid-feedback" id="courseNameFeedback">
+                                                    A course with that name already exists
+                                                </div>
+                                        </div>
+                                        <div>
+                                            <p class="form-label">Course Term Length: 
+                                                <button type="button" class="img-btn" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Winter Term: 16 weeks, Summer Term: 8 weeks">
+                                                    <img src="img/question-circle-fill.svg">
+                                                </button>
+                                            </p>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" aria-label="Course Term Length" id="courseLengthInput" value="16">
+                                                <span class="input-group-text">weeks</span>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="col">
-                                        <div>
-                                            <label for="inputAvailability" class="form-label text-white">Availability:</label>
-                                            <div class="text-white" id="availList">Please select your availability using the calendar below.</div>
+                                        <div class="mt-2">
+                                            <label for="startHour" class="form-label">Start Hour:</label>
+                                            <input type="time" list="startHours" id="startHour" required>
+                                            <datalist id="startHours">
+                                                <option value="08:00"></option>
+                                                <option value="08:30"></option>
+                                                <option value="09:00"></option>
+                                                <option value="09:30"></option>
+                                                <option value="10:00"></option>
+                                            </datalist>
                                         </div>
-                                    </div>
+                                        <div>
+                                            <label for="endHour" class="form-label">End Hour:&nbsp;</label>
+                                            <input type="time" list="endHours" id="endHour" required>
+                                            <datalist id="endHours">
+                                                <option value="17:00"></option>
+                                                <option value="17:30"></option>
+                                                <option value="18:00"></option>
+                                                <option value="18:30"></option>
+                                                <option value="19:00"></option>
+                                                <option value="19:30"></option>
+                                                <option value="20:00"></option>
+                                                <option value="20:30"></option>
+                                                <option value="21:00"></option>
+                                                <option value="21:30"></option>
+                                                <option value="22:00"></option>
+                                            </datalist>
+                                        </div>
+                                        <div>
+                                            <label class="form-label">Days for TAs:</label>
+                                            <div class="checklist-horizontal">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Mon" id="checkMon">
+                                                    <label class="form-check-label" for="checkMon">
+                                                        Monday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Tue" id="checkTue">
+                                                    <label class="form-check-label" for="checkTue">
+                                                        Tuesday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Wed" id="checkWed">
+                                                    <label class="form-check-label" for="checkWed">
+                                                        Wednesday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Thu" id="checkThu">
+                                                    <label class="form-check-label" for="checkThu">
+                                                        Thursday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Fri" id="checkFri">
+                                                    <label class="form-check-label" for="checkFri">
+                                                        Friday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Sat" id="checkSat">
+                                                    <label class="form-check-label" for="checkSat">
+                                                        Saturday
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="checkbox" value="Sun" id="checkSun">
+                                                    <label class="form-check-label" for="checkSun">
+                                                        Sunday
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-3">
+                                            <div class="col">
+                                                <button type="button" id="courseDeleteBtn" class="btn btn-danger float-end" style="margin-left: 8px;" hidden onclick="deleteCourse()">Delete Course</button>
+                                                <button type="submit" id="courseFormSubmitBtn" class="btn btn-primary float-end">Save Course</button>
+                                            </div>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="row mb-3">
-                                    <div class="col-3">
-                                        <label for="taMaxHoursInput" class="form-label text-white">Max Hours:</label>
-                                        <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
-                                    </div>
-                                    <div class="col-5">
-                                        <label for="consecSelect" class="form-label text-white">Max consecutive hours?</label>
-                                        <select class="form-select" id="consecSelect">
-                                            <option value="2">2</option>
-                                            <option value="4">4</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-4">
-                                        <label for="taExpSelect" class="form-label text-white">Will this be your first time TAing?</label>
-                                        <select class="form-select" id="taExpSelect">
-                                            <option value="New">Yes</option>
-                                            <option value="Returning">No</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row">
-                                    <div class="container">
-                                        <h2 class="text-white">Availability Calendar</h1>
-                                        <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="taAvailCalendar" oncontextmenu="return false;"></table>
-                                    </div>
-                                </div>
-                                <hr class="text-white" />
-                                <div class="row">
-                                    <div class="col-3">
-                                        <button type="submit" id="taFormSubmitBtn" class="btn btn-lg btn-primary">Submit</button>
-                                    </div>
-                                    <div class="col-3">
-                                        <button type="button" id="taDeleteBtn" class="btn btn-lg btn-danger" hidden onclick="deleteTA()">Delete TA</button>
-                                    </div>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-    </div>
-    <div class="vr" style="height: 5px"></div>
-
-    <nav class="mb-3" id="courseNavBar" hidden>
-        <div class="nav nav-tabs justify-content-center" id="nav-tab" role="tablist">
-          <button class="nav-link active" id="nav-event-tab" data-bs-toggle="tab" data-bs-target="#eventsDiv" type="button" role="tab" aria-controls="nav-home" aria-selected="true">Event Calendar</button>
-          <button class="nav-link" id="nav-schedule-tab" data-bs-toggle="tab" data-bs-target="#indivScheduleDiv" type="button" role="tab" aria-controls="nav-profile" aria-selected="false">TA Schedules</button>
-          <button class="nav-link" id="nav-ots-tab" data-bs-toggle="tab" data-bs-target="#oneTimeScheduleDiv" type="button" role="tab" aria-controls="nav-ots" aria-selected="false">TA Availability Viewer</button>
-          <button class="nav-link" id="nav-alloc-tab" data-bs-toggle="tab" data-bs-target="#allocationOfHoursDiv" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Allocation of Hours</button>
-        </div>
-    </nav>
-
-    <div class="tab-content" id="navTabContent" hidden>
-        <div class="container tab-pane fade show active" id="eventsDiv">
-            
-            <div class="eventCalendarText mb-3">
-                <h1 class="text-white">Event Calendar</h1>
-                <div>
-                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event me-4" onclick="clearAssignments()">
-                        <img src="img/arrow-counterclockwise.svg" width="26" height="26"> Clear Assignments
-                    </button>
-                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event me-4" onclick="autoSchedule()">
-                        <img src="img/android2.svg" width="26" height="26"> Auto Schedule TAs
-                    </button>
-                    <button type="button" id="newEventBtn" class="btn btn-lg btn-new-event" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">
-                        <img src="img/plus-circle.svg" width="26" height="26"> New Event
-                    </button>
-                </div>
-            </div>
-            <div class="eventCalLegend">
-                <p>
-                    <img src="img/person-fill-check.svg" width="60px" height="30px"> All TAs Filled
-                    <img src="img/person-fill-add.svg" width="60px" height="30px"> More TAs Required
-                    <img src="img/person-fill-dash.svg" width="60px" height="30px"> No TAs Available
-                </p>
-            </div>
-            <table class="table text-white table-bordered" style="table-layout: fixed" id="eventCalendar">
-            </table>
-        </div>
-
-        <div class="container tab-pane fade" id="indivScheduleDiv">
-            
-            <div class="eventCalendarText mb-3 row">
-                <div class="col-6">
-                    <h1 class="text-white">Individual TA Schedule</h1>
-                </div>
-                <div class="col-3">
-                    <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
-                        <option selected>Select a TA to View</option>
-                    </select>
-                </div>
-            </div>
-
-            <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
-            </table>
-
-            <div class="row">
-                <div class="col-3">
-                    <button type="button" class="btn btn-primary">Export to iCal</button>
-                </div>
-                <div class="col-3">
-                    <button type="button" class="btn btn-primary">Export to Google Calendar</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="container tab-pane fade" id="allocationOfHoursDiv">
-            <div class="eventCalendarText row mb-3">
-                <div class="col-6">
-                    <h1 class="text-white">Allocation of Hours</h1>
-                </div>
-            </div>
-            <table class="table text-white table-bordered hoverTable" id="allocationHoursTable">
-            </table>
-            <div class="col-3">
-                <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
-            </div>
-        </div>
-
-        <div class="container tab-pane fade" id="oneTimeScheduleDiv">
-            <div class="eventCalendarText row mb-3">
-                <div class="col-6">
-                    <h1 class="text-white">TA Availability Viewer</h1>
-                </div>
-            </div>
-            <div class="mb-5">
-                <div class="row mb-5">
-                    <h3 class="text-primary">Please select a consecutive stretch of time for a single day (e.g. 10:00-12:00) to view the available TAs for that period.</h2>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <table class="table table-sm text-white table-bordered" style="table-layout: fixed" id="availTACalendar">
+                    <div id="eventsDiv">
+                        <div class="eventCalendarText mb-3 mt-3">
+                            <h3>Event Calendar</h3>
+                            <div class="dropdown">
+                                <button class="btn cal-actions-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                  Actions
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li>
+                                        <a class="dropdown-item dropdown-align dropdown-item-add" href="#" data-bs-toggle="modal" data-bs-target="#uploadEventModal">
+                                            <img class="me-1" src="img/plus.svg" width="21" height="21">
+                                            New Event
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item dropdown-align" href="#" onclick="exportSchedule()">
+                                            <img class="me-1" src="img/folder-symlink-fill.svg" width="21" height="21">
+                                            Export Schedule
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item dropdown-align" href="#" onclick="autoSchedule()" style="color: blue;">
+                                            <img class="me-1" src="img/lightning-charge-fill.svg" width="21" height="21">
+                                            Auto-Schedule TAs
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item dropdown-align dropdown-item-warning" href="#" onclick="clearAssignments()">
+                                            <img class="me-1" src="img/eraser-fill.svg" width="21" height="21">
+                                            Clear Assignments
+                                        </a>
+                                    </li>
+                                </ul>
+                              </div>
+                        </div>
+                        <!-- <div class="eventCalLegend">
+                            <p>
+                                <img src="img/person-fill-check.svg" width="60px" height="30px"> All TAs Filled
+                                <img src="img/person-fill-add.svg" width="60px" height="30px"> More TAs Required
+                                <img src="img/person-fill-dash.svg" width="60px" height="30px"> No TAs Available
+                            </p>
+                        </div> -->
+                        <table class="table text-white table-bordered" style="table-layout: fixed" id="eventCalendar">
                         </table>
                     </div>
-                    <div class="col">
-                        <div class="row">
-                            <h3 class="text-white">Available TAs (no conflicts)</h3>
-                            <ul class="text-white" id="availNoConflictUL">
-                            </ul>
+                </div>
+                <div id="taListDiv" class="p-3" hidden>
+                    <h1 class="mb-3">Manage TAs</h1>
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadTAModal">
+                            Upload TAs
+                        </button>
+                    </div>
+                    <hr />
+                    <div>
+                        <label for="manageTASelect">Choose a TA to Manage:</label>
+                        <select class="form-select" id="manageTASelect" onchange="openTAForm()">
+                            <option selected value="-1"></option>
+                        </select>
+                    </div>
+                    <hr />
+                    <div class="eventCalendarText mt-3 mb-3 row">
+                        <div class="col-6">
+                            <h2>Individual TA Schedule</h2>
+                        </div>
+                        <div class="col-3">
+                            <select class="form-select" aria-label="Select the TA's name:" id="indivTAScheduleSelect">
+                                <option selected>Select a TA to View</option>
+                            </select>
+                        </div>
+                    </div>
+        
+                    <table class="table text-white table-bordered" style="table-layout: fixed" id="indivTACalendar">
+                    </table>
+                </div>
+
+                <div id="availCalDiv" class="p-3" hidden>
+                    <div class="eventCalendarText row mb-3">
+                        <div class="col-6">
+                            <h1>TA Availability Viewer</h1>
+                        </div>
+                    </div>
+                    <div class="mb-5">
+                        <div class="row mb-5">
+                            <h5 class="text-primary">Please select a consecutive stretch of time for a single day (e.g. 10:00-12:00) to view the available TAs for that period.</h2>
                         </div>
                         <div class="row">
-                            <h3 class="text-muted">Available TAs (conflicts)</h3>
-                            <ul class="text-muted" id="availConflictUL">
-                            </ul>
+                            <div class="col-7">
+                                <table class="table table-sm text-white table-bordered" style="table-layout: fixed" id="availTACalendar">
+                                </table>
+                            </div>
+                            <div class="col-5">
+                                <div class="row">
+                                    <h4>Available TAs (no conflicts)</h3>
+                                    <ul id="availNoConflictUL">
+                                    </ul>
+                                </div>
+                                <div class="row">
+                                    <h4 style="color: red;">Available TAs (conflicts)</h3>
+                                    <ul style="color: red;" id="availConflictUL">
+                                    </ul>
+                                </div>
+                                <div class="row">
+                                    <h4>Heat Map Legend</h4>
+                                    <img width="75%" height="75%" src="img/availCalLegend.svg">
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <div class="p-3" id="allocDiv" hidden>
+                    <div class="eventCalendarText row mb-3">
+                        <div class="col-6">
+                            <h1>Allocation of Hours</h1>
+                        </div>
+                    </div>
+                    <table class="table text-white table-bordered hoverTable" id="allocationHoursTable" style="table-layout: auto;">
+                    </table>
+                    <div class="col-3">
+                        <a id="allocExportCSVBtn" role="button" class="btn btn-primary">Export to CSV</a>
                     </div>
                 </div>
             </div>
         </div>
-        
-    <div id="modalEvents">
+    </div>
+
+    <div class="modal fade" id="uploadEventModal" tabindex="-1" aria-labelledby="uploadEventModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Course Events Upload</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <b>Bulk Upload</b><br>
+                    Recommended for initial upload of main course events.<br><br>
+                    <b>Manual Upload</b><br>
+                    Recommended for one-time events.
+                </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newEventModal" onclick="openNewEvent()">Manual Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkEventModal">Bulk Upload</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="uploadTAModal" tabindex="-1" aria-labelledby="uploadTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Course TAs Upload</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    <b>Qualtrics CSV Upload</b><br>
+                    Recommended for initial upload of course TAs. Overrides all current TAs.<br><br>
+                    <b>Legacy CSV Upload</b><br>
+                    Works similar to Qualtrics CSV upload but requires more work on staff end.<br><br>
+                    <b>Manual Upload</b><br>
+                    Add TAs individually by filling out a form.
+                </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newTAModal">Manual Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#bulkTAModal">Bulk Upload</button>
+              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#qualtricsTAModal">Qualtrics CSV</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bulkEventModal" tabindex="-1" aria-labelledby="bulkEventModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Bulk Events Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The uploaded file must be in CSV format wtih the following columns:<br><br>
+                    Event name, Event type, Event day (DDD), Start time (24 hour clock), Duration (min), Num weeks, Location, Number of TAs required, Description (optional)
+                </p>
+                <a href="example/testUploadEvents.csv">Download Example</a>
+                <input type="file" class="form-control mt-3" id="bulkAddEventsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readBulkEvents()">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="bulkTAModal" tabindex="-1" aria-labelledby="bulkTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Bulk TAs Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    The uploaded file must be in CSV format wtih the following columns:<br><br>
+                    TA Name, Experience, Contracted Hrs, Max Consec Hours (2 or 4), Availability for Mon, Tue, Wed, etc.
+                </p>
+                <a href="example/testUploadTAs.csv">Download Example</a>
+                <input type="file" class="form-control mt-3" id="bulkAddTAsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readBulkTAs()">Confirm</button>
+            </div>
+          </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="qualtricsTAModal" tabindex="-1" aria-labelledby="qualtricsTAModal" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">Qualtrics CSV Upload (Recommended)</h1>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>
+                    Export the Qualtrics responses by going to 'Data & Analysis' > Export & Import > Export Data... > CSV <br><br>
+                    Make sure to remove <b>ALL</b> the non-question columns before uploading the Qualtrics CSV!
+                </p>
+                <a href="https://ubc.ca1.qualtrics.com/jfe/form/SV_9n6CaYLbGEWSske" target="_blank">Example Survey</a><br>
+                <a href="example/testQualtricsTAs.csv">Download Example CSV</a>
+                <input type="file" class="form-control mt-3" id="qualtricsFileInput" accept=".csv">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <!--If the user presses confirm and there is a file uploaded, then the events are read and saved-->
+              <button type="button" class="btn btn-primary" onclick="readQualtricsCSV()">Confirm</button>
+            </div>
+          </div>
+        </div>
     </div>
 
     <div class="modal fade" id="newEventModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
-                <form id="newEventForm" onsubmit="return false;">
-                    <div class="modal-header">
-                        <div class="row">
-                            <div class="col-12">
-                                <div class="input-group">
-                                    <span class="input-group-text"><b>Event Name</b></span>
-                                    <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
-                                </div>
-                            </div>
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Manually Add Events</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newEventForm" onsubmit="return false;">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Name</span>
+                            <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Type</span>
+                            <select class="form-select form-select-sm" id="newEventTypeSelect" required>
+                                <option value="Lecture">Lecture</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Tutorial">Tutorial</option>
+                                <option value="Office Hours">Office Hours</option>
+                                <option value="Piazza">Piazza</option>
+                                <option value="Lecture">Meeting</option>
+                                <option value="Curriciulum Dev">Development</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Day</span>
+                            <select class="form-select form-select-sm" id="newEventDaySelect" required>
+                                <option value="Mon">Monday</option>
+                                <option value="Tue">Tuesday</option>
+                                <option value="Wed">Wednesday</option>
+                                <option value="Thu">Thursday</option>
+                                <option value="Fri">Friday</option>
+                                <option value="Sat">Saturday</option>
+                                <option value="Sun">Sunday</option>
+                            </select>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Start Time</span>
+                            <input type="time" class="form-control form-control-sm" aria-label="Start Time Input" id="newEventStartTimeInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Duration</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Duration Input" id="newEventEndTimeInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">minutes</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Length</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of weeks input" id="newEventLengthInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">weeks</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Location</span>
+                            <input type="text" class="form-control form-control-sm" aria-label="Location Input" id="newEventLocInput" required>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">TAs Required</span>
+                            <input type="number" class="form-control form-control-sm" aria-label="Number of TAs Input" id="newEventTARequiredInput" aria-describedby="basic-addon2" required>
+                            <span class="input-group-text" id="basic-addon2">TAs</span>
+                        </div>
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Description</span>
+                            <textarea class="form-control" id="newEventDescriptionInput" row="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" onclick="newEvent()">Save Changes</button>
                     </div>
-                    <div class="modal-body">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editEventModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Edit Event</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editEventForm" onsubmit="return false;">
+                        <div class="input-group input-group-sm mb-2">
+                            <span class="input-group-text">Event Name</span>
+                            <input type="text" class="form-control form-control-sm" placeholder="Office Hours" aria-label="Event Name Input" id="newEventNameInput" required>
+                        </div>
                         <div class="input-group input-group-sm mb-2">
                             <span class="input-group-text">Event Type</span>
                             <select class="form-select form-select-sm" id="newEventTypeSelect" required>
@@ -423,54 +565,131 @@
                             <span class="input-group-text">Description</span>
                             <textarea class="form-control" id="newEventDescriptionInput" row="3"></textarea>
                         </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" id="editEventBtn">Save Changes</button>
                     </div>
-                    <div class="modal-footer">
-                        <h5>Bulk Add Events</h5>
-                        <div class="input-group mb-3">
-                            <input type="file" class="form-control" id="bulkAddEventsFileInput" accept=".csv" onchange="readBulkEvents()">
-                            <label class="input-group-text" for="inputGroupFile02">Upload</label>
-                            <button type="button" data-bs-toggle="tooltip" data-bs-placement="right" 
-                            data-bs-title="The uploaded file must be in CSV format with the following columns: Event Name, Event Type, Event Day (DDD), Start Time (24hr time), Duration (mins), Num Weeks, Location, TAs Required, Description"
-                            style="border-width: 0px;">
-                                <img src="img/question-circle-fill.svg">
-                            </button>
-                        </div>
-                        <div>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    </div>
-
-</body>
-
-<footer>
-    <hr class="text-white"/>
-    <div class="container">
-        <div class="row">
-            <div class="col">
-                <div class="input-group mb-3">
-                    <input type="file" class="form-control" id="importDataFile" accept=".txt" onchange="importAllData()">
-                    <label class="input-group-text" for="inputGroupFile02">Import Data</label>
-                    <button type="button" data-bs-toggle="tooltip" data-bs-placement="top" 
-                    data-bs-title="The uploaded file must be in txt format and exported from the scheduler."
-                    style="border-width: 0px;">
-                        <img src="img/question-circle-fill.svg">
-                    </button>
                 </div>
             </div>
-            <div class="col-3"></div>
-            <div class="col">
-                <a role="button" class="btn btn-primary" id="exportDataBtn" onclick="exportAllData()">Export All Data</a>
+        </div>
+    </div>
+
+    <div class="modal fade" id="newTAModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Manually Add TAs</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="newTAForm" onsubmit="return false;" novalidate>
+                        <div class="input-group">
+                            <span class="input-group-text">TA Name</span>
+                            <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputTAName" required>
+                            <div class="invalid-feedback" id="taNameFeedback">
+                                A TA with that name already exists
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Hours</span>
+                            <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Consecutive Hours</span>
+                            <select class="form-select" id="consecSelect">
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Have you TA'd before?</span>
+                            <select class="form-select" id="taExpSelect">
+                                <option value="New">Yes</option>
+                                <option value="Returning">No</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <b>Availability Calendar</b>
+                            <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="taAvailCalendar" oncontextmenu="return false;"></table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary" onclick="createNewTA()">Save Changes</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-</footer>
 
-<script src="js/calendar.js"></script>
+    <div class="modal fade" id="updateTAModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Update TA</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="needs-validation" id="updateTAForm" onsubmit="return false;" novalidate>
+                        <div class="input-group">
+                            <span class="input-group-text">TA Name</span>
+                            <input type="text" class="form-control" placeholder="Name of TA" aria-label="TA Name" id="inputTAName" required>
+                            <div class="invalid-feedback" id="taNameFeedback">
+                                A TA with that name already exists
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Hours</span>
+                            <input type="number" class="form-control" id="taMaxHoursInput" value="128" step="32">
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Max Consecutive Hours</span>
+                            <select class="form-select" id="consecSelect">
+                                <option value="2">2</option>
+                                <option value="4">4</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text">Have you TA'd before?</span>
+                            <select class="form-select" id="taExpSelect">
+                                <option value="New">Yes</option>
+                                <option value="Returning">No</option>
+                            </select>
+                        </div>
+                        <div class="mt-3">
+                            <b>Assignment Overview</b>
+                            <ul>
+                                <li id="taWeeklyHours">Hours Assigned per Week: 8</li>
+                                <li id="taTotalHours">Total Hours Assigned: 80</li>
+                                <li id="taCurrentUtil">Current Utilization: 100%</li>
+                            </ul>
+                        </div>
+                        <div class="mt-3">
+                            <b>Availability Calendar</b>
+                            <table class="table table-sm text-white table-bordered noselect" style="table-layout: fixed" id="updateTAAvailCalendar" oncontextmenu="return false;"></table>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-danger" onclick="deleteTA()">Delete TA</button>
+                        <button type="submit" class="btn btn-primary" onclick="editTA()">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalEvents">
+    </div>
+</body>
+
+<script src="js/new_calendar.js"></script>
 
 </html>
