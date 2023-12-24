@@ -1097,31 +1097,7 @@ class Course{
     }
 
     saveCourseData(){
-        if (typeof(Storage) == "undefined") {
-            alert("Your web browser doesn't support web storage so data will not be saved.")
-            return;
-        }
-
-        var dataObj = JSON.parse(localStorage.getItem("courses"));
-
-        if (dataObj === null){
-            localStorage.setItem("courses", JSON.stringify([this.courseToJson()]));
-            return;
-        }
-        
-        // If the course already exists, then we need to overwrite it
-        for (var i = 0; i < dataObj.length; i++){
-            if (dataObj[i].name === this.name){
-                dataObj[i] = this.courseToJson();
-                localStorage.setItem("courses", JSON.stringify(dataObj));
-                console.log("Overwrote the previous version of the course")
-                return;
-            }
-        }
-
-        // Add the course to the array and save it in localStorage since it doesn't exist yet
-        dataObj.push(this.courseToJson())
-        localStorage.setItem("courses", JSON.stringify(dataObj));
+        this.overwriteCourseData(this);
         return;
     }
 
