@@ -1050,35 +1050,17 @@ class Course{
             indivTASelect.addEventListener("change", (e) => showIndividualTASchedule(e));
         }
     }
-    // {"courses": {"CPSC 213": ..., "CPSC 310": ...}}
+
     deleteCourseData(){
-        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + this.name;
+        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + this.name.replace(" ", "-");
         const requestOptions = {
-            method: 'DELETE',
+            method: 'DELETE'
         };
 
         fetch(BASE_API, requestOptions)
-        .then(response => response.json())
-        .then(result => console.log(result))
-        .catch(err => alert("error: ", err));
-        // var dataObj = JSON.parse(localStorage.getItem("courses"));
-
-        // if (dataObj !== null){
-        //     for (let j = 0; j < dataObj.length; j++){
-        //         if (dataObj[j].name === this.name){
-        //             dataObj.splice(j, 1)
-
-        //             if (dataObj.length > 0){
-        //                 localStorage.setItem("courses", JSON.stringify(dataObj));
-        //             }
-        //             else {
-        //                 localStorage.removeItem("courses");
-        //             }
-                    
-        //             location.reload();
-        //         }
-        //     }
-        // }
+        .then(response => response.text())
+        .then(result => location.reload())
+        .catch(err => console.log(err));
     }
 
     // Look through the current courses in the course array and replace it with the new one
@@ -1092,39 +1074,9 @@ class Course{
         };
 
         fetch(BASE_API, requestOptions)
-        .then(response => response.json())
+        .then(response => response.text())
         .then(result => console.log(result))
-        .catch(err => alert("error: ", err));
-        // var newArr = [];
-
-        // if (courses === null || courses === undefined || courses.length === 0){
-        //     return;
-        // }
-
-        // for (var i = 0; i < courses.length; i++){
-        //     const currentCourse = courses[i]
-        //     if (oldCourse.name !== currentCourse.name){
-        //         newArr.push(currentCourse);
-        //     }
-        // }
-
-        // newArr.push(newData);
-        // courses = newArr;
-
-        // var dataObj = JSON.parse(localStorage.getItem("courses"));
-
-        // if (dataObj === null){
-        //     return;
-        // }
-
-        // for (let i = 0; i < dataObj.length; i++){
-        //     if (dataObj[i].name === oldCourse.name){
-        //         dataObj[i] = newData;
-        //     }
-        // }
-
-        // localStorage.setItem("courses", JSON.stringify(dataObj));
-
+        .catch(err => console.log(err));
 
         return;
     }
@@ -1254,7 +1206,7 @@ class Course{
                 this.tas[i].unassignAllEvents();
 
                 this.tas[i] = newTA;
-                this.saveCourseData();
+                this.overwriteCourseData();
                 this.initialize();
                 return true;
             }
@@ -2025,7 +1977,6 @@ function editCourse(){
         var newCourse = new Course(nameEle.value, days, startHr, endHr, cLength, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
 
         newCourse.overwriteCourseData(curCourse);
-        location.reload();
     }
     else{
         console.log("Didn't overwrite current course");
