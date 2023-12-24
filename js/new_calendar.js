@@ -1052,60 +1052,96 @@ class Course{
     }
     // {"courses": {"CPSC 213": ..., "CPSC 310": ...}}
     deleteCourseData(){
-        var dataObj = JSON.parse(localStorage.getItem("courses"));
+        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + this.name;
+        const requestOptions = {
+            method: 'DELETE',
+        };
 
-        if (dataObj !== null){
-            for (let j = 0; j < dataObj.length; j++){
-                if (dataObj[j].name === this.name){
-                    dataObj.splice(j, 1)
+        fetch(BASE_API, requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(err => alert("error: ", err));
+        // var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-                    if (dataObj.length > 0){
-                        localStorage.setItem("courses", JSON.stringify(dataObj));
-                    }
-                    else {
-                        localStorage.removeItem("courses");
-                    }
+        // if (dataObj !== null){
+        //     for (let j = 0; j < dataObj.length; j++){
+        //         if (dataObj[j].name === this.name){
+        //             dataObj.splice(j, 1)
+
+        //             if (dataObj.length > 0){
+        //                 localStorage.setItem("courses", JSON.stringify(dataObj));
+        //             }
+        //             else {
+        //                 localStorage.removeItem("courses");
+        //             }
                     
-                    location.reload();
-                }
-            }
-        }
+        //             location.reload();
+        //         }
+        //     }
+        // }
     }
 
     // Look through the current courses in the course array and replace it with the new one
     overwriteCourseData(oldCourse){
-        const newData = this.courseToJson();
-        var newArr = [];
+        const data = this.courseToJson();
+        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + oldCourse.name;
+        const requestOptions = {
+            method: 'PUT',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        };
 
-        if (courses === null || courses === undefined || courses.length === 0){
-            return;
-        }
+        fetch(BASE_API, requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(err => alert("error: ", err));
+        // var newArr = [];
 
-        for (var i = 0; i < courses.length; i++){
-            const currentCourse = courses[i]
-            if (oldCourse.name !== currentCourse.name){
-                newArr.push(currentCourse);
-            }
-        }
+        // if (courses === null || courses === undefined || courses.length === 0){
+        //     return;
+        // }
 
-        newArr.push(newData);
-        courses = newArr;
+        // for (var i = 0; i < courses.length; i++){
+        //     const currentCourse = courses[i]
+        //     if (oldCourse.name !== currentCourse.name){
+        //         newArr.push(currentCourse);
+        //     }
+        // }
 
-        var dataObj = JSON.parse(localStorage.getItem("courses"));
+        // newArr.push(newData);
+        // courses = newArr;
 
-        if (dataObj === null){
-            return;
-        }
+        // var dataObj = JSON.parse(localStorage.getItem("courses"));
 
-        for (let i = 0; i < dataObj.length; i++){
-            if (dataObj[i].name === oldCourse.name){
-                dataObj[i] = newData;
-            }
-        }
+        // if (dataObj === null){
+        //     return;
+        // }
 
-        localStorage.setItem("courses", JSON.stringify(dataObj));
+        // for (let i = 0; i < dataObj.length; i++){
+        //     if (dataObj[i].name === oldCourse.name){
+        //         dataObj[i] = newData;
+        //     }
+        // }
+
+        // localStorage.setItem("courses", JSON.stringify(dataObj));
+
 
         return;
+    }
+
+    addCourseData() {
+        var data = this.courseToJson();
+        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev";
+        const requestOptions = {
+            method: 'POST',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        };
+
+        fetch(BASE_API, requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(err => alert("error: ", err));
     }
 
     saveCourseData(){
@@ -1932,7 +1968,7 @@ function createNewCourse(){
 
     var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, cLength, 0.5, [], [], 0, 0);
     courses.push(newCourse);
-    newCourse.saveCourseData();
+    newCourse.addCourseData();
     populateCourseList();
     updateCourseForm();
     curCourse = newCourse;
