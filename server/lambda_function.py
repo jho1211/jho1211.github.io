@@ -31,6 +31,12 @@ def add_course(event, context):
     
     # Document to add inside
     document = event
+    
+    if not (collection.find_one({"name": event["name"]}) is None):
+        return {
+        "statusCode": 503,
+        "body": "The specified course already exists."
+        }
 
     # Insert document
     result = collection.insert_one(document)
@@ -38,12 +44,12 @@ def add_course(event, context):
     if result.inserted_id:
         return {
         'statusCode': 200,
-        'body': 'The database was successfully updated!'
+        'body': event["name"] + " was successfully added to the database!"
         }
     else:
         return {
-            'statusCode': 503,
-            'body': 'There was an error saving the database.'
+        'statusCode': 503,
+        'body': 'There was an error adding the course to the database.'
         }
     
 def update_course(event, context):
@@ -51,48 +57,57 @@ def update_course(event, context):
     collection = client.courses.courses
     
     # Document to update
-    document = event["new_document"]
+    document = json.loads(event["body"])
+    repl = event["queryStringParameters"]["name"].replace("-", " ")
+    headers = {"Access-Control-Allow-Origin": "*"}
 
-    if collection.find_one({"name": event["old_name"]}) is None:
+    if collection.find_one({"name": repl}) is None:
         return {
             'statusCode': 503,
-            'body': 'The course to be modified was not found in the database.'
+            'body': 'The course to be modified was not found in the database.',
+            'headers': headers
         }
 
 
     # Insert document
-    result = collection.replace_one(filter={"name": event["old_name"]}, update=document)
+    result = collection.replace_one({"name": repl}, document)
     
     if result.modified_count:
         return {
         'statusCode': 200,
-        'body': 'The database was successfully updated!'
+        'body': 'The database was successfully updated!',
+        'headers': headers
         }
     else:
         return {
             'statusCode': 503,
-            'body': 'There was an error updating the course in the database.'
+            'body': 'There was an error updating the course in the database.',
+            'headers': headers
         }
 
 def delete_course(event, context):
-    collection = client.courses.courses
-    to_del = event["name"]
+        collection = client.courses.courses
+        to_del = event["queryStringParameters"]["name"].replace("-", " ")
+        headers = {"Access-Control-Allow-Origin": "*"}
 
-    if collection.find_one({"name": to_del}) is None:
-        return {
-            'statusCode': 503,
-            'body': 'The specified course could not be found in the database.'
-        }
-    
-    result = collection.delete_one(filter={"name": to_del})
+        if collection.find_one({"name": to_del}) is None:
+            return {
+                'statusCode': 503,
+                'body': 'The specified course could not be found in the database.',
+                'headers': headers
+            }
+        
+        result = collection.delete_one(filter={"name": to_del})
 
-    if result.deleted_count:
-        return {
-        'statusCode': 200,
-        'body': 'The course was successfully removed from the database!'
-        }
-    else:
-        return {
-            'statusCode': 503,
-            'body': 'There was an error deleting the course from the database.'
-        }
+        if result.deleted_count:
+            return {
+            'statusCode': 200,
+            'body': 'The course was successfully removed from the database!',
+            'headers': headers
+            }
+        else:
+            return {
+                'statusCode': 503,
+                'body': 'There was an error deleting the course from the database.',
+                'headers': headers
+            }
