@@ -1,12 +1,10 @@
 /*
-TODO: Replace the reloading of webpage when overwriting course/TA data.
 TODO: Refresh the event calendar when a TA is added/modified/assigned
 TODO: Change alerts to dismissible alerts
 TODO: Add ical/google calendar export feature for TA independent cal viewer
 TODO: Separate into admin and TA portal
     TA portal will be for TAs to enter their info/availability
     Admin portal can override their info
-TODO: Add persistent server-side storage
 TODO: Add clear events button
 TODO: Add clear TAs button
 
@@ -14,6 +12,7 @@ TODO: Add events where all TAs are automatically scheduled regardless of availab
 TODO: Close the course accordion when you start editing TAs
 */
 
+const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev";
 
 var newTACalendar;
 var updateTACalendar;
@@ -1052,12 +1051,12 @@ class Course{
     }
 
     deleteCourseData(){
-        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + this.name.replace(" ", "-");
+        const FULL_BASE_API = BASE_API + "?name=" + this.name.replace(" ", "-");
         const requestOptions = {
             method: 'DELETE'
         };
 
-        fetch(BASE_API, requestOptions)
+        fetch(FULL_BASE_API, requestOptions)
         .then(response => response.text())
         .then(result => location.reload())
         .catch(err => console.log(err));
@@ -1066,14 +1065,14 @@ class Course{
     // Look through the current courses in the course array and replace it with the new one
     overwriteCourseData(oldCourse){
         const data = this.courseToJson();
-        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev?name=" + oldCourse.name;
+        const FULL_BASE_API = BASE_API + "?name=" + oldCourse.name;
         const requestOptions = {
             method: 'PUT',
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(data)
         };
 
-        fetch(BASE_API, requestOptions)
+        fetch(FULL_BASE_API, requestOptions)
         .then(response => response.text())
         .then(result => console.log(result))
         .catch(err => console.log(err));
@@ -1083,7 +1082,6 @@ class Course{
 
     addCourseData() {
         var data = this.courseToJson();
-        const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev";
         const requestOptions = {
             method: 'POST',
             headers: {"Content-Type": "application/json"},
@@ -1362,6 +1360,59 @@ class TA {
                 this.assigned_avail[days[i]] = new Interval(null, null);
             }
         }
+    }
+
+    // TODO: Create a form for bulk creation or single creation of TAs (by specifying the names of the TAs they want to generate)
+    // Any duplicate TA names will be appended with some additional character
+    createTA() {
+        var data = {}
+        data["name"] = this.name;
+        data["username"] = this.name.toLowerCase().replace(" ", "") + Math.floor(Math.random() * 10000000).toString();
+        data["max_hrs"] = this.max_hrs;
+        data["consec"] = this.consec;
+        data["avail"] = this.avail;
+        data["assigned"] = this.assigned;
+        data["assigned_avail"] = this.assigned_avail;
+        data["id"] = this.id;
+        data["exp"] = this.exp;
+
+        console.log(data);
+
+        // const FULL_BASE_API = BASE_API + "/tas"
+
+        // const requestOptions = {
+        //     method: 'POST',
+        //     headers: {"Content-Type": "application/json"},
+        //     body: JSON.stringify(data)
+        // };
+
+        // fetch(FULL_BASE_API, requestOptions)
+        // .then(response => response.json())
+        // .then(result => console.log(result))
+        // .catch(err => alert("error: ", err));
+    }
+
+    updateTA() {
+        var data = {}
+        data["name"] = this.name;
+        data["max_hrs"] = this.max_hrs;
+        data["consec"] = this.consec;
+        data["avail"] = this.avail;
+        data["assigned"] = this.assigned;
+        data["assigned_avail"] = this.assigned_avail;
+        data["id"] = this.id;
+        data["exp"] = this.exp;
+
+        console.log(data);
+        const FULL_BASE_API = BASE_API + "/tas"
+
+        // const requestOptions = {
+        //     method: 'PUT',
+        //     headers: {"Content-Type": "application/json"},
+        //     body: JSON.stringify(data)
+        // };
+
+        // Need to make the AWS Lambda function for updating
     }
 
     fillTAForm(){
@@ -1730,7 +1781,6 @@ function populateCourseList(){
 }
 
 function fetchCourses() {
-    const BASE_API = "https://w540hyk5p2.execute-api.us-west-2.amazonaws.com/dev";
     const requestOptions = {
         method: 'GET',
         headers: {"Content-Type": "application/json"}
