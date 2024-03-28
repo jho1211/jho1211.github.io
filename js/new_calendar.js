@@ -3168,6 +3168,26 @@ function floatToEscStrTime(x){
     return hr + "\\:" + mins;
 }
 
+// function saveAllCourses() {
+//     data = []
+//     for (let i = 0; i < courses.length; i++) {
+//         var courseJson = courses[i].courseToJson();
+//         data.push(courseJson);
+//     }
+
+//         const BASE_API = "";
+//         const requestOptions = {
+//             method: 'POST',
+//             headers: {"Content-Type": "application/json"},
+//             body: JSON.stringify(data)
+//         };
+
+//         fetch(BASE_API, requestOptions)
+//         .then(response => response.json())
+//         .then(result => console.log(result))
+//         .catch(err => alert("error: ", err));
+// }
+
 fetchCourses();
 loadLastCourse();
 
