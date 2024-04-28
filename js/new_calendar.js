@@ -937,7 +937,7 @@ class Interval{
 
 // Data structure for a course, which contains the TAs, events, course name, start/end time and days for scheduling
 class Course{
-    constructor(name, days, start_t, end_t, clength, interv, tas, events, euuid, taid){
+    constructor(name, days, start_t, end_t, clength, interv, tas, events, euuid, taid, id){
         this.name = name;
         this.days = days;
         this.start_t = start_t;
@@ -947,7 +947,16 @@ class Course{
         this.events = events;
         this.euuid = euuid;
         this.numTAs = taid;
-        this.clength = clength // TODO: Change this so that it is a field on the form. Used to calculate how many hrs per week on avg a TA can work
+        this.clength = clength
+
+        if (id == -1 || id == undefined || id == null) {
+            if (courses.length == 0) {
+                this.id = 0;
+            } else {
+                this.id = courses[courses.length - 1].id + 1;
+            }
+        }
+
         console.log(`Created a new course called ${name} that has sessions from ${start_t} to ${end_t}`);
     }
 
@@ -1248,6 +1257,7 @@ class Course{
         data["events"] = this.events;
         data["euuid"] = this.euuid;
         data["numTAs"] = this.numTAs;
+        data["courseID"] = this.id;
 
         console.log(data);
 
@@ -1370,31 +1380,33 @@ class TA {
         data["username"] = this.name.toLowerCase().replace(" ", "") + Math.floor(Math.random() * 10000000).toString();
         data["max_hrs"] = this.max_hrs;
         data["consec"] = this.consec;
-        data["avail"] = this.avail;
-        data["assigned"] = this.assigned;
-        data["assigned_avail"] = this.assigned_avail;
+        data["avail"] = {};
+        data["assigned"] = [];
+        data["assigned_avail"] = {};
         data["id"] = this.id;
         data["exp"] = this.exp;
+        data["courses"] = [curCourse]
 
-        console.log(data);
+        console.log(JSON.stringify(data));
 
-        // const FULL_BASE_API = BASE_API + "/tas"
+        const FULL_BASE_API = BASE_API + "/tas"
 
-        // const requestOptions = {
-        //     method: 'POST',
-        //     headers: {"Content-Type": "application/json"},
-        //     body: JSON.stringify(data)
-        // };
+        const requestOptions = {
+            method: 'POST',
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(data)
+        };
 
-        // fetch(FULL_BASE_API, requestOptions)
-        // .then(response => response.json())
-        // .then(result => console.log(result))
-        // .catch(err => alert("error: ", err));
+        fetch(FULL_BASE_API, requestOptions)
+        .then(response => response.json())
+        .then(result => console.log(result))
+        .catch(err => alert("error: ", err));
     }
 
     updateTA() {
         var data = {}
         data["name"] = this.name;
+        // Need to regenerate the username if the user's name has changed
         data["max_hrs"] = this.max_hrs;
         data["consec"] = this.consec;
         data["avail"] = this.avail;
@@ -1800,7 +1812,7 @@ function loadCourses(courseData) {
 
     for (var i = 0; i < Object.keys(courseData).length; i++){
         const data = courseData[Object.keys(courseData)[i]]
-        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs);
+        let course = new Course(data.name, data.days, data.start_t, data.end_t, data.clength, data.interv, loadTAs(data.days, data.tas), loadEvents(data.days, data.events), data.euuid, data.numTAs, data.id);
         courses.push(course);
     }
     
@@ -1944,7 +1956,7 @@ function createNewCourse(){
     nameEle.classList.remove("is-invalid");
     nameEle.classList.add("is-valid");
 
-    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, cLength, 0.5, [], [], 0, 0);
+    var newCourse = new Course(nameEle.value.toUpperCase(), days, startHr, endHr, cLength, 0.5, [], [], 0, 0, -1);
     courses.push(newCourse);
     newCourse.addCourseData();
     populateCourseList();
@@ -2000,7 +2012,7 @@ function editCourse(){
     const conf = confirm("Would you like to overwrite the current course?")
 
     if (conf === true){
-        var newCourse = new Course(nameEle.value, days, startHr, endHr, cLength, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs);
+        var newCourse = new Course(nameEle.value, days, startHr, endHr, cLength, 0.5, curCourse.tas, curCourse.events, curCourse.euuid, curCourse.numTAs, -1);
 
         newCourse.overwriteCourseData(curCourse);
     }
